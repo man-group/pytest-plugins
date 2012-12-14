@@ -1,0 +1,2 @@
+""" Py.test plugins package
+"""
