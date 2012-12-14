@@ -6,8 +6,8 @@ one-stop-shop for Python development houses to get up and running using Python
 with the minimum of fuss in a Linux development environment.
 
 *IMPORTANT*: this library has a bit of cleanup work to be done before it is 
-             releasable on pypi.python.org (like getting all the tests passing
-             again), this will be completed over the next couple of months.
+releasable on pypi.python.org (like getting all the tests passing again), 
+this will be completed over the next couple of months.
 
 This library has three main components: 
 
