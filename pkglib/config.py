@@ -3,6 +3,7 @@
 import io
 import ConfigParser
 import os.path
+import distutils
 
 import errors
 
@@ -76,9 +77,10 @@ def setup_org_config(from_string=None, from_file=None, from_env="PKGLIB_CONFIG")
         p.read(from_file)
     else:
         if not from_env in os.environ:
-            raise errors.UserError("Can't setup PkgLib, missing environment variable {0}".format(from_env))
+            distutils.log.warn("Can't configure PkgLib, missing environment variable {0}".format(from_env))
+            return
         if not os.path.isfile(os.environ[from_env]):
-            raise errors.UserError("Can't setup PkgLib, can't read config at {0}"
+            raise errors.UserError("Can't configure PkgLib, unable to read config at {0}"
                                    .format(os.environ[from_env]))
         p.read(os.environ[from_env])
 

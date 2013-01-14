@@ -30,7 +30,7 @@ def set_working_dir():
 
 def clean_requires(reqs):
     """Removes requirements that aren't needed in newer python versions."""
-    if sys.version_info[:2] >= (2, 7):
+    if sys.version_info[:2] < (2, 7):
         return reqs
     return [req for req in reqs if not req.startswith('importlib')]
 
