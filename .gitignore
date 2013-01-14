@@ -1,0 +1,22 @@
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+
+# Unit test / coverage reports
+.coverage
+
+# Mr Developer
+.project
+.pydevproject
