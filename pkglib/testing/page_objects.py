@@ -31,7 +31,7 @@ class PageObject(object):
                 password = page_element(name='username')
                 login = page_element(css='input[type="submit"]')
 
-            login_page = LoginPage(webdriver, locators)
+            login_page = LoginPage(webdriver)
             login_page.username = 'foo'
             assert login_page.username.text == 'foo'
             login_page.login.click()
