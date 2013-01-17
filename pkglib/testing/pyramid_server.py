@@ -24,12 +24,14 @@ class PyramidTestServer(HTTPTestServer):
         os.environ['DEBUG'] = '1'
 
         # Discover externally accessable hostname so selenium can get to it
-        kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
+        kwargs['hostname'] = kwargs.get('hostname',
+                                        socket.gethostbyname(os.uname()[1]))
 
         super(PyramidTestServer, self).__init__(**kwargs)
 
     def pre_setup(self):
-        """ Make a copy of the development and testing ini file and set the port number and host
+        """ Make a copy of the development and testing ini file and set the
+            port number and host
         """
         # We need the development.ini as well here as they are chained
         dev_cfg = path(os.getcwd()) / 'development.ini'
@@ -47,9 +49,25 @@ class PyramidTestServer(HTTPTestServer):
         with self.config.open('w') as fp:
             parser.write(fp)
 
-        # Set the uri to be the external hostname and the url prefix
-        self._uri = "http://%s:%s/%s" % (os.uname()[1], self.port, parser.get('app:main', 'url_prefix'))
+        # Set the uri to be the external hostname and the optional url prefix
+        parts = ["http:/", "{}:{}".format(os.uname()[1], self.port)]
+        if parser.has_option('app:main', 'url_prefix'):
+            parts.append(parser.get('app:main', 'url_prefix'))
+        self._uri = "/".join(parts)
 
     @property
     def run_cmd(self):
         return [path(sys.exec_prefix) / 'bin' / 'pserve', self.config]
+
+    def get_config(self):
+        """ Convenience method to return our currently running config file as
+            an items dictionary, skipping logging sections
+        """
+        # Use our workspace for %(here) expansion
+        parser = ConfigParser.ConfigParser({'here': self.workspace})
+        parser.read(self.config)
+        return dict([(section, dict(parser.items(section)))
+                     for section in parser.sections()
+                     if not section.startswith('logger')
+                     and not section.startswith('formatter')
+                     and not section.startswith('handler')])
