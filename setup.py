@@ -7,7 +7,12 @@ from pkglib.setuptools.command import develop as pkglib_develop
 
 
 setup_args = dict(
-    entry_points={'pytest11': ['pytest_profile = pkglib.testing.pytest.profile']},
+    entry_points={
+        'pytest11': ['pytest_profile = pkglib.testing.pytest.profile'],
+        'paste.paster_create_template':
+            ['pkglib_project = pkglib.project_template.paste_template:' \
+                                'CorePackage']
+    },
     extras_require={'dot': ['gprof2dot']},
     cmdclass={'develop': develop.develop},
 )
@@ -17,6 +22,7 @@ setup_args = dict(
 # packages to find pkglib as its being installed, not matter
 # how hard I try - its like until this process exits, the egg-link
 # isn't valid or somesuch.
+# TODO: fix this by adding to pkglib.working_set ?
 
 if 'develop' in sys.argv and '--help' not in sys.argv and '-h' not in sys.argv:
     # We have to use vanilla develop command here, as we require 3rd party things for the installer

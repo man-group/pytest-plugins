@@ -2,10 +2,11 @@ import os
 import sys
 import subprocess
 from distutils import log
+from distutils.errors import DistutilsOptionError
 
 from setuptools import Command
 
-from pkglib import CONFIG
+from pkglib import CONFIG, config
 
 from base import CommandMixin
 
@@ -17,25 +18,34 @@ HUDSON_XML_COVERAGE = "coverage.xml"
 
 class test(Command, CommandMixin):
     """ Enable Py.test for setup.py commands """
-    description = "Run tests via py.test. Extra arguments are passed to py.test, but " \
-                  "must be surrounded  with escaped quotes, eg \\\"--extra-arg\\\""
+    description = "Run tests via py.test. " \
+                  "Extra arguments are passed to py.test, but must be " \
+                  "surrounded  with escaped quotes, eg \\\"--extra-arg\\\""
     command_consumes_arguments = True
 
     user_options = [
-        ("hudson", "H", "Run tests with Hudson metrics options."
-                        "This is automatically set when ${BUILD_TAG} matches /^(hudson|jenkins)/"),
-        ("pylint-options=", None, "PyLint command-line options, eg to disable certain warnings"),
+        ("hudson", "H",
+         "Run tests with Hudson metrics options. This is automatically set "
+         "when ${BUILD_TAG} matches /^(hudson|jenkins)/"),
+        ("pylint-options=", None,
+         "PyLint command-line options, eg to disable certain warnings"),
         ("unit", 'u', "Run only unit tests under tests/unit"),
-        ("integration", 'i', "Run only integration tests under tests/integration"),
-        ("regression", 'r', "Run only regression tests under tests/regression"),
+        ("integration", 'i',
+         "Run only integration tests under tests/integration"),
+        ("regression", 'r',
+         "Run only regression tests under tests/regression"),
         ("file=", 'f', "Only run tests in the specified file/s"),
-        ("doctest", 'd', "Run only doctests for python modules in this package"),
+        ("doctest", 'd',
+         "Run only doctests for python modules in this package"),
         ("subprocess", 'S', "Run tests in a subprocess."),
-        ("pdb", None, "Run tests under pdb, will drop into the debugger on failure."),
+        ("pdb", None,
+         "Run tests under pdb, will drop into the debugger on failure."),
         ("quiet", 'q', "Run tests quietly"),
         ("ignore", None, "Ignore tests matching this pattern"),
         ("no-pylint", None, "Disable pylint checking"),
-        ("test-root", None, "Root directory for tests, defaults to %s/tests" % os.getcwd()),
+        ("test-root", None,
+         "Root directory for tests, defaults to all directories matching "
+         "'{0}' under {1}".format(CONFIG.test_dirname, os.getcwd())),
     ]
     boolean_options = [
         'hudson',
@@ -50,7 +60,6 @@ class test(Command, CommandMixin):
     ]
 
     def initialize_options(self):
-        from path import path
         self.hudson = False
         if os.environ.get('BUILD_TAG', '').startswith('hudson') or \
            os.environ.get('BUILD_TAG', '').startswith('jenkins'):
@@ -67,8 +76,8 @@ class test(Command, CommandMixin):
         self.quiet = False
         self.ignore = None
         self.no_pylint = False
-        self.test_root = path.getcwd() / 'tests'
         self.file = None
+        self.test_root = []
         self.default_options = self.get_option_list()
 
     def finalize_options(self):
@@ -83,17 +92,54 @@ class test(Command, CommandMixin):
             if self.args[i].endswith('"'):
                 self.args[i] = self.args[i][:-1]
 
-        if self.unit or self.integration or self.doctest or self.file or self.regression:
+        if self.unit or self.integration or self.doctest or self.file or \
+           self.regression:
             self.all = False
 
         if self.pylint_options:
             self.pylint_options = self.pylint_options.split()
 
-    def get_options(self):
-        """ Returns all the options and args this was initialized with. Used by test_egg
-            to save away configured options when there's no setup.cfg to use.
+        if not self.test_root:
+            self.test_root = self.get_test_roots()
+        else:
+            self.test_root = [self.test_root]
+
+    def get_test_roots(self):
+        """ Find test directories, skipping nested dirs and anything marked
+            to skip under [pytest]:norecursedirs
         """
-        return [i for i in self.get_option_list() if i not in self.default_options]
+        from path import path
+        res = []
+        no_recurse = []
+        cfg = config.get_pkg_cfg_parser()
+        if cfg.has_section('pytest') and \
+           cfg.has_option('pytest', 'norecursedirs'):
+            [no_recurse.extend(path.getcwd().glob(i)) for i in
+             cfg.get('pytest', 'norecursedirs').split()]
+            no_recurse = [i.abspath() for i in no_recurse]
+
+        test_dirs = [i for i in
+                     path.getcwd().walkdirs(CONFIG.test_dirname)]
+        test_dirs.sort(key=len)
+        for i in test_dirs:
+            try:
+                for j in res + no_recurse:
+                    if i.startswith(j):
+                        raise ValueError
+            except ValueError:
+                pass
+            else:
+                res.append(i)
+        log.debug("Test roots: {0}".format(res))
+        return res
+
+    def get_options(self):
+        """ Returns all the options and args this was initialized with.
+            Used by test_egg to save away configured options when there's no
+            setup.cfg to use.
+        """
+        return [i for i in self.get_option_list()
+                if i not in self.default_options]
 
     def get_env(self):
         """ Returns shell env for use in subprocesses
@@ -200,17 +246,26 @@ class test(Command, CommandMixin):
             doctest_args += ['--ignore', self.ignore]
 
         # Choose tests to run
+        test_dirs = []
         if self.all:
-            pytest_args += [self.test_root]
+            test_dirs = self.test_root
         else:
             if self.unit:
-                pytest_args += [self.test_root / 'unit']
+                test_dirs.extend([i / 'unit' for i in self.test_root])
             if self.integration:
-                pytest_args += [self.test_root / 'integration']
+                test_dirs.extend([i / 'integration' for i in self.test_root])
             if self.regression:
-                pytest_args += [self.test_root / 'regression']
-            if self.file:
-                pytest_args += self.file.split()
+                test_dirs.extend([i / 'regression' for i in self.test_root])
+
+        if self.file:
+            pytest_args += self.file.split()
+        else:
+            extant_test_dirs = [i for i in test_dirs if i.isdir()]
+            if not extant_test_dirs:
+                msg = "Can't find any test directories, tried {0}".format(
+                      ','.join(test_dirs))
+                raise DistutilsOptionError(msg)
+            pytest_args.extend(extant_test_dirs)
 
         return pytest_args, doctest_args
 

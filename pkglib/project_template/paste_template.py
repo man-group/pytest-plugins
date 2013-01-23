@@ -25,6 +25,7 @@ for p in __path__:
     modulefinder.AddPackagePath(__name__, p)
 '''
 
+
 class Package(Template):
     template_renderer = staticmethod(paste_script_template_renderer)
     # Common defaults
@@ -32,7 +33,8 @@ class Package(Template):
         var('version', 'Version (like 1.0)', '1.0.0'),
         var('description', 'One-line description of the package', ''),
         var('author', 'Author Name', 'Your Name'),
-        var('author_email', 'Author Email', os.environ['USER'] + '@' + CONFIG.email_suffix),
+        var('author_email', 'Author Email',
+            os.environ['USER'] + '@' + CONFIG.email_suffix),
     ]
 
     def makedir(self, path):
@@ -47,26 +49,28 @@ class Package(Template):
         with open(filename, 'wb') as f:
             f.write(content)
 
-    def pre(self, command, output_dir, vars):
-        if not is_inhouse_package(vars['package']):
-            sys.exit("Error: Package name doesn't start with an company prefix.\n" \
-                     "Prefixes are:\n" \
-                     "%s" % '\n'.join(CONFIG.namespaces))
-        prefix, package = vars['package'].split('.', 1)
-        vars['package'] = package
-        vars['namespace_package'] = prefix
-        vars['project_nodot'] = vars['project'].replace('.', '')
-        vars['project_dir'] = vars['project'].replace('.', '/')
+    def pre(self, command, output_dir, pkg_vars):
+        if not is_inhouse_package(pkg_vars['package']):
+            msg = "Package name doesn't start with an company prefix.\n" \
+                  "Prefixes are:\n" \
+                  "%s" % '\n'.join(CONFIG.namespaces)
+            sys.exit(msg)
+        prefix, package = pkg_vars['package'].split('.', 1)
+        pkg_vars['package'] = package
+        pkg_vars['namespace_package'] = prefix
+        pkg_vars['project_nodot'] = pkg_vars['project'].replace('.', '')
+        pkg_vars['project_dir'] = pkg_vars['project'].replace('.', '/')
 
-    def post(self, command, output_dir, vars):
+    def post(self, command, output_dir, pkg_vars):
         # relocate to deal with unusal depth packages
-        package_subpath = vars['package'].split('.')
+        package_subpath = pkg_vars['package'].split('.')
         if len(package_subpath) > 1:
-            print 'Begining directory restructure due to the package depth being greater than two.'
-            project = vars['project']
+            print 'Beginning directory restructure due to the package depth ' \
+                  'being greater than two.'
+            project = pkg_vars['project']
             project_root = os.path.abspath(os.path.join(os.curdir, project))
             package_top = os.path.join(project_root, project.split('.')[0])
-            old_code_root = os.path.join(package_top, vars['package'])
+            old_code_root = os.path.join(package_top, pkg_vars['package'])
             new_code_root = package_top
 
             # make the required directory structure
@@ -75,16 +79,21 @@ class Package(Template):
                 self.makedir(dirname)
                 # change into the just created dir to make the next level down
                 os.chdir(dirname)
-                # build up the path to the final location the package will be moved to
+                # build up the path to the final location the package will be
+                # moved to
                 new_code_root = os.path.join(new_code_root, dirname)
-                # if this isn't the final code_root directory then add a __init__.py file
+                # if this isn't the final code_root directory then add a
+                # __init__.py file
                 if dirname != package_subpath[-1]:
-                    print 'creating namespace __init__.py for {path}'.format(path=new_code_root)
+                    print 'creating namespace __init__.py for ' \
+                          '{path}'.format(path=new_code_root)
                     self.write_content('__init__.py', NAMESPACE_INIT)
 
             os.chdir(package_top)
-            # move the code leaf of the python package into the newly created directory tree
-            print 'Relocating {old} to {new}'.format(old=old_code_root, new=new_code_root)
+            # move the code leaf of the python package into the newly created
+            # directory tree
+            print 'Relocating {old} to {new}'.format(old=old_code_root,
+                                                     new=new_code_root)
             for el in os.listdir(old_code_root):
                 el_path = os.path.join(old_code_root, el)
                 shutil.move(el_path, new_code_root)

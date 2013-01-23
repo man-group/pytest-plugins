@@ -12,51 +12,58 @@ class Config(object):
     def __init__(self, **kwargs):
         [setattr(self, k, v) for (k, v) in kwargs.items()]
 
+ORG_SLOTS = ('pypi_url',
+             'namespaces',
+             'email_suffix',
+             'dev_build_number',
+             'platform_packages',
+             'installer_search_path',
+             'default_platform_package',
+             'deploy_path',
+             'deploy_bin',
+             'vcs',
+             'virtualenv_executable',
+             'sphinx_theme',
+             'sphinx_theme_package',
+             'graph_easy',
+             'test_dirname',
+             'test_egg_namespace',
+             'test_linter',
+             'test_linter_package',
+             'jenkins_url',
+)
+
+TEST_SLOTS = ('java_executable',
+              'jenkins_war',
+              'mongo_bin',
+              'redis_executable',
+)
+
 
 class OrganisationConfig(Config):
-    __slots__ = ['pypi_url',
-                 'namespaces',
-                 'email_suffix',
-                 'dev_build_number',
-                 'platform_packages',
-                 'installer_search_path',
-                 'default_platform_package',
-                 'deploy_path',
-                 'deploy_bin',
-                 'vcs',
-                 'virtualenv_executable',
-                 'sphinx_theme',
-                 'sphinx_theme_package',
-                 'graph_easy',
-                 'test_egg_namespace',
-                 'test_linter',
-                 'test_linter_package',
-                 'jenkins_url',
-                ]
+    __slots__ = ORG_SLOTS
 
 
-class TestinConfig(Config):
-    __slots__ = ['java_executable',
-                 'jenkins_war',
-                 'mongo_bin',
-                 'redis_executable',
-                 ]
-
+class TestingConfig(Config):
+    __slots__ = TEST_SLOTS
 
 ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages']
-PKG_MULTI_LINE_KEYS = ['install_requires', 'setup_requires', 'tests_require', 'console_scripts',
-                       'classifiers', 'scripts', 'description']
+PKG_MULTI_LINE_KEYS = ['install_requires', 'setup_requires', 'tests_require',
+                       'console_scripts', 'classifiers', 'scripts',
+                       'description']
 
 
 def _parse_metadata(parser, section, multi_line_keys):
     metadata = dict(parser.items(section))
     for k in multi_line_keys:
-        metadata[k] = [os.path.expandvars(i.strip()) for i in metadata.get(k, '').split('\n') if i.strip()
+        metadata[k] = [os.path.expandvars(i.strip())
+                       for i in metadata.get(k, '').split('\n') if i.strip()
                        and not i.strip().startswith('#')]
     return metadata
 
 
-def setup_org_config(from_string=None, from_file=None, from_env="PKGLIB_CONFIG"):
+def setup_org_config(from_string=None, from_file=None,
+                     from_env="PKGLIB_CONFIG"):
     """
     Sets up the PkgLib global configuration.
 
@@ -77,10 +84,12 @@ def setup_org_config(from_string=None, from_file=None, from_env="PKGLIB_CONFIG")
         p.read(from_file)
     else:
         if not from_env in os.environ:
-            distutils.log.warn("Can't configure PkgLib, missing environment variable {0}".format(from_env))
+            distutils.log.warn("Can't configure PkgLib, missing environment "
+                               "variable {0}".format(from_env))
             return
         if not os.path.isfile(os.environ[from_env]):
-            raise errors.UserError("Can't configure PkgLib, unable to read config at {0}"
+            raise errors.UserError("Can't configure PkgLib, unable to read "
+                                   "config at {0}"
                                    .format(os.environ[from_env]))
         p.read(os.environ[from_env])
 
@@ -93,8 +102,10 @@ def parse_org_metadata(parser):
     Parse the organisation config from the given parser.
     """
     metadata = _parse_metadata(parser, 'pkglib', ORG_MULTI_LINE_KEYS)
-    # This is to handle setuptools' ridiculous policy of converting underscores to dashes
-    metadata['namespaces'] += [i.replace('_', '-') for i in metadata['namespaces'] if '_' in i]
+    # This is to handle setuptools' ridiculous policy of converting
+    # underscores to dashes
+    metadata['namespaces'] += [i.replace('_', '-')
+                               for i in metadata['namespaces'] if '_' in i]
     return metadata
 
 
