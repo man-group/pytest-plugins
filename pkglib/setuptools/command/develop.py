@@ -22,7 +22,8 @@ class develop(_develop, CommandMixin):
     # TODO: trim this down of options that arent' used
     # Keeping this short list separate so I can look it up later.
     _user_options = [
-        ('prefer-final', 'p', 'Will install final (non-dev) versions of dependencies'),
+        ('prefer-final', 'p',
+         'Will install final (non-dev) versions of dependencies'),
         ('no-test', 'T', 'Will not install testing dependencies'),
         ('no-build', None, 'Do not perform build'),
     ]
@@ -68,17 +69,19 @@ class develop(_develop, CommandMixin):
 
         # Now grab all the dependencies using buildout
         if not self.no_deps:
-            # We're running now in 'buildout' mode, so by default we dont use dev versions
-            # of any dependencies unless asked for.
+            # We're running now in 'buildout' mode, so by default we dont 
+            # use dev versions of any dependencies unless asked for.
             add_to_global = False
             force_upgrade = False
 
-            # Here we set use_existing as the inverse of the command-line --prefer-final,
-            # as we want the installer to get new version of things if they're available
+            # Here we set use_existing as the inverse of the command-line 
+            # --prefer-final, as we want the installer to get new version of 
+            # things if they're available
             use_existing = not self.prefer_final
 
-            ws = self.execute(install, (self, install_requirements, add_to_global,
-                                        self.prefer_final, force_upgrade, use_existing),
+            ws = self.execute(install, (self, install_requirements,
+                                        add_to_global, self.prefer_final,
+                                        force_upgrade, use_existing),
                               msg="Installing dependencies")
             log.debug("Installed dependencies:")
             if ws:
@@ -96,4 +99,5 @@ class develop(_develop, CommandMixin):
         self.process_distribution(None, self.dist, deps=False)
 
         # Cleanup site-packages
-        self.execute(self.run_cleanup_in_subprocess, (), "Cleaning up site-packages")
+        self.execute(self.run_cleanup_in_subprocess, (),
+                     "Cleaning up site-packages")
