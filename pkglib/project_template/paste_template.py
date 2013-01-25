@@ -35,6 +35,8 @@ class Package(Template):
         var('author', 'Author Name', 'Your Name'),
         var('author_email', 'Author Email',
             os.environ['USER'] + '@' + CONFIG.email_suffix),
+        var('namespace_separator', 'Namespace Separator',
+            CONFIG.namespace_separator),
     ]
 
     def makedir(self, path):
@@ -50,26 +52,31 @@ class Package(Template):
             f.write(content)
 
     def pre(self, command, output_dir, pkg_vars):
-        if not is_inhouse_package(pkg_vars['package']):
+        if not is_inhouse_package(pkg_vars['project']):
             msg = "Package name doesn't start with an company prefix.\n" \
                   "Prefixes are:\n" \
                   "%s" % '\n'.join(CONFIG.namespaces)
             sys.exit(msg)
-        prefix, package = pkg_vars['package'].split('.', 1)
+        nss = pkg_vars['namespace_separator']
+        prefix, package = pkg_vars['project'].split(
+                            pkg_vars['namespace_separator'], 1)
         pkg_vars['package'] = package
         pkg_vars['namespace_package'] = prefix
-        pkg_vars['project_nodot'] = pkg_vars['project'].replace('.', '')
-        pkg_vars['project_dir'] = pkg_vars['project'].replace('.', '/')
+        pkg_vars['project_nodot'] = pkg_vars['project'].replace(nss, '')
+        pkg_vars['project_dotted'] = pkg_vars['project'].replace(nss, '.')
+        pkg_vars['project_dir'] = pkg_vars['project'].replace(nss, '/')
+        pkg_vars['vcs_data_dir'] = CONFIG.vcs_data_dir
 
     def post(self, command, output_dir, pkg_vars):
         # relocate to deal with unusal depth packages
-        package_subpath = pkg_vars['package'].split('.')
+        nss = pkg_vars['namespace_separator']
+        package_subpath = pkg_vars['package'].split(nss)
         if len(package_subpath) > 1:
             print 'Beginning directory restructure due to the package depth ' \
                   'being greater than two.'
             project = pkg_vars['project']
             project_root = os.path.abspath(os.path.join(os.curdir, project))
-            package_top = os.path.join(project_root, project.split('.')[0])
+            package_top = os.path.join(project_root, project.split(nss)[0])
             old_code_root = os.path.join(package_top, pkg_vars['package'])
             new_code_root = package_top
 

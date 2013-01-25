@@ -101,7 +101,7 @@ def is_inhouse_package(name):
     True if this package is an in-house package
     """
     for prefix in CONFIG.namespaces:
-        if name.startswith(prefix + '.'):
+        if name.startswith(prefix + CONFIG.namespace_separator):
             return True
     return False
 
@@ -339,7 +339,7 @@ def get_namespace_packages(name):
     >>> get_namespace_packages('foo.bar.baz')
     ['foo', 'foo.bar']
     """
-    parts = name.split('.')
+    parts = name.split(CONFIG.namespace_separator)
     if len(parts) < 2:
         return []
     res = []

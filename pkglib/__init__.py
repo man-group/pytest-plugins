@@ -7,6 +7,7 @@ import config
 CONFIG = config.OrganisationConfig(
     pypi_url='http://pypi.python.org',
     namespaces=['acme'],
+    namespace_separator='.',
     email_suffix='acme.example',
     dev_build_number='0.0',
     platform_packages=[],

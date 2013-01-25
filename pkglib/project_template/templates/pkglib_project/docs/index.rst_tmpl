@@ -8,9 +8,9 @@
 .. toctree::
    :maxdepth: 4
 
-   autodoc/{{project}}
+   autodoc/{{project_dotted}}
 
-.. automodule:: {{project}}
+.. automodule:: {{project_dotted}}
 
 
 Indices and tables

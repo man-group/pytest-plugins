@@ -23,7 +23,7 @@ tests_require =
     pytest-cov
 
 console_scripts =
-    {{package}} = {{project}}.scripts.app:main
+    {{package}} = {{project_dotted}}.scripts.app:main
 
 [egg_info]
 # This adds the 'dev' marker to versions.
@@ -38,4 +38,4 @@ show-response = 1
 [pytest]
 # This section sets configuration for all invocations of py.test,
 # both standalone cmdline and running via setup.py
-norecursedirs = .svn *.egg
+norecursedirs = {{vcs_data_dir}} *.egg build dist

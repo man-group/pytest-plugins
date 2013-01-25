@@ -197,13 +197,14 @@ class test(Command, CommandMixin):
 
         print "PyLint XML written to file %s" % HUDSON_XML_PYLINT
         with open(HUDSON_XML_PYLINT, 'w') as f:
-            (stdout, stderr) = subprocess.Popen(cmd, env=self.get_env(),
-                                                stdout=subprocess.PIPE).communicate()
+            (stdout, stderr) = subprocess.Popen(
+                cmd, env=self.get_env(), stdout=subprocess.PIPE).communicate()
             if stdout:
                 for line in stdout:
                     f.write(line)
             else:
-                print "No output from pylint.  stdout={0}, stderr={1}".format(stdout, stderr)
+                print ("No output from pylint.  stdout={0}, stderr={1}"
+                       .format(stdout, stderr))
 
     def get_namespace_dirs(self):
         """ Retuns the dirnames of our namespace packages

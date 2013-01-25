@@ -74,8 +74,8 @@ class develop(_develop, CommandMixin):
             add_to_global = False
             force_upgrade = False
 
-            # Here we set use_existing as the inverse of the command-line 
-            # --prefer-final, as we want the installer to get new version of 
+            # Here we set use_existing as the inverse of the command-line
+            # --prefer-final, as we want the installer to get new version of
             # things if they're available
             use_existing = not self.prefer_final
 

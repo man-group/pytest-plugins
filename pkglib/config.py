@@ -14,6 +14,7 @@ class Config(object):
 
 ORG_SLOTS = ('pypi_url',
              'namespaces',
+             'namespace_separator',
              'email_suffix',
              'dev_build_number',
              'platform_packages',
@@ -22,6 +23,8 @@ ORG_SLOTS = ('pypi_url',
              'deploy_path',
              'deploy_bin',
              'vcs',
+             # derived, see below
+             'vcs_data_dir',
              'virtualenv_executable',
              'sphinx_theme',
              'sphinx_theme_package',
@@ -38,6 +41,12 @@ TEST_SLOTS = ('java_executable',
               'mongo_bin',
               'redis_executable',
 )
+
+VCS_DATA_DIRS = {'svn': '.svn',
+                 'hg': '.hg',
+                 'git': '.git',
+                 'bzr': '.bzr',
+                 }
 
 
 class OrganisationConfig(Config):
@@ -95,6 +104,7 @@ def setup_org_config(from_string=None, from_file=None,
 
     import pkglib
     set_config(pkglib.CONFIG, parse_org_metadata(p))
+    pkglib.CONFIG.vcs_data_dir = VCS_DATA_DIRS.get(pkglib.CONFIG.vcs, None)
 
 
 def parse_org_metadata(parser):
