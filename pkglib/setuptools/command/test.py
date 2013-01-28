@@ -153,7 +153,8 @@ class test(Command, CommandMixin):
             This will allow you to use anything that gets pulled in for
             by tests_require as well, eg pytest, pytest-cov etc.
         """
-        run_requirements = set(self.distribution.install_requires + self.distribution.tests_require)
+        run_requirements = set(self.distribution.install_requires +
+                               self.distribution.tests_require)
 
         # We always need Py.Test with the coverage module.
         run_requirements.add('pytest-cov')
@@ -162,7 +163,8 @@ class test(Command, CommandMixin):
         if CONFIG.test_linter_package and self.hudson and not self.no_pylint:
             run_requirements.add(CONFIG.test_linter_package)
 
-        self.fetch_build_eggs(run_requirements, prefer_final=False, use_existing=True)
+        self.fetch_build_eggs(run_requirements, prefer_final=False,
+                              use_existing=True)
 
     def run_pytest(self, args, use_subprocess):
         """ Run py.test with the given arguments.
@@ -172,7 +174,8 @@ class test(Command, CommandMixin):
             args : `list`
                 Command-line args
             use_subprocess : `bool`
-                Run in a subprocess. If false, process will exit along with Py.test
+                Run in a subprocess. If false, process will exit along
+                with Py.test
         """
         log.info("Pytest args: %s" % ' '.join(args))
         import pytest
@@ -193,7 +196,7 @@ class test(Command, CommandMixin):
             in Hudson mode.
         """
         cmd = [CONFIG.test_linter] + self.pylint_options
-        cmd += self.get_namespace_dirs()
+        cmd += self.get_package_dirs()
 
         print "PyLint XML written to file %s" % HUDSON_XML_PYLINT
         with open(HUDSON_XML_PYLINT, 'w') as f:
@@ -206,10 +209,22 @@ class test(Command, CommandMixin):
                 print ("No output from pylint.  stdout={0}, stderr={1}"
                        .format(stdout, stderr))
 
-    def get_namespace_dirs(self):
-        """ Retuns the dirnames of our namespace packages
+    def get_package_dirs(self):
+        """ Returns the minimum set of directories containing our code
         """
-        return set([ns.split('.')[0] for ns in self.distribution.namespace_packages])
+        res = []
+        pkg_dirs = self.distribution.packages[:]
+        pkg_dirs.sort(key=len)
+        for i in pkg_dirs:
+            try:
+                for j in res:
+                    if i.startswith(j):
+                        raise ValueError
+            except ValueError:
+                pass
+            else:
+                res.append(i)
+        return set(res)
 
     def get_args(self):
         """ Build args for py.test
@@ -224,14 +239,14 @@ class test(Command, CommandMixin):
             pytest_args += ['--verbose']
 
         # Set up args for running doctests, this excludes coverage
-        doctest_args = list(self.get_namespace_dirs()) + pytest_args
+        doctest_args = list(self.get_package_dirs()) + pytest_args
 
         # Choose packages for coverage. This is all the ones found by the distutils
         # find_packages, excluding namespace packages.
         pytest_args += ['--cov=%s' % p for p in self.distribution.packages  if
                                     p not in self.distribution.namespace_packages]
 
-        for dirname in self.get_namespace_dirs():
+        for dirname in self.get_package_dirs():
             doctest_args += ['--doctest-modules', dirname]
 
         if self.hudson:
