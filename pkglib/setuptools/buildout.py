@@ -418,7 +418,7 @@ class Installer(easy_install.Installer):
         # result if it is non empty.
 
         if manage.is_inhouse_package(requirement.project_name):
-            if self.prefer_final:
+            if self._prefer_final:
                 log.debug('  in-house package, prefer-final')
                 version_comparitor = easy_install._final_version
             else:
