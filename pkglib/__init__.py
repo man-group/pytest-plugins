@@ -3,7 +3,9 @@
 import os
 import config
 
-# Organisation configuration, this is updated when calling pkglib.setuptools.setup(my_config)
+# Organisation configuration, this is updated when calling
+#     pkglib.setuptools.setup(my_config)
+
 CONFIG = config.OrganisationConfig(
     pypi_url='http://pypi.python.org',
     namespaces=['acme'],

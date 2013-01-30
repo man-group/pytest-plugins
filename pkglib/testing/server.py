@@ -75,7 +75,9 @@ class TestServer(Workspace):
         """
         Pick repeatable but semi-random port based on hashed username, and the server class.
         """
-        port = self.port_seed - int(hashlib.sha1(os.environ['USER'] + self.__class__.__name__).hexdigest()[:3], 16)
+        port = (self.port_seed -
+                int(hashlib.sha1(os.environ['USER'] +
+                                 self.__class__.__name__).hexdigest()[:3], 16))
         if self.random_port:
             port += random.randrange(1000)
         return port

@@ -34,12 +34,10 @@ ORG_SLOTS = ('pypi_url',
              'test_linter',
              'test_linter_package',
              'jenkins_url',
-)
-
-TEST_SLOTS = ('java_executable',
-              'jenkins_war',
-              'mongo_bin',
-              'redis_executable',
+             'java_executable',
+             'jenkins_war',
+             'mongo_bin',
+             'redis_executable',
 )
 
 VCS_DATA_DIRS = {'svn': '.svn',
@@ -52,9 +50,6 @@ VCS_DATA_DIRS = {'svn': '.svn',
 class OrganisationConfig(Config):
     __slots__ = ORG_SLOTS
 
-
-class TestingConfig(Config):
-    __slots__ = TEST_SLOTS
 
 ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages']
 PKG_MULTI_LINE_KEYS = ['install_requires', 'setup_requires', 'tests_require',
