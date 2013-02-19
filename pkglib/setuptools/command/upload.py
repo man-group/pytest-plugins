@@ -13,6 +13,7 @@ from distutils import log
 
 from base import CommandMixin
 
+
 class upload(_upload, CommandMixin):
     """ Wrapper around upload command to raise correct return codes
         to the system.

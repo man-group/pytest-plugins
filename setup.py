@@ -1,7 +1,24 @@
 #!/bin/env python
 import sys
-from distutils import log
 
+#   We wouldn't be a proper Python Packaging tool without a bit of monkey
+#   patching now would we :)
+#   Here we monkey patch the distutils.config.PyPIRCCommand to add support
+#   for the prompting of PyPI login details with performing any 
+#   distutils/setuptools command which pushes data to the PyPI server.
+#
+#   It also prevents the saving of passwords to the .pypirc file in the
+#   user's home directory and prompts of the password if it has been left
+#   out of the configuration file.
+#
+#   This has to be done very first thing to get around the convoluted class
+#   hierarchy of the upload/register commands.
+
+from pkglib.setuptools.command.pypirc import PyPIRCCommand
+import distutils.config
+distutils.config.PyPIRCCommand = PyPIRCCommand
+
+from distutils import log
 try:
     from setuptools import _distribute
 except ImportError, e:
