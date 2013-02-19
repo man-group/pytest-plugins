@@ -2,6 +2,7 @@ import setuptools
 from setuptools.command.develop import develop as _develop
 from distutils import log
 
+from pkglib import CONFIG
 from base import CommandMixin
 
 
@@ -39,6 +40,12 @@ class develop(_develop, CommandMixin):
         self.prefer_final = False
         self.no_test = False
         self.no_build = False
+        self.index_url = self.maybe_add_simple_index(CONFIG.pypi_url)
+
+    def finalize_options(self):
+        _develop.finalize_options(self)
+        # This stops the pre-setup resolver using the wrong index URL
+        self.distribution.fetch_build_egg = self.fetch_build_eggs
 
     def run(self):
         # Lazy imports here to allow pkgutils to bootstrap itself.
