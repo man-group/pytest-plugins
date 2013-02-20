@@ -51,7 +51,8 @@ class cleanup(Command, CommandMixin):
     def find_victims(self):
         active_things = set([i.location for i in working_set if
                             i.location.startswith(sys.exec_prefix)])
-        installed_things = set([i for i in self.get_site_packages().listdir() if self.filter_victim(i)])
+        installed_things = set([i for i in self.get_site_packages().listdir()
+                                if self.filter_victim(i)])
         victims = installed_things.difference(active_things)
         victims = filter(self.filter_open_files, victims)
         return sorted(victims)
@@ -59,6 +60,8 @@ class cleanup(Command, CommandMixin):
     def run(self):
         for victim in self.find_victims():
             if os.path.isdir(victim):
-                self.execute(shutil.rmtree, (victim,), 'Deleting directory %s' % victim)
+                self.execute(shutil.rmtree, (victim,),
+                             'Deleting directory {}'.format(victim))
             else:
-                self.execute(os.unlink, (victim,), 'Deleting %s' % victim)
+                self.execute(os.unlink, (victim,),
+                             'Deleting {}'.format(victim))

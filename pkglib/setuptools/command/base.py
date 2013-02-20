@@ -135,7 +135,7 @@ class CommandMixin(object):
             often changing the state of the virtualenv as it goes, and
             working_set in memory might not reflect the real state of the world
         """
-        # Using the entry pount here instead of the module. This is because the
+        # Using the entry point here instead of the module. This is because the
         # module may have been moved by the time we go to run it, eg if we just
         # updated pkglib itself.
         cmd = [sys.executable,
@@ -163,9 +163,9 @@ class CommandMixin(object):
         # It's far cheaper to run lsof for all files and search later than
         # running it with the +D option to only return results under a certain
         # directory
-        # TODO: lsof might be in /usr/bin
-        cmd = ("/usr/sbin/lsof 2>/dev/null | grep {} |"
-               "awk '{ print $2 \" \" $9 }'").format(self.site_packages)
+        # TODO: this might not be on the path, and be hidden by the >/dev/null
+        cmd = ("lsof 2>/dev/null | grep {} |"
+               "awk '{{ print $2 \" \" $9 }}'").format(self.site_packages)
         return [i.split() for i in
                 cmdline.run(cmd, capture_stdout=True, check_rc=False,
                             shell=True).split('\n') if i]

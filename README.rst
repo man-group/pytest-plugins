@@ -47,6 +47,9 @@ PkgLib
   from shared disk, an important feature when working on shared filesystems in 
   large teams.  
   
+- Keeps things neat and tidy - cleans out unused packages from your virtualenv's 
+  site-packages directory. 
+  
 - Py.Test integration with ``python setup.py test``:
 
   + Configured for sensible defaults for code coverage and quality analysis
