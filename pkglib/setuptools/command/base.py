@@ -7,7 +7,7 @@ from distutils import log
 from setuptools.command.easy_install import easy_install
 
 from pkglib.setuptools.patches import patch_httplib
-from pkglib import manage, cmdline
+from pkglib import manage, cmdline, CONFIG
 
 
 def _banner(msg):
@@ -50,8 +50,9 @@ class CommandMixin(object):
             Parameters
             ----------
             build_only : `bool`
-                Configured for build and testing packages - these will be installed into the
-                directory returned from `pkglib.manage.get_build_egg_dir`
+                Configured for build and testing packages - these will be
+                installed into the directory returned from
+                `pkglib.manage.get_build_egg_dir`
 
             kwargs:
                 Other kwargs to pass to easy_install constructor
@@ -66,9 +67,10 @@ class CommandMixin(object):
 
         if build_only:
             cmd = easy_install(
-                dist, args=["x"], install_dir=manage.get_build_egg_dir(), exclude_scripts=True,
-                always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True, no_report=True, **kwargs)
+                dist, args=["x"], install_dir=manage.get_build_egg_dir(),
+                exclude_scripts=True, always_copy=False, build_directory=None,
+                editable=False, upgrade=False, multi_version=True,
+                no_report=True, **kwargs)
         else:
             cmd = easy_install(dist, args=['x'], **kwargs)
 
@@ -86,7 +88,8 @@ class CommandMixin(object):
             prefer_final : `bool`
                 Prefer non-dev versions of package dependencies
             use_existing : `bool`
-                Will use eggs found in working set, and not try and update them if it can
+                Will use eggs found in working set, and not try and update
+                them if it can
         """
         # Lazy import for bootstrapping
         from pkglib.setuptools.buildout import install
@@ -94,20 +97,29 @@ class CommandMixin(object):
         # so other commands in this run can use the packages.
 
         # Setting build_only to false here now, as we don't
-        # really need to have the feautre whereby test and build eggs are
-        # installed in the cwd(), it just makes a mess of people's home directories.
-        install(self.get_easy_install_cmd(build_only=False), reqs, add_to_global=True,
-                prefer_final=prefer_final, use_existing=use_existing)
+        # really need to have the feature whereby test and build eggs are
+        # installed in the cwd(), it just makes a mess of people's home
+        # directories.
+        if hasattr(self, 'index_url'):
+            url = self.maybe_add_simple_index(self.index_url)
+        else:
+            url = self.maybe_add_simple_index(CONFIG.pypi_url)
+        cmd = self.get_easy_install_cmd(build_only=False, index_url=url)
+        return install(cmd, reqs, add_to_global=True, prefer_final=prefer_final,
+                       use_existing=use_existing)
 
     def maybe_add_simple_index(self, url):
         """Checks if the server URL should have a /simple on the end of it.
-           This is to get around the brain-dead difference between upload/register
-           and easy_install URLs.
+           This is to get around the brain-dead difference between
+           upload/register and easy_install URLs.
         """
         # Lazy import as they might be a child class of this one
         import pyinstall
         import develop
-        if url and (isinstance(self, pyinstall.pyinstall) or isinstance(self, develop.develop)) \
+        import test
+        if url and (isinstance(self, pyinstall.pyinstall) or
+                    isinstance(self, develop.develop) or
+                    isinstance(self, test.test)) \
             and not url.endswith('/simple') and not url.endswith('/simple/'):
             url += '/simple'
         return url
@@ -119,13 +131,15 @@ class CommandMixin(object):
     site_packages = property(get_site_packages)
 
     def run_cleanup_in_subprocess(self):
-        """ Runs the cleanup job in a subprocess. Necessary as setup.py is often
-            changing the state of the virtualenv as it goes, and working_set in
-            memory might not reflect the real state of the world
+        """ Runs the cleanup job in a subprocess. Necessary as setup.py is
+            often changing the state of the virtualenv as it goes, and
+            working_set in memory might not reflect the real state of the world
         """
-        # Using the entry pount here instead of the module. This is because the module may have
-        # been moved by the time we go to run it, eg if we just updated pkglib itself.
-        cmd = [sys.executable, os.path.join(sys.exec_prefix, 'bin', 'pycleanup')]
+        # Using the entry pount here instead of the module. This is because the
+        # module may have been moved by the time we go to run it, eg if we just
+        # updated pkglib itself.
+        cmd = [sys.executable,
+               os.path.join(sys.exec_prefix, 'bin', 'pycleanup')]
         for arg in ['-v', '-n', '--verbose', '--dry-run']:
             if arg in sys.argv:
                 cmd.append(arg)
@@ -146,11 +160,15 @@ class CommandMixin(object):
     def get_open_files(self):
         """ Returns open files under our site-packages
         """
-        # It's far cheaper to run lsof for all files and search later than running it with
-        # the +D option to only return results under a certain directory
-        cmd = "/usr/sbin/lsof 2>/dev/null | grep %s | awk '{ print $2 \" \" $9 }'" % \
-              self.site_packages
-        return [i.split() for i in cmdline.run(cmd, capture_stdout=True, check_rc=False, shell=True).split('\n') if i]
+        # It's far cheaper to run lsof for all files and search later than
+        # running it with the +D option to only return results under a certain
+        # directory
+        # TODO: lsof might be in /usr/bin
+        cmd = ("/usr/sbin/lsof 2>/dev/null | grep {} |"
+               "awk '{ print $2 \" \" $9 }'").format(self.site_packages)
+        return [i.split() for i in
+                cmdline.run(cmd, capture_stdout=True, check_rc=False,
+                            shell=True).split('\n') if i]
 
     def create_relative_link(self, src, dest):
         """ Create relative symlink from src -> dest

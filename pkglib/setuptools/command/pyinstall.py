@@ -3,6 +3,7 @@ from distutils.errors import DistutilsOptionError
 from distutils import log
 import pkg_resources
 
+from pkglib import CONFIG
 from base import CommandMixin
 
 
@@ -45,7 +46,7 @@ class pyinstall(Command, CommandMixin):
         self.eggs = False
         self.artifact = False
         self.from_artifact_dir = ''
-        self.index_url = None
+        self.index_url = self.maybe_add_simple_index(CONFIG.pypi_url)
 
     def finalize_options(self):
         if self.artifact or self.from_artifact_dir:

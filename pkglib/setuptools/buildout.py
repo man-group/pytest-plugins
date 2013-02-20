@@ -1,5 +1,6 @@
 """ ZC.Buildout helper module.
 """
+import sys
 import os
 import shutil
 import stat
@@ -562,7 +563,7 @@ def install(cmd, reqs, add_to_global=False, prefer_final=True,
     # own dependencies if they are also part of the package install_requires.
     # FIXME: this won't pick up non-direct dependencies.
     #        Eg: setup_requires = numpy,
-    #            install_requires = something that has numpy as  dependency
+    #            install_requires = something that has numpy as a dependency
     def also_required(dist):
         for req in pkg_resources.parse_requirements(reqs):
             if dist in req:
@@ -578,8 +579,13 @@ def install(cmd, reqs, add_to_global=False, prefer_final=True,
         [log.debug("  %r" % i) for i in setup_dists]
 
     # Now run the installer
-    to_setup = installer.install(reqs, working_set=ws,
-                                 use_existing=use_existing)
+    try:
+        to_setup = installer.install(reqs, working_set=ws,
+                                     use_existing=use_existing)
+    except easy_install.MissingDistribution, e:
+        log.error(e)
+        # TODO: call missing distro hook here
+        sys.exit(1)
 
     # Add any of the setup_requires dists to be set-up.
     to_setup = set(to_setup + setup_dists)

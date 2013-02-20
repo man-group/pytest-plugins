@@ -2,9 +2,9 @@ import os
 import sys
 
 from distutils import log
-from setuptools import setup as _setup, find_packages
+from setuptools import setup as _setup, find_packages, dist as _dist
 
-from pkglib import config
+from pkglib import config, CONFIG
 from pkglib.manage import get_pkg_description, get_namespace_packages
 
 from pkglib.setuptools.command import (
