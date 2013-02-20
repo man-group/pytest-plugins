@@ -6,7 +6,7 @@ import subprocess
 import pymongo
 from pymongo.errors import AutoReconnect, ConnectionFailure
 
-from pkglib import CONFIG
+from pkglib import CONFIG, config
 from server import TestServer
 
 
@@ -15,6 +15,7 @@ class MongoTestServer(TestServer):
     random_port = True  # Should we use a random port?
 
     def __init__(self, **kwargs):
+        config.setup_org_config()
         mongod_dir = tempfile.mkdtemp(dir=self.get_base_dir())
         super(MongoTestServer, self).__init__(workspace=mongod_dir, **kwargs)
 
