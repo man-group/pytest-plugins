@@ -13,12 +13,18 @@ from path import path
 from server import HTTPTestServer
 
 
+class ConfigNotFoundError(Exception):
+    """Raised when a given config file and path is not found."""
+
+
 class PyramidTestServer(HTTPTestServer):
     port_seed = 65532
 
     def __init__(self, **kwargs):
         self.config = None
         self.original_config = None
+
+        self.testing_ini = kwargs.get("testing_ini")
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
@@ -34,15 +40,33 @@ class PyramidTestServer(HTTPTestServer):
             port number and host
         """
         # We need the development.ini as well here as they are chained
-        dev_cfg = path(os.getcwd()) / 'development.ini'
-        dev_cfg_copy = self.workspace / 'development.ini'
-        path.copy(dev_cfg, dev_cfg_copy)
+        if not self.testing_ini:
+            dev_cfg = path(os.getcwd()) / 'development.ini'
+            dev_cfg_copy = self.workspace / 'development.ini'
+            path.copy(dev_cfg, dev_cfg_copy)
 
-        self.original_config = path(os.getcwd()) / 'testing.ini'
-        self.config = self.workspace / 'testing.ini'
-        path.copy(self.original_config, self.config)
+            self.original_config = path(os.getcwd()) / 'testing.ini'
+            self.config = self.workspace / 'testing.ini'
+            path.copy(self.original_config, self.config)
+
+        else:
+            if not os.path.isfile(self.testing_ini):
+                raise ConfigNotFoundError(
+                    "{0} not found".format(self.testing_ini)
+                )
+
+            # development_ini isn't used if you have set testing_ini
+
+            # Copy the original file and reuse its file name. The given file
+            # name should be distinct in the dir it will get copied to!
+            self.original_config = path(self.testing_ini)
+            cfg_filename = os.path.basename(self.testing_ini)
+            self.config = self.workspace / cfg_filename
+            path.copy(self.original_config, self.config)
 
         parser = ConfigParser.ConfigParser()
+        # self.original_config only refers to testing.ini, development.ini
+        # isn't used?
         parser.read(self.original_config)
         parser.set('server:main', 'port', self.port)
         parser.set('server:main', 'host', self.hostname)
