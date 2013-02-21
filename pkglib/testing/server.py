@@ -7,6 +7,7 @@ import time
 import traceback
 import hashlib
 from urllib2 import urlopen, URLError
+import socket
 
 
 from util import Workspace
@@ -25,10 +26,12 @@ class ServerThread(threading.Thread):
         self.exit = False
         if 'DEBUG' in os.environ:
             self.p = subprocess.Popen(self.run_cmd,
-                                      stdin=subprocess.PIPE if run_stdin else None)
+                                      stdin=subprocess.PIPE
+                                      if run_stdin else None)
         else:
             self.p = subprocess.Popen(self.run_cmd,
-                                      stdin=subprocess.PIPE if run_stdin else None,
+                                      stdin=subprocess.PIPE
+                                      if run_stdin else None,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
 
@@ -47,17 +50,21 @@ class TestServer(Workspace):
         setting up a server instance in a thread,
     """
     server = None
-    serverclass = ServerThread  # Child classes can set this to a different serverthread class
+    # Child classes can set this to a different serverthread class
+    serverclass = ServerThread
+
     port_seed = 65535  # Used to seed port numbers - see below
     random_port = False  # Should we use a random port?
     hostname = '127.0.0.1'
 
     def __init__(self, **kwargs):
-        super(TestServer, self).__init__(workspace=kwargs.get('workspace', None))
+        super(TestServer, self).__init__(workspace=kwargs.get('workspace',
+                                                              None))
 
         self.port = kwargs.get('port', self.get_port())
         self.hostname = kwargs.get('hostname', self.hostname)
-        # We don't know if the server is alive or dead at this point, assume alive
+        # We don't know if the server is alive or dead at this point,
+        # assume we are alive
         self.dead = False
 
         self.kill()
@@ -73,7 +80,8 @@ class TestServer(Workspace):
 
     def get_port(self):
         """
-        Pick repeatable but semi-random port based on hashed username, and the server class.
+        Pick repeatable but semi-random port based on hashed username, and the
+        server class.
         """
         port = (self.port_seed -
                 int(hashlib.sha1(os.environ['USER'] +
@@ -110,7 +118,8 @@ class TestServer(Workspace):
         """
         raise NotImplementedError("Concrete class should implement this")
 
-    def wait_for_go(self, start_interval=0.1, retries_per_interval=3, retry_limit=21):
+    def wait_for_go(self, start_interval=0.1, retries_per_interval=3,
+                    retry_limit=21):
         """
         This is called to wait until the server has started running.
 
@@ -146,14 +155,15 @@ class TestServer(Workspace):
             interval *= 2.0
 
         if not retry_count:
-            raise ValueError("Server failed to start up after waiting %s. Giving up!"
-                % str(datetime.now() - start_time))
+            raise ValueError("Server failed to start up after waiting {}. "
+                             "Giving up!".format(datetime.now() - start_time))
 
     def start_server(self):
         """ Start the server instance.
         """
         print "Starting Server on host %s port %s" % (self.hostname, self.port)
-        self.server = self.serverclass(self.hostname, self.port, self.run_cmd, self.run_stdin)
+        self.server = self.serverclass(self.hostname, self.port, self.run_cmd,
+                                       self.run_stdin)
         self.server.start()
         self.wait_for_go()
         print "Server now awake"
@@ -161,7 +171,8 @@ class TestServer(Workspace):
 
     def kill(self, retries=5):
         """ Kill all running versions of this server.
-            Just killing the thread.server pid isn't good enough, it might spawn children
+            Just killing the thread.server pid isn't good enough, it might
+            spawn children
         """
         # Prevent traceback printed when the server goes away as we kill it
         if self.server:
@@ -170,29 +181,32 @@ class TestServer(Workspace):
             cycles = 0
             while True:
                 print "Waiting for server to die.."
+                ip_addr = socket.gethostbyname(self.hostname)
 
                 # Uncomment these to debug the pid tracing
-#                self.run("netstat -anp 2>/dev/null", check_rc=False)
-#                self.run("netstat -anp 2>/dev/null | grep %s:%s" % (self.hostname, self.port), check_rc=False)
-#                self.run("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN" % (self.hostname, self.port),
-#                         check_rc=False)
-#                self.run("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | awk '{ print $7 }'" %
-#                         (self.hostname, self.port), check_rc=False)
+                #self.run("netstat -anp 2>/dev/null", check_rc=False)
+                #self.run("netstat -anp 2>/dev/null | grep {0}:{1}"
+                #         .format(ip_addr, self.port), check_rc=False)
+                #self.run("netstat -anp 2>/dev/null | grep {0}:{1} | "
+                #         "grep LISTEN".format(ip_addr, self.port),
+                #         check_rc=False)
+                #self.run("netstat -anp 2>/dev/null | grep {0}:{1} | "
+                #         "grep LISTEN | awk '{{ print $7 }}'"
+                #         .format(ip_addr, self.port), check_rc=False)
 
                 ps = [p.strip() for p in
-                      self.run("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
-                               "awk '{ print $7 }' | cut -d'/' -f1" %
-                               (self.hostname, self.port),
+                      self.run("netstat -anp 2>/dev/null | grep {0}:{1} | "
+                               "grep LISTEN | awk '{{ print $7 }}' | "
+                               "cut -d'/' -f1".format(ip_addr, self.port),
                                capture=True).split('\n') if p.strip()]
                 print "process IDs: %s" % ps
-
                 if ps:
                     for p in ps:
                         try:
                             int(p)
                         except ValueError:
-                            print "Can't determine port, process shutting down or owned by" \
-                                  "someone else"
+                            print("Can't determine port, process shutting down"
+                                  " or owned by someone else")
                         else:
                             self.run("kill -9 %s" % p, check_rc=False)
                 else:
@@ -200,7 +214,8 @@ class TestServer(Workspace):
                     break
                 cycles += 1
                 if cycles >= retries:
-                    raise ValueError("Server not dead after %d retries" % retries)
+                    raise ValueError("Server not dead after {} retries"
+                                     .format(retries))
                 time.sleep(1)
         self.dead = True
 
@@ -211,7 +226,8 @@ class TestServer(Workspace):
         super(TestServer, self).teardown()
 
     def save(self):
-        """ Called to save any state that can be then restored using self.restore
+        """ Called to save any state that can be then restored using
+            self.restore
         """
         pass
 
