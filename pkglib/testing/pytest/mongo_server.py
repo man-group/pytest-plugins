@@ -17,6 +17,15 @@ if 'WORKSPACE' in os.environ:
     MongoTestServer.kill_all()
 
 
+def _mongo_server(request):
+    """ This does the actual work - there are several versions of this used
+        with different scopes.
+    """
+    test_server = MongoTestServer()
+    request.addfinalizer(lambda p=test_server: p.teardown())
+    return test_server
+
+
 @pytest.fixture(scope='function')
 def mongo_server(request):
     """ Boot up MongoDB in a local thread.
@@ -29,7 +38,4 @@ def mongo_server(request):
         For completeness, we tidy up any outstanding mongo temp directories
         at the start and end of each test session
     """
-    # Start the server and register a finaliser to tear it down
-    test_server = MongoTestServer()
-    request.addfinalizer(lambda p=test_server: p.teardown())
-    return test_server
+    return _mongo_server(request)
