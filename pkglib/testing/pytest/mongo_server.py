@@ -3,14 +3,16 @@ import pytest
 
 from pkglib.testing.mongo_server import MongoTestServer
 
-
 # Cleanup any old mongo sessions for this workspace when run in Jenkins
 # We do this here rather than doing:
 #    request.cached_setup(MongoTestServer.kill_all, scope='session')
 # as with pytest-xidst, the per-session setups appear to be run for each worker
-#
+
 # We don't do this for users (who don't have the WORKSPACE env variable set)
 # as they may legitimately be running a test suite more than once.
+
+# TODO: check that with the latest py.test this is still the case, work has
+#       been done to improve fixtures with xdist
 if 'WORKSPACE' in os.environ:
     MongoTestServer.kill_all()
 
