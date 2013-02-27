@@ -115,7 +115,7 @@ Contributors
 - Ed Catmur (ed@catmur.co.uk)
 - Ben Walsh
 - Tim Couper (drtimcouper@gmail.com)
-- Inti Ocean
+- Inti Ocean (me@inti.co)
 - Andrew Burrows
 - James Blackburn
 - Stepan Kolesnik (wigbam@yahoo.co.uk)
