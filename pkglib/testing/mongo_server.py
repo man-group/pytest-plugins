@@ -83,7 +83,7 @@ class MongoTestServer(TestServer):
                 lock = os.path.join(mongo, 'mongod.lock')
                 if os.path.exists(lock):
                     print "Lock file found: " + lock
-                    p = subprocess.Popen(["/usr/sbin/lsof", "-Fp", "--", lock],
+                    p = subprocess.Popen(["lsof", "-Fp", "--", lock],
                                          stdout=subprocess.PIPE)
                     (out, _) = p.communicate()
                     if out:
