@@ -28,11 +28,13 @@ class RedisTestServer(TestServer):
     @property
     def run_stdin(self):
         # these don't work on redis-server 2.2.12 on ubuntu precise32.
-        #
-        # Is it ok to just comment them out?
+        # Need to come up with a way of detecting redis server version 
+        # and setting the appropriate config variant.
         #
         # zset-max-ziplist-value 64
         # zset-max-ziplist-entries 128
+        # vm-enabled no
+
         cfg = ("""
         daemonize no
         port %(port)d
@@ -46,7 +48,6 @@ class RedisTestServer(TestServer):
         appendonly no
         slowlog-log-slower-than -1
         slowlog-max-len 1024
-        vm-enabled no
         hash-max-zipmap-entries 512
         hash-max-zipmap-value 64
         list-max-ziplist-entries 512
