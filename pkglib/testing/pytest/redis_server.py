@@ -1,12 +1,21 @@
+import pytest
+
 from pkglib.testing.redis_server import RedisTestServer
 
 
-def pytest_funcarg__redis_server(request):
+def _redis_server(request):
+    """ Does the redis server work, this is used within different scoped
+        fixtures.
+    """
+    test_server = RedisTestServer()
+    request.addfinalizer(lambda p=test_server: p.teardown())
+    return test_server
+
+
+@pytest.fixture(scope='function')
+def redis_server(request):
     """ Boot up Redis in a local thread.
         This also provides a temp workspace.
+        Function scoped.
     """
-    return request.cached_setup(
-        setup=RedisTestServer,
-        teardown=lambda p: p.teardown(),
-        scope='session',
-    )
+    return _redis_server(request)
