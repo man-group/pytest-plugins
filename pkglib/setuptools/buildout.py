@@ -60,7 +60,6 @@ class Installer(easy_install.Installer):
              - Prefer dev versions of eggs from the package server over final
                version in environment (esp from CONFIG.installer_search_path)
         """
-        import pdb; pdb.set_trace()
         dists = [dist for dist in self._env[req.project_name] if (
                     dist in req and (
                         dist.location not in self._site_packages or
