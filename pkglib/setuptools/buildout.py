@@ -7,7 +7,6 @@ import stat
 import logging
 import copy
 import operator
-from contextlib import contextmanager
 from distutils import log
 from distutils.errors import DistutilsOptionError
 
@@ -43,17 +42,14 @@ class Installer(easy_install.Installer):
 
     def update_search_path(self):
         """ Add our module search paths to the installer so we can source eggs
-            from local disk (or whatever that counts for around here :p)
-            Uses ``$VIRTUALENV_SEARCH_PATH`` from the environment as the module
-            search path, and scans one directory deep within each ':' separated
-            path component.
+            from local disk. Uses CONFIG.installer_search_path, and scans one
+            directory deep within each path component.
         """
         search_path = CONFIG.installer_search_path
         if search_path:
-            log.info("Scanning virtualenv search path %s.." % search_path)
-            for path_component in set([_p(i.strip())
-                                       for i in search_path.split(':')
-                                       if i.strip()]):
+            log.info("Scanning virtualenv search path {0}.."
+                     .format(search_path))
+            for path_component in [_p(i) for i in search_path]:
                 if path_component.exists():
                     self._env.scan([path_component] + path_component.dirs())
             log.info("Done")
@@ -64,6 +60,7 @@ class Installer(easy_install.Installer):
              - Prefer dev versions of eggs from the package server over final
                version in environment (esp from CONFIG.installer_search_path)
         """
+        import pdb; pdb.set_trace()
         dists = [dist for dist in self._env[req.project_name] if (
                     dist in req and (
                         dist.location not in self._site_packages or
@@ -83,7 +80,7 @@ class Installer(easy_install.Installer):
         # Special common case, we have a specification for a single version:
         specs = req.specs
         if len(specs) == 1 and specs[0][0] == '==':
-            logger.debug('We have the distribution that satisfies %r.',
+            log.debug('We have the distribution that satisfies %r.',
                          str(req))
             return dists[0], None
 
@@ -117,34 +114,41 @@ class Installer(easy_install.Installer):
         if best_available is None:
             # That's a bit odd.  There aren't any distros available.
             # We should use the best one we have that meets the requirement.
-            logger.debug(
+            log.debug(
                 'There are no distros available that meet %r.\n'
                 'Using our best, %s.',
                 str(req), best_available)
             return best_we_have, None
 
         # Now pick between the version from the index server and the version
-        # found in our environment.
-        best = self.choose_between(best_available, best_we_have,
+        # found in our environment. We put the environment one first here
+        # so that if they're the same version, it will pick that one and we're
+        # not downloading things unnecessarily
+        best = self.choose_between(best_we_have, best_available,
                                    version_comparitor)
         if best == best_available:
-            logger.debug("Chose dist from index server: {0}".format(best))
+            log.debug("Chose dist from index server: {0}".format(best))
             return None, best
 
-        logger.debug("Chose dist from environment: {0}".format(best_we_have))
+        log.debug("Chose dist from environment: {0}".format(best_we_have))
         return best_we_have, None
 
     def choose_between(self, d1, d2, comparitor):
-        """ Choose between two different dists, given a dev/final comparitor
+        """ Choose between two different dists, given a dev/final comparitor.
+            If both d1 and d2 have the same version, it will return d1.
         """
         d1_preferred = comparitor(d1.parsed_version)
         d2_preferred = comparitor(d2.parsed_version)
         key = operator.attrgetter('parsed_version')
 
-        logger.debug("Choosing between versions {0} and {1}"
-                     .format(d1.parsed_version, d2.parsed_version))
+        log.debug("Choosing between versions {0} and {1}"
+                  .format(d1.version, d2.version))
 
         if (d1_preferred == d2_preferred):
+            # I think this might be redundant as max() is order-dependent,
+            # but it's nice to be explicit
+            if d1.parsed_version == d2.parsed_version:
+                return d1
             return max((d1, d2), key=key)
         else:
             return d1 if d1_preferred else d2
