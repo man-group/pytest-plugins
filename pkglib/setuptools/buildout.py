@@ -6,7 +6,7 @@ import shutil
 import stat
 import logging
 import copy
-from contextlib import contextmanager
+import operator
 from distutils import log
 from distutils.errors import DistutilsOptionError
 
@@ -24,7 +24,7 @@ logger = logging.getLogger('zc.buildout.easy_install')
 
 
 ############ TODO: #################################################
-#  Refactor this whole moudule so to remove the depencency on
+#  Refactor this whole mouule so to remove the depencency on
 #  zc.buildout. We have done enough work now to customise
 #  the install behavior so that we don't need it anymore,
 #  and we're having to put in hacks to make it work like distribute.
@@ -42,23 +42,23 @@ class Installer(easy_install.Installer):
 
     def update_search_path(self):
         """ Add our module search paths to the installer so we can source eggs
-            from local disk (or whatever that counts for around here :p)
-            Uses ``$VIRTUALENV_SEARCH_PATH`` from the environment as the module
-            search path, and scans one directory deep within each ':' separated
-            path component.
+            from local disk. Uses CONFIG.installer_search_path, and scans one
+            directory deep within each path component.
         """
         search_path = CONFIG.installer_search_path
         if search_path:
-            log.info("Scanning virtualenv search path %s.." % search_path)
-            for path_component in set([_p(i.strip())
-                                       for i in search_path.split(':')
-                                       if i.strip()]):
+            log.info("Scanning virtualenv search path {0}.."
+                     .format(search_path))
+            for path_component in [_p(i) for i in search_path]:
                 if path_component.exists():
                     self._env.scan([path_component] + path_component.dirs())
             log.info("Done")
 
     def _satisfied(self, req, source=None):
-        """ Always choose develop eggs if we find them in site_packages.
+        """  Modified version of the buildout version. Changes:
+             - Always choose develop eggs if we find them in site_packages.
+             - Prefer dev versions of eggs from the package server over final
+               version in environment (esp from CONFIG.installer_search_path)
         """
         dists = [dist for dist in self._env[req.project_name] if (
                     dist in req and (
@@ -69,12 +69,88 @@ class Installer(easy_install.Installer):
                          req.project_name, str(req))
             return None, self._obtain(req, source)
 
+        # Look for develop eggs - we always use these if we find them so that
+        # source checkouts are 'sacrosanct'
         for dist in dists:
             if (dist.precedence == pkg_resources.DEVELOP_DIST):
                 log.debug('We have a develop egg: %s', dist)
                 return dist, None
 
-        return easy_install.Installer._satisfied(self, req, source)
+        # Special common case, we have a specification for a single version:
+        specs = req.specs
+        if len(specs) == 1 and specs[0][0] == '==':
+            log.debug('We have the distribution that satisfies %r.',
+                         str(req))
+            return dists[0], None
+
+        # Filter the eggs found in the environment for final/dev
+        version_comparitor = self.get_version_comparitor(req)
+        preferred_dists = [dist for dist in dists
+                           if version_comparitor(dist.parsed_version)]
+
+        if preferred_dists:
+            # There are preferred dists, so only use those
+            dists = preferred_dists
+
+        if not self._newest:
+            # We don't need the newest, so we'll use the newest one we
+            # find, which is the first returned by
+            # Environment.__getitem__.
+            return dists[0], None
+
+        best_we_have = dists[0]  # Because dists are sorted from best to worst
+
+        # We have some installed distros.  There might, theoretically, be
+        # newer ones.  Let's find out which ones are available and see if
+        # any are newer.  We only do this if we're willing to install
+        # something, which is only true if dest is not None:
+
+        if self._dest is not None:
+            best_available = self._obtain(req, source)
+        else:
+            best_available = None
+
+        if best_available is None:
+            # That's a bit odd.  There aren't any distros available.
+            # We should use the best one we have that meets the requirement.
+            log.debug(
+                'There are no distros available that meet %r.\n'
+                'Using our best, %s.',
+                str(req), best_available)
+            return best_we_have, None
+
+        # Now pick between the version from the index server and the version
+        # found in our environment. We put the environment one first here
+        # so that if they're the same version, it will pick that one and we're
+        # not downloading things unnecessarily
+        best = self.choose_between(best_we_have, best_available,
+                                   version_comparitor)
+        if best == best_available:
+            log.debug("Chose dist from index server: {0}".format(best))
+            return None, best
+
+        log.debug("Chose dist from environment: {0}".format(best_we_have))
+        return best_we_have, None
+
+    def choose_between(self, d1, d2, comparitor):
+        """ Choose between two different dists, given a dev/final comparitor.
+            If both d1 and d2 have the same version, it will return d1.
+        """
+        d1_preferred = comparitor(d1.parsed_version)
+        d2_preferred = comparitor(d2.parsed_version)
+        key = operator.attrgetter('parsed_version')
+
+        log.debug("Choosing between versions {0} and {1}"
+                  .format(d1.version, d2.version))
+
+        if (d1_preferred == d2_preferred):
+            # I think this might be redundant as max() is order-dependent,
+            # but it's nice to be explicit
+            if d1.parsed_version == d2.parsed_version:
+                return d1
+            return max((d1, d2), key=key)
+        else:
+            return d1 if d1_preferred else d2
 
     def _maybe_add_setuptools(self, ws, dist):
         """ Here we do nothing - all our packages require
@@ -376,6 +452,31 @@ class Installer(easy_install.Installer):
 
         return setup_dists
 
+    def get_version_comparitor(self, requirement):
+        """ Here we pick between 'dev' or 'final' versions.
+            We want to use different logic depending on if this is a
+            third-party or in-house package:
+              In-house-packages: we usually want the latest dev version as
+                                 keeping on head revisions is sensible to stop
+                                 code going stale
+              Third-party: we usually want the latest final version to protect
+                           ourselves from OSS developers exposing their
+                           latest untested code to the internet at large.
+            To override this logic the packager needs to specify an explicit
+            version pin in install_requires or similar for third-party
+            packages, or use the prefer-final setup flag for in-house packages.
+        """
+        if manage.is_inhouse_package(requirement.project_name):
+            if self._prefer_final:
+                log.debug('  in-house package, prefer-final')
+                return easy_install._final_version
+            else:
+                log.debug('  in-house package, prefer-dev')
+                return self.is_dev_version
+        else:
+            log.debug('  third-party package, always prefer-final')
+            return easy_install._final_version
+
     def is_dev_version(self, parsed_version):
         for part in parsed_version:
             if (part[:1] == '*') and (part not in easy_install._final_parts):
@@ -402,33 +503,8 @@ class Installer(easy_install.Installer):
                     )
                  ]
 
-        # Here we pick between 'dev' or 'final' versions.
-        # We want to use different logic depending on if this is a third-party
-        # or in-house package:
-        #  In-house-packages: we usually want the latest dev version as keeping
-        #                     on head revisions is sensible to stop code
-        #                     going stale
-        #  Third-party: we usually want the latest final version to protect
-        #               ourselves from OSS developers exposing their
-        #               latest untested code to the intenet at large.
-        # To overridde this logic the packager needs to specify an explicit
-        # version pin in install_requires or similar for third-party packages,
-        # or use the prefer-final setup flag for in-house packages.
-
-        # If we prefer final dists, filter for final and use the
-        # result if it is non empty.
-
-        if manage.is_inhouse_package(requirement.project_name):
-            if self._prefer_final:
-                log.debug('  in-house package, prefer-final')
-                version_comparitor = easy_install._final_version
-            else:
-                log.debug('  in-house package, prefer-dev')
-                version_comparitor = self.is_dev_version
-        else:
-            log.debug('  third-party package, always prefer-final')
-            version_comparitor = easy_install._final_version
-
+        # Filter for final/dev and use the result if it is non empty.
+        version_comparitor = self.get_version_comparitor(requirement)
         filtered_dists = [dist for dist in dists
                           if version_comparitor(dist.parsed_version)]
         if filtered_dists:

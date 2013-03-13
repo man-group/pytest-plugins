@@ -27,8 +27,12 @@ def pytest_generate_tests(metafunc):
         if 'ids' not in p.kwargs:
             list_names = []
             for argvalue in p.args[1]:
-                if isinstance(argvalue, Iterable) and not isinstance(argvalue, basestring):
-                    list_names.append('-'.join(getattr(arg, '__name__', str(arg)) for arg in argvalue))
+                if isinstance(argvalue, Iterable) \
+                and not isinstance(argvalue, basestring):
+                    list_names.append('-'.join(getattr(arg, '__name__',
+                                                       str(arg))
+                                               for arg in argvalue))
                 else:
-                    list_names.append(getattr(argvalue, '__name__', str(argvalue)))
+                    list_names.append(getattr(argvalue, '__name__',
+                                              str(argvalue)))
             p.kwargs['ids'] = list_names
