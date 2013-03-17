@@ -51,7 +51,8 @@ class OrganisationConfig(Config):
     __slots__ = ORG_SLOTS
 
 
-ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages']
+ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages',
+                       'installer_search_path']
 PKG_MULTI_LINE_KEYS = ['install_requires', 'setup_requires', 'tests_require',
                        'console_scripts', 'classifiers', 'scripts',
                        'description']
