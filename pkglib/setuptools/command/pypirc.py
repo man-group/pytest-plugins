@@ -6,7 +6,6 @@ import getpass
 import textwrap
 
 from pkglib import CONFIG
-from pkglib.pypi import has_pypi_xmlrpc_interface
 
 
 class PyPIRCCommand(_PyPIRCCommand):

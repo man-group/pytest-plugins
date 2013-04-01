@@ -32,13 +32,14 @@ class egg_info(_egg_info, CommandMixin):
         self.include_test_options = False
         self.new_build = False
         self.index_url = None
+        self.pypi_client = None
         _egg_info.initialize_options(self)
 
     def finalize_options(self):
         from path import path
         self.index_url = self.index_url or \
                          self.maybe_add_simple_index(CONFIG.pypi_url)
-        self.pypi_client = pypi.PyPi(self.index_url)
+        self.pypi_client = self.pypi_client or pypi.PyPi(self.index_url)
 
         if self.new_build:
             self.setup_new_build()

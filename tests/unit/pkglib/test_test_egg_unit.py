@@ -11,6 +11,9 @@ from pkglib.setuptools.command import test_egg
 
 
 CWD = Mock(spec=path.path.getcwd, return_value=path.path("/foo"))
+TEST_CONFIG = config.OrganisationConfig(namespaces=['acme'],
+                                      namespace_separator='.',
+                                      test_egg_namespace='acmetests')
 
 
 def get_cmd():
@@ -21,37 +24,40 @@ def get_cmd():
 
 
 def test_options():
-    with patch.object(path.path, 'getcwd', CWD):
-        cmd = get_cmd()
-        cmd.finalize_options()
+    with patch.object(test_egg, 'CONFIG', TEST_CONFIG):
+        with patch.object(path.path, 'getcwd', CWD):
+            cmd = get_cmd()
+            cmd.finalize_options()
 
-        assert cmd.test_dir == '/foo/tests'
-        assert cmd.dest_dir == 'build/lib/acmetests/acme/foo'
-        assert cmd.distribution.metadata.name == 'test.acme.foo'
-        assert cmd.distribution.namespace_packages == ['acmetests', 'acmetests.acme']
-        assert cmd.distribution.install_requires == ['bar', 'baz', 'acme.foo==0.0.0']
+            assert cmd.test_dir == '/foo/tests'
+            assert cmd.dest_dir == cmd.build_lib + '/acmetests/acme/foo'
+            assert cmd.distribution.metadata.name == 'test.acme.foo'
+            assert cmd.distribution.namespace_packages == ['acmetests', 'acmetests.acme']
+            assert cmd.distribution.install_requires == ['bar', 'baz', 'acme.foo==0.0.0']
 
 
 def test_get_file_dest():
-    with patch.object(path.path, 'getcwd', CWD):
-        cmd = get_cmd()
-        cmd.finalize_options()
-        assert cmd.get_file_dest('/foo/tests/integration/test_foo.py') == \
-                'build/lib/acmetests/acme/foo/integration/test_foo.py'
+    with patch.object(test_egg, 'CONFIG', TEST_CONFIG):
+        with patch.object(path.path, 'getcwd', CWD):
+            cmd = get_cmd()
+            cmd.finalize_options()
+            assert cmd.get_file_dest('/foo/tests/integration/test_foo.py') == \
+                    cmd.build_lib + '/acmetests/acme/foo/integration/test_foo.py'
 
 
 def test_copy_file():
-    with patch.object(path.path, 'getcwd', CWD):
-        with patch.object(path.path, 'copyfile', Mock(spec=path.path.copyfile)) as copy_mock:
-            dist = Distribution({'name': 'acme.foo'})
-            cmd = test_egg.test_egg(dist)
-            src = Mock()
-            dest = Mock()
+    with patch.object(test_egg, 'CONFIG', TEST_CONFIG):
+        with patch.object(path.path, 'getcwd', CWD):
+            with patch.object(path.path, 'copyfile', Mock(spec=path.path.copyfile)) as copy_mock:
+                dist = Distribution({'name': 'acme.foo'})
+                cmd = test_egg.test_egg(dist)
+                src = Mock()
+                dest = Mock()
 
-            cmd._copy_file(src, dest)
+                cmd._copy_file(src, dest)
 
-            dest.parent.makedirs_p.assert_called_once_with()
-            copy_mock.assert_called_once_with(src, dest)
+                dest.parent.makedirs_p.assert_called_once_with()
+                copy_mock.assert_called_once_with(src, dest)
 
 
 def _test_init_files(exists):
@@ -103,29 +109,31 @@ def test_create_pytest_config():
 
 
 def test_ns_pkg_files():
-    with patch.object(path.path, 'getcwd', CWD):
-        with patch.object(path.path, 'write_text') as mock_write:
-            cmd = get_cmd()
-            cmd.finalize_options()
+    with patch.object(test_egg, 'CONFIG', TEST_CONFIG):
+        with patch.object(path.path, 'getcwd', CWD):
+            with patch.object(path.path, 'write_text') as mock_write:
+                cmd = get_cmd()
+                cmd.finalize_options()
 
-            top_dir = path.path('build/lib')
-            top_dir.isdir = lambda: True
+                top_dir = path.path(cmd.build_lib)
+                top_dir.isdir = lambda: True
 
-            sub_dir1 = path.path('build/lib/acmetests')
-            sub_dir2 = path.path('build/lib/acmetests/acme')
-            sub_dir3 = path.path('build/lib/acmetests/acme/foo')
+                sub_dir1 = top_dir / 'acmetests'
+                sub_dir2 = sub_dir1 / 'acme'
+                sub_dir3 = sub_dir2 / 'foo'
 
-            top_dir.walkdirs = lambda: [sub_dir1, sub_dir2, sub_dir3]
+                top_dir.walkdirs = lambda: [sub_dir1, sub_dir2, sub_dir3]
 
-            cmd.create_ns_pkg_files(top_dir)
+                cmd.create_ns_pkg_files(top_dir)
 
-            assert mock_write.call_args_list == [
-                 ((test_egg.NAMESPACE_PACKAGE_INIT,), {}),
-                 ((test_egg.NAMESPACE_PACKAGE_INIT,), {})]
+                assert mock_write.call_args_list == [
+                     ((test_egg.NAMESPACE_PACKAGE_INIT,), {}),
+                     ((test_egg.NAMESPACE_PACKAGE_INIT,), {})]
 
 
 def test_run():
     with contextlib.nested(patch.object(path.path, 'getcwd', CWD),
+                           patch.object(test_egg, 'CONFIG', TEST_CONFIG),
                            patch.object(test_egg._bdist_egg, 'run'),
                            patch.object(test_egg, 'find_packages',
                                         Mock(return_value=['integration', 'unit']))):
