@@ -119,7 +119,8 @@ def is_strict_dev_version(version):
     our static build number.
     """
     # This one matches only versions that also match our dev build version
-    strict_re = re.compile('^%s\.dev\d*$' % CONFIG.dev_build_number.replace('.', '\.'))
+    strict_re = re.compile('^{}\.dev\d*$'
+                           .format(CONFIG.dev_build_number.replace('.', '\.')))
     return strict_re.search(version)
 
 
@@ -156,10 +157,12 @@ def checkout_pkg(dest_dir, pypi, pkg, options, branch='trunk', indent_txt=''):
         get_log().info("%s Checking out %s from %s" % (indent_txt, pkg, svn_dir))
         if getattr(options, 'no_action', False):
             return
-        run((CONFIG.vcs, 'co', svn_dir, dest_dir), capture_stdout=not options.verbose)
+        run((CONFIG.vcs, 'co', svn_dir, dest_dir),
+            capture_stdout=not options.verbose)
 
 
-def setup_pkg(virtualenv, pkg_dir, options, test=True, indent_txt='', deps=True):
+def setup_pkg(virtualenv, pkg_dir, options, test=True, indent_txt='',
+              deps=True):
     """
     Sets up a package in the given virtualenv
 
@@ -208,13 +211,15 @@ def get_inhouse_dependencies(pkg_dir, exceptions=[], indent_txt=''):
                 if req.project_name not in exceptions:
                     yield req.project_name
         else:
-            get_log().warn("%s Package at %s has no setup.cfg file, cannot find dependencies." % (indent_txt, pkg_dir))
+            get_log().warn("{0} Package at {1} has no setup.cfg file, cannot "
+                           "find dependencies.".format(indent_txt, pkg_dir))
 
 
 def create_virtualenv(dest, virtualenv_cmd=None):
     """
     Create Python Virtualenv for deployment.
-    Unsets ``PYTHONPATH`` to ensure it is a clean build (I'm looking at you, Eclipse..)
+    Unsets ``PYTHONPATH`` to ensure it is a clean build
+    (I'm looking at you, Eclipse..)
 
     Parameters
     ----------
@@ -234,7 +239,8 @@ def create_virtualenv(dest, virtualenv_cmd=None):
     run([virtualenv_cmd, dest, '--distribute'], env=env)
 
 
-def install_pkg(virtualenv, pkg, options=DEFAULT_OPTIONS, version=None, allow_source_package=False):
+def install_pkg(virtualenv, pkg, options=DEFAULT_OPTIONS, version=None,
+                allow_source_package=False):
     """
     Install package in the given virtualenv
 
@@ -352,4 +358,5 @@ def get_site_packages():
     """ Returns the site-packages dir for this virtualenv
     """
     from path import path
-    return path(sys.exec_prefix).abspath() / 'lib' / ('python%d.%d' % sys.version_info[:2]) / 'site-packages'
+    return (path(sys.exec_prefix).abspath() / 'lib' /
+            ('python{0}.{1}'.format(*sys.version_info[:2])) / 'site-packages')

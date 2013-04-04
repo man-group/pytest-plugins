@@ -1,6 +1,7 @@
 import sys
-
+import os
 from distutils import log
+
 import pkg_resources
 
 from pkglib.manage import is_inhouse_package
@@ -25,7 +26,8 @@ def is_source_package(pkg):
 
 
 def get_bounds(req):
-    """ Return the lower, upper bounds and the open or closed for each bound, for a requirement
+    """ Return the lower, upper bounds and the open or closed for each bound,
+        for a requirement
 
         Returns
         -------
@@ -36,7 +38,8 @@ def get_bounds(req):
         >>> import pkg_resources
         >>> from pkglib.setuptools.dependency import get_bounds
 
-        >>> r1, r2, r3 = pkg_resources.parse_requirements(['foo','foo==1.2','foo>1.0'])
+        >>> r1, r2, r3 = pkg_resources.parse_requirements(['foo','foo==1.2',
+                                                           'foo>1.0'])
         >>> get_bounds(r1)
         ('0', '99999999', True, True)
         >>> get_bounds(r2)
@@ -64,7 +67,8 @@ def get_bounds(req):
             lower_closed = False
         elif op == '<':
             upper_closed = False
-        # TODO: add support for !=, which is a set of [0(closed) < x(open), x(open) < INF(closed)]
+        # TODO: add support for !=, which is a set of [0(closed) < x(open),
+        #                                              x(open) < INF(closed)]
     return lower, upper, lower_closed, upper_closed
 
 
@@ -183,15 +187,16 @@ def merge_requirements(r1, r2):
     return list(pkg_resources.parse_requirements([res]))[0]
 
 
-def all_packages(exclude_pinned=True, exclusions=None, include_third_party=False):
+def all_packages(exclude_pinned=True, exclusions=None,
+                 include_third_party=False):
     """
     Return a lookup of all the installed packages, indexed by name.
 
     Parameters
     ----------
     exclude_pinned : `bool`
-        If set, will exclude any packages that are pinned at a specific version by
-        any other package
+        If set, will exclude any packages that are pinned at a specific version
+        by any other package
     exclusions : `list`
         Excludes this list of package names
     include_third_party : `bool`
@@ -226,21 +231,26 @@ def pinned_packages(candidates):
     res = set()
 
     def req_to_str(pkg, dep):
-        spec = ''.join([" (%s %s) " % (req[0], req[1]) for req in dep.specs])
-        return "%20s %15s %s" % (dep.project_name, spec, pkg.project_name)
+        spec = ''.join([" ({0} {1}) ".format(req[0], req[1])
+                        for req in dep.specs])
+        return "{0:20} {1:15} {2}".format(dep.project_name, spec,
+                                          pkg.project_name)
     for pkg in candidates:
-        [res.add((i.project_name, req_to_str(pkg, i))) for i in pkg.requires() if i.specs]
+        [res.add((i.project_name, req_to_str(pkg, i)))
+         for i in pkg.requires() if i.specs]
     if res:
         _banner("Pinned packages:")
-        log.info("%20s %15s %s" % ("Name", "Requirement", "Downstream Package"))
-        log.info("%s %s %s" % (20 * '-', 15 * '-', 20 * '-'))
+        log.info("{0:20} {1:15} {2}".format("Name", "Requirement",
+                                            "Downstream Package"))
+        log.info("{0} {1} {2}" % (20 * '-', 15 * '-', 20 * '-'))
         for i in res:
             log.info(i[1])
     return list(set([i[0] for i in (res)]))
 
 
 # XXX Refactor this to use get_all_requirements below
-def resolve_dependencies(requirements, candidates, seen=None, depth=1, follow_all=False):
+def resolve_dependencies(requirements, candidates, seen=None, depth=1,
+                         follow_all=False):
     """ Resolve dependencies for this set of requirements
 
         Parameters
@@ -261,7 +271,8 @@ def resolve_dependencies(requirements, candidates, seen=None, depth=1, follow_al
         deps : `set`
             Set of all the dependencies for these requirements
     """
-    #log.info("resolve deps: reqs: %r follow_all: %r" % (requirements, follow_all))
+    #log.info("resolve deps: reqs: %r follow_all: %r" % (requirements,
+    #                                                    follow_all))
     res = set()
     if not seen:
         seen = []
@@ -287,8 +298,8 @@ def resolve_dependencies(requirements, candidates, seen=None, depth=1, follow_al
     return res
 
 
-def get_targets(roots, candidates, everything=False, immediate_deps=True, follow_all=True,
-                include_eggs=True, include_source=True):
+def get_targets(roots, candidates, everything=False, immediate_deps=True,
+                follow_all=True, include_eggs=True, include_source=True):
     """
     Get a list of targets in a dependency graph.
     """
@@ -303,7 +314,8 @@ def get_targets(roots, candidates, everything=False, immediate_deps=True, follow
         targets = set(roots)
         for root in roots:
             if immediate_deps:
-                requirements = [i.project_name for i in candidates[root].requires()]
+                requirements = [i.project_name
+                                for i in candidates[root].requires()]
 
                 #self.banner("Dependency tree:")
                 #log.info(root)
@@ -314,9 +326,11 @@ def get_targets(roots, candidates, everything=False, immediate_deps=True, follow
     egg_targets = []
 
     if include_source:
-        source_targets = [i for i in targets if is_source_package(candidates[i])]
+        source_targets = [i for i in targets
+                          if is_source_package(candidates[i])]
     if include_eggs:
-        egg_targets = [i for i in targets if not is_source_package(candidates[i])]
+        egg_targets = [i for i in targets
+                       if not is_source_package(candidates[i])]
     return source_targets, egg_targets
 
 
@@ -333,12 +347,13 @@ def get_all_requirements(pkg_names):
     env = pkg_resources.Environment(sys.path)
     requirements = []
     for pkg in pkg_names:
-        my_dist = [dist for dist in pkg_resources.working_set if pkg == dist.project_name]
+        my_dist = [dist for dist in pkg_resources.working_set
+                   if pkg == dist.project_name]
         if not my_dist:
-            raise DependencyError("Package %s is not installed" % pkg)
+            raise DependencyError("Package {0}  is not installed".format(pkg))
         if len(my_dist) != 1:
-            raise DependencyError("Package %s has more than one entry in working set: %r" %
-                                  (pkg, my_dist))
+            raise DependencyError("Package {0} has more than one entry in "
+                                  "working set: {1!r}".format(pkg, my_dist))
         requirements.append(my_dist[0].as_requirement())
         env.add(my_dist[0])
     # get all our requirements
@@ -353,7 +368,8 @@ def get_dist(name, ws=None):
         ws = pkg_resources.working_set
     res = [i for i in ws if pkg_resources.safe_name(name) == i.project_name]
     if len(res) > 1:
-        raise DependencyError("More than one dist matches the name %r in working set" % name)
+        raise DependencyError("More than one dist matches the name {0} in "
+                              "working set".format(name))
     if res:
         return res[0]
     return None
@@ -375,26 +391,50 @@ def get_matching_reqs(ws, dist):
 def remove_from_ws(ws, dist):
     """ Safely removes a dist from a working set
     """
-    if dist.location in ws.entries or ws.entry_keys:
-        if dist.location in ws.entries:
-            ws.entries.remove(dist.location)
-        if dist.location in ws.entry_keys:
-            del(ws.entry_keys[dist.location])
-        if dist.key in ws.by_key:
-            del(ws.by_key[dist.key])
+    # This sucks - ws entries might not have resolved symlinks properly, so
+    # dist.location != ws.entries[i] even though they point to the same file
+    # or directory.
+    dist_path = os.path.realpath(dist.location)
+    ws_path = dist_path
+    for i in ws.entries:
+        if os.path.realpath(i) == dist_path:
+            ws_path = i
+            break
+    for path in set([dist_path, ws_path]):
+        try:
+            ws.entries.remove(path)
+        except ValueError:
+            pass
+        try:
+            del(ws.entry_keys[path])
+        except KeyError:
+            pass
+    try:
+        del(ws.by_key[dist.key])
+    except KeyError:
+        pass
 
 
-def get_requirements_from_ws(ws, req_graph):
-    """ Given a working set, return a dict of { dist.key -> (dist, req) }
-        where req is the merged requirements for this dist, based on the dists
-        in the ws.
+def get_graph_from_ws(ws):
+    """ Converts a working set into a requirements graph.
         This will flag up inconsistant working sets, and trim any dists from
         the ws that are in an inconsistant state.
 
-        It will also fill out edges and nodes on the networkx req_graph.
-        child requirements, which is used by the backtracker.
+    Parameters
+    ----------
+    ws: `pkg_resources.WorkingSet`
+        Working set to convert
+
+    Returns
+    -------
+    (graph, requirements_map)
+
+    graph: `networx.DiGraph` of requirements
+    dist_map: Map of { dist.key : (dist, req) } where req is the merged
+              requirements for this dist, based on the dists in the ws.
     """
-    best = {}
+    import networkx
+    dist_map = {}
     baseline_reqs = {}
     for dist in ws:
         req = None
@@ -409,21 +449,26 @@ def get_requirements_from_ws(ws, req_graph):
             # Sanity check for conflicts.
             conflicts = [i for i in ws_reqs if dist not in i]
             if conflicts:
-                log.warn("This virtualenv is inconsistant - %s is installed but there are "
-                         "conflicting requirements:" % dist)
-                [log.warn("  %s (from %s)" % (i, i._dist)) for i in conflicts]
+                log.warn("This virtualenv is inconsistant - {0} is installed "
+                         "but there are conflicting requirements:"
+                         .format(dist))
+                [log.warn("  {0} (from {1})".format(i, i._dist))
+                 for i in conflicts]
                 req = None
 
             else:
                 if len(ws_reqs) > 1:
-                    # Now attempt to merge all the requirements from the ws. We do this so that
-                    # we only count the most specific req when comparing incoming versions.
+                    # Now attempt to merge all the requirements from the ws.
+                    # We do this so that we only count the most specific req
+                    # when comparing incoming versions.
                     try:
                         req = reduce(merge_requirements, ws_reqs)
                     except CannotMergeError:
-                        log.warn("This virtualenv is inconsistant - %s is installed but there are"
-                                 "un-mergeable requirements:" % dist)
-                        [log.warn("  %s (from %s)" % (i, i._dist)) for i in ws_reqs]
+                        log.warn("This virtualenv is inconsistant - {0} is "
+                                 "installed but there are un-mergeable "
+                                 "requirements:".format(dist))
+                        [log.warn("  {0} (from {1})".format(i, i._dist))
+                         for i in ws_reqs]
                         req = None
                 else:
                     req = ws_reqs[0]
@@ -437,38 +482,41 @@ def get_requirements_from_ws(ws, req_graph):
 
             # TODO: keep some sort of record on disk as to why these packages
             #       were installed. Eg, 'pyinstall foo' vs 'pyinstall foo==1.2'
-            #       The second invocation should store the full requirement here,
-            #       so that the user needs to override their own req manually.
+            #       The second invocation should store the full requirement
+            #       here, so that the user needs to override their own req
+            #       manually.
             req = pkg_resources.Requirement.parse(dist.project_name)
 
         if not req:
-            log.warn("Trimming dist from baseline ws as it's inconsistant: %r" % dist)
+            log.warn("Trimming dist from baseline ws as it's inconsistant: "
+                     "{0}".format(dist))
             remove_from_ws(ws, dist)
         else:
-            #log.debug("   best is now (%s): %r" % (req, dist))
-            best[req.key] = (dist, req)
+            dist_map[req.key] = (dist, req)
+            # This is important - here we attach the dist that was chosen by
+            # this requirement to the req itself
             req._chosen_dist = dist
             baseline_reqs[req.key] = req
-            req._child_reqs = []
 
     # Now fill out the requirements graph.
-    # We can do this easily as at this point there is exactly one req for each dist.
-    for dist, req in best.values():
+    # We can do this easily as at this point there is exactly one req for each
+    # dist.
+    req_graph = networkx.DiGraph()
+    for dist, req in dist_map.values():
         req_graph.add_node(req)
         [req_graph.add_edge(req, baseline_reqs[r.key])
          for r in dist.requires()
          if r.key in baseline_reqs]
-        #req._child_reqs = [baseline_reqs[r.key] for r in dist.requires()  \
-        #                   if r.key in baseline_reqs]
 
-    return best
+    return req_graph, dist_map
 
 
 def get_all_upstream(graph, req):
     """ Return all upstream requirements in a given graph
     """
     from networkx import algorithms
-    # dfs_successors returns a dict representing the edges its found. Flatten it.
+    # dfs_successors returns a dict representing the edges its found.
+    # Flatten it.
     res = algorithms.dfs_successors(graph, req)
     res = set(res.keys() + [i for j in res.values() for i in j])
     return res
@@ -490,22 +538,84 @@ def get_all_downstream(graph, req):
     return found
 
 
-def get_downstream_difference(graph, upstream_node, downstream_node):
-    """ Return the difference between the upstream and downstream
-        sets of two nodes. Used to find if there are more than
-        one distinct downstream nodes, eg:
-             A       B    A depends on D, B depends on C and D
-              \     /
-               \   C      C only has one downstream parent, but
-                \ /       D has both A and B downstream.
-                 D
-    """
-    # XXX this doesn't work yet, I expect it is failing on circular graphs
-    down_to_up = get_all_upstream(graph, downstream_node)
-    down_to_up = down_to_up.difference(get_all_upstream(graph, upstream_node))
-    down_to_up.add(upstream_node)
+def get_backtrack_targets(graph, req):
+    """ Walk through a graph of requirements, returning all the
+        other requirements that were generated by this one, unless they
+        are also needed by unrelated requirements.
 
-    up_to_down = get_all_downstream(graph, upstream_node)
-    up_to_down = up_to_down.difference(get_all_downstream(graph, downstream_node))
-    up_to_down.add(downstream_node)
-    return down_to_up.difference(up_to_down)
+        This is used when we're replacing one version of something in the
+        graph with another, and we want to pull out all the outgoing version's
+        dependencies so they don't conflict with the incoming one.
+
+        Eg::
+             D      A depends on B, C. B and C depend on D. E depends on C.
+            / \     If we're backtracking A, then we start by finding all
+           B   C    upstream from A = (A, B, C, D). Then, search for all
+            \ / \   nodes not in (A, B, C, D) = (E), and find their
+             A   E  upstreams = (E, C, D). The final result is the first
+                    set minus the second = (A, B, C, D) - (E, C, D)
+                     == (A, B)
+
+        Another example::
+
+             D__    We're backtracking A as before, but there A has a couple
+            / \ \   of downstream dependencies as well. If we just ran the
+           B   C |  above algo we'd not backtrack anything as A is an upstream
+            \ /  |  dependency of some other nodes and therefore this shadows
+             A   |  all of A's upstream targets.
+            / \ /   Because we know we're going to remove least A regardless,
+           E   F    we can disregard direct downstream links from A.
+                    In this example this is E-A and F-A. The only case where
+                    this fails if there are implicit dependencies - ie, E
+                    imports code from B, without declaring an explicit
+                    dependency on B (rather it relies on A to bring it in).
+
+                    In this example the search should return (A, B, C).
+    """
+    log.debug("******   resolving backtrack targets")
+
+    # Uncomment to debug graphically
+    #import graph as graphing
+    #graphing.draw_networkx_with_pydot(graph, include_third_party=True,
+    #                                  show_reqs=True)
+
+    # First take a copy of the graph and remove direct downstream deps to
+    # cater for the second case in the docstring.
+    graph = graph.copy()
+
+    direct_predecessors = graph.predecessors(req)
+    if direct_predecessors:
+        log.debug("******   ignoring direct predecessors:")
+        [log.debug("******     {0}".format(i)) for i in direct_predecessors]
+
+        graph.remove_edges_from([(i, req) for i in direct_predecessors])
+        #graphing.draw_networkx_with_pydot(graph, include_third_party=True,
+        #                                  show_reqs=True)
+
+    def resolved_set(iterable):
+        """ Filter out reqs that havent yet been resolved """
+        return set([i for i in iterable if hasattr(i, '_chosen_dist')])
+
+    # This is (A, B, C, D) in the first docstring example
+    upstream = resolved_set(get_all_upstream(graph, req))
+
+    #log.debug("******   upstream reqs:")
+    #[log.debug("******     {0}".format(i)) for i in upstream]
+
+    # This is (E) in the first docstring example
+    unrelated = resolved_set(graph.nodes()).difference(upstream)
+    #log.debug("******   unrelated reqs:")
+    #[log.debug("******     {0}".format(i)) for i in unrelated]
+
+    # This is (C, D, E) in the first docstring example
+    no_touchies = set([j for i in unrelated
+                       for j in resolved_set(get_all_upstream(graph, i))])
+    #log.debug("******   unrelated upstream reqs:")
+    #[log.debug("******     {0}".format(i)) for i in no_touchies]
+
+    # This is (A, B, D) in the first docstring example
+    res = upstream.difference(no_touchies)
+    log.debug("******   result:")
+    [log.debug("******     {0} ({1})".format(i, i._chosen_dist)) for i in res]
+
+    return res

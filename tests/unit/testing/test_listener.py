@@ -1,61 +1,63 @@
-import socket
-import json
-from time import sleep
+import time
+
+import pytest
 
 import pkglib.testing.listener as li
 
 RECEIVE_TIMEOUT = 10
 
-def setup_module(module):
-    module.s = li.Listener()
-    module.s.start()
 
-def teardown_module(module):
-    li.stop_listener(module.s)
+@pytest.fixture(scope='module')
+def listener(request):
+    res = li.Listener()
+    res.start()
+    # Wait for socket to become available
+    time.sleep(1)
+    request.addfinalizer(lambda p=res: li.stop_listener(p))
+    return res
 
 
-def test_send_method():
-
+def test_send_method(listener):
     obj = ['hello', 'world']
-    s.send(obj)
-    d = s.receive(RECEIVE_TIMEOUT)
+    listener.send(obj)
+    d = listener.receive(RECEIVE_TIMEOUT)
     assert d == obj
-    assert s.port >= li.PORT
+    assert listener.port >= li.PORT
 
 
-def test_send_method_again():
-    test_send_method()
+def test_send_method_again(listener):
+    test_send_method(listener)
 
 
-def test_multiple_data():
+def test_multiple_data(listener):
     obj1 = ['hello', 'world']
-    s.send(obj1)
+    listener.send(obj1)
     obj2 = 'fred'
-    s.send(obj2)
+    listener.send(obj2)
 
-    d = s.receive(RECEIVE_TIMEOUT)
+    d = listener.receive(RECEIVE_TIMEOUT)
     assert d == obj1
-    d = s.receive(RECEIVE_TIMEOUT)
+    d = listener.receive(RECEIVE_TIMEOUT)
     assert d == obj2
 
 
-def test_send_halfway_data():
+def test_send_halfway_data(listener):
     li.DEBUG = True
     try:
         obj1 = ['first', 'message']
-        s.send(obj1)
+        listener.send(obj1)
 
         obj2 = 'second'
-        s.send(obj2)
+        listener.send(obj2)
 
-        d = s.receive(RECEIVE_TIMEOUT)
+        d = listener.receive(RECEIVE_TIMEOUT)
         assert d == obj1
 
-        s.clear_queue()
+        listener.clear_queue()
 
         obj3 = 'third'
-        s.send(obj3)
-        d = s.receive(RECEIVE_TIMEOUT)
+        listener.send(obj3)
+        d = listener.receive(RECEIVE_TIMEOUT)
         assert d == obj3 # demonstrating that obj2 has been "removed"
 
     finally:

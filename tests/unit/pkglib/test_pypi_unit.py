@@ -4,38 +4,39 @@ import subprocess
 
 from path import path
 
-from pkglib.pypi import CluePyPiApi
+from pkglib.pypi.clue import CluePyPIAPI
 from pkglib.manage import chdir
-from pkglib.testing.pytest.util import pytest_funcarg__workspace
 from pkglib.testing.mock.subprocess import patch_subprocess, get_subprocess_mock
 
 from helper import mock_clue
 
+pytest_plugins = ['pkglib.testing.pytest.util']
+
 
 def test_homepage():
     """ Api package homepage method test """
-    pypi = CluePyPiApi('http://foo')
+    pypi = CluePyPIAPI('http://foo')
     assert pypi._pkg_home('acme.foo') == "http://foo/d/acme.foo"
 
 
 def test_scrape_uri_from_clue():
     """ Tests the clue url scraper
     """
-    pypi = CluePyPiApi('http://foo')
+    pypi = CluePyPIAPI('http://foo')
     with patch.object(urllib2, 'urlopen', mock_clue()):
         assert pypi.scrape_pkg_uri('http://dummy', 'acme.foo') == \
             'http://mysvn/acme.foo'
 
 
 def test_get_mirror_dirname():
-    pypi = CluePyPiApi('http://foo')
+    pypi = CluePyPIAPI('http://foo')
     assert pypi.get_mirror_dirname('foo') == 'f'
     assert pypi.get_mirror_dirname('acme.foo') == 'af'
     assert pypi.get_mirror_dirname('acme.foo.bar') == 'af'
 
 
 def test_get_mirror_targets(workspace):
-    pypi = CluePyPiApi('http://foo')
+    pypi = CluePyPIAPI('http://foo')
     dirs = [
             path('a') / 'acme.foo',
             path('a') / 'acme.bar',
@@ -63,7 +64,7 @@ def test_get_mirror_targets(workspace):
 
 
 def test_mirror_eggs(workspace):
-    pypi = CluePyPiApi('http://foo')
+    pypi = CluePyPIAPI('http://foo')
     dirs = [
             path('a') / 'acme.foo',
             path('a') / 'acme.bar',
@@ -146,7 +147,7 @@ target_dir = /path/to/bardir
 
 
 def test_get_mirror_config(workspace):
-    pypi = CluePyPiApi('http://foo')
+    pypi = CluePyPIAPI('http://foo')
     with chdir(workspace.workspace):
         with open('mirror.cfg', 'wb') as fp:
             fp.write(MIRROR_CONFIG)

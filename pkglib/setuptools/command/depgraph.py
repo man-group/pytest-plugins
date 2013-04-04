@@ -21,6 +21,9 @@ class depgraph(Command, CommandMixin):
         ('graphviz', 'g', 'Use GraphViz renderer'),
         ('d3', 'd', 'Use D3 renderer'),
         ('pydot', 'p', 'Use PyDot renderer'),
+        ('requirements', 'r',
+         'Show requirements graph instead of distributions. Currently only '
+         'supported by pydot.'),
         ('out=', 'o', 'Save file to given location'),
         ('exclude=', 'x', 'Exclude these packages, comma-separated'),
     ]
@@ -32,6 +35,7 @@ class depgraph(Command, CommandMixin):
         'd3',
         'pydot',
         'graphviz',
+        'requirements',
     ]
 
     def initialize_options(self):
@@ -46,6 +50,7 @@ class depgraph(Command, CommandMixin):
         self.out = None
         self.renderer = 'pydot'
         self.exclude = []
+        self.requirements = False
 
     def finalize_options(self):
         if self.ascii:
@@ -64,14 +69,17 @@ class depgraph(Command, CommandMixin):
     def run(self):
         if not self.distribution.get_name() == 'UNKNOWN':
             self.run_command('egg_info')
-        self.banner("Dependency Graph: note - includes only installed packages")
+        self.banner("Dependency Graph: note - includes only installed "
+                    "packages")
 
-        all_packages = dependency.all_packages(exclusions=self.exclude,
-                                               include_third_party=self.third_party,
-                                               exclude_pinned=False)
+        all_packages = dependency.all_packages(
+                           exclusions=self.exclude,
+                           include_third_party=self.third_party,
+                           exclude_pinned=False)
 
         if self.distribution.get_name() == 'UNKNOWN' and not self.args:
-            # Pick any package and set the 'everything' flag if nothing was specified
+            # Pick any package and set the 'everything' flag if nothing was 
+            # specified
             pkg = all_packages.keys()[0]
             self.everything = True
             self.args = [pkg]
@@ -92,19 +100,23 @@ class depgraph(Command, CommandMixin):
 
         if self.renderer in ['ascii', 'graphviz']:
             # TODO: use nx digraph as below, retire get_targets
-            src, eggs = dependency.get_targets(roots, all_packages, everything=self.everything,
-                                           immediate_deps=True, follow_all=True,
-                                           include_eggs=True, include_source=True,)
+            src, eggs = dependency.get_targets(roots, all_packages,
+                                               everything=self.everything,
+                                               immediate_deps=True,
+                                               follow_all=True,
+                                               include_eggs=True,
+                                               include_source=True,)
 
-            graph.draw_graph(inclusions=src + eggs, renderer=self.renderer, outfile=self.out)
+            graph.draw_graph(inclusions=src + eggs, renderer=self.renderer,
+                             outfile=self.out)
 
         else:
-            import networkx
-            nx_graph = networkx.DiGraph()
-            dependency.get_requirements_from_ws(working_set, nx_graph)
+            nx_graph, _ = dependency.get_graph_from_ws(working_set)
 
             if self.renderer == 'd3':
-                graph.draw_networkx_with_d3(nx_graph, self.third_party, self.out)
+                graph.draw_networkx_with_d3(nx_graph, self.third_party,
+                                            self.out)
             elif self.renderer == 'pydot':
                 self.fetch_build_eggs(['pydot'])
-                graph.draw_networkx_with_pydot(nx_graph, self.third_party, self.out)
+                graph.draw_networkx_with_pydot(nx_graph, self.third_party,
+                                               self.out, self.requirements)
