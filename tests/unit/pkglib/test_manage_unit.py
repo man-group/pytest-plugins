@@ -5,7 +5,12 @@ import os
 import mock
 
 from pkglib import manage, config
-from pkglib.testing.util import Workspace
+
+pytest_plugins = ['pkglib.testing.pytest.util']
+
+
+TEST_CONFIG = config.OrganisationConfig(namespaces=['acme'],
+                                      namespace_separator='.')
 
 
 def test_chdir():
@@ -23,7 +28,7 @@ def test_set_home():
 
 
 def test_is_inhouse_package():
-    with mock.patch.object(manage, 'CONFIG', config.OrganisationConfig(namespaces=['acme'])):
+    with mock.patch.object(manage, 'CONFIG', TEST_CONFIG):
         assert manage.is_inhouse_package('acme.foo')
         assert not manage.is_inhouse_package('foo')
 
@@ -43,8 +48,8 @@ def test_is_strict_dev_version():
     assert not manage.is_strict_dev_version('1.0.0.dev4')
 
 
-def test_get_inhouse_dependencies():
-    with Workspace() as workspace:
+def test_get_inhouse_dependencies(workspace):
+    with mock.patch.object(manage, 'CONFIG', TEST_CONFIG):
         with open(os.path.join(workspace.workspace, 'setup.cfg'), 'wb') as fp:
             fp.write("""[metadata]
 name = acme.foo
@@ -56,13 +61,15 @@ install_requires =
     acme.b>=1.0.0
     acme.c<3.0
 """)
-        assert [i for i in manage.get_inhouse_dependencies(workspace.workspace)] == \
-            ['acme.a', 'acme.b', 'acme.c']
+        result = [i for i in
+                  manage.get_inhouse_dependencies(workspace.workspace)]
+        assert result == ['acme.a', 'acme.b', 'acme.c']
 
 
 def test_get_namespace_packages():
-    assert manage.get_namespace_packages('') == []
-    assert manage.get_namespace_packages('foo') == []
-    assert manage.get_namespace_packages('foo.bar') == ['foo']
-    assert manage.get_namespace_packages('foo.bar.baz') == ['foo', 'foo.bar']
-    assert manage.get_namespace_packages('foo.bar.baz.qux') == ['foo', 'foo.bar', 'foo.bar.baz']
+    with mock.patch.object(manage, 'CONFIG', TEST_CONFIG):
+        assert manage.get_namespace_packages('') == []
+        assert manage.get_namespace_packages('foo') == []
+        assert manage.get_namespace_packages('foo.bar') == ['foo']
+        assert manage.get_namespace_packages('foo.bar.baz') == ['foo', 'foo.bar']
+        assert manage.get_namespace_packages('foo.bar.baz.qux') == ['foo', 'foo.bar', 'foo.bar.baz']

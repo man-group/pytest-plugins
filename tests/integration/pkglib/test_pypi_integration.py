@@ -1,7 +1,7 @@
 import os.path
 import copy
 
-from pkglib.pypi import ChishopPyPiApi
+from pkglib.pypi import XMLRPCPyPIAPI
 
 from pkglib.testing.util import PkgTemplate
 
@@ -38,7 +38,7 @@ def test_upload(pytestconfig, pypi):
 def test_resolve_dashed_name():
     """ Tests resolving packages with dashes in the name using PyPI API
     """
-    pypi = ChishopPyPiApi()
+    pypi = XMLRPCPyPIAPI()
     assert pypi.resolve_dashed_name('foo') == 'foo'
     assert pypi.resolve_dashed_name('acme-data.foobar') == 'acme_data.foobar'
     assert pypi.resolve_dashed_name('pytest-cov') == 'pytest-cov'

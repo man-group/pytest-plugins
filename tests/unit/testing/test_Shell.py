@@ -1,6 +1,7 @@
-import os, os.path
+import os.path
 
 from pkglib.testing.util import Shell, Workspace, chdir
+
 
 def test_Shell_func_1():
     with chdir(os.path.dirname(__file__)):
@@ -40,6 +41,7 @@ def test_mkdir_adir_stats_ok():
                                    ) as sh:
             assert sh.out.strip().startswith('File: '), 'adir directory is absent'
 
+
 def test_mkdir_adir_stats_abs_ok():
     with Workspace() as w:
         with Shell(['cd %s' % w.workspace,
@@ -47,6 +49,7 @@ def test_mkdir_adir_stats_abs_ok():
                                     'stat %s/adir' % w.workspace]
                                    ) as sh:
             assert sh.out.strip().startswith('File: '), 'adir directory is absent'
+
 
 def test_mkdir_with_abs_cd_works_ok():
     with Workspace() as w:
@@ -57,6 +60,7 @@ def test_mkdir_with_abs_cd_works_ok():
                                    ]) as sh:
 
             assert sh.out.strip().endswith('/adir'), 'adir directory is absent'
+
 
 def test_mkdir_with_relative_cd_ok():
     with Workspace() as w:
@@ -70,6 +74,8 @@ def test_mkdir_with_relative_cd_ok():
             assert len(lines) == 1
             assert lines[0] == os.path.join(w.workspace, 'adir')
 
+
 def test_shell_exception_ok():
+    # TODO: this is brittle, diff output on diff OS
     with Shell(['junk_command']) as sh:
-        assert sh.err.strip().endswith('junk_command: command not found')
+        assert 'not found' in sh.err.strip()

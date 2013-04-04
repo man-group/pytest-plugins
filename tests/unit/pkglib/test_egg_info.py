@@ -3,12 +3,13 @@ from mock import Mock, patch
 import pytest
 
 from pkglib.setuptools.command import egg_info
+from pkglib.pypi.xmlrpc import XMLRPCPyPIAPI
 
 from helper import Pkg
 
 
 def get_cmd(version='1.0.0'):
-    dist = Distribution({'name': 'acme.foo', 'version':version})
+    dist = Distribution({'name': 'acme.foo', 'version': version})
     cmd = egg_info.egg_info(dist)
     cmd.write_file = Mock()
     cmd.pin_requirements = Mock()
@@ -44,32 +45,40 @@ def test_write_options():
 
 
 def test_get_new_build_number_not_dev_version():
-    with patch('pkglib.pypi.ChishopPyPiApi.get_last_version', Mock(return_value='1.0.0')):
+    with patch('pkglib.pypi.xmlrpc.XMLRPCPyPIAPI.get_last_version',
+               Mock(return_value='1.0.0')):
         cmd = get_cmd('1.0.0')
+        cmd.pypi_client = XMLRPCPyPIAPI('http://example.com')
         cmd.new_build = True
         with pytest.raises(ValueError):
             cmd.finalize_options()
 
 
 def test_get_new_build_number_old_style_dev_version():
-    with patch('pkglib.pypi.ChishopPyPiApi.get_last_version', Mock(return_value='1.0.0.dev2')):
+    with patch('pkglib.pypi.xmlrpc.XMLRPCPyPIAPI.get_last_version',
+               Mock(return_value='1.0.0.dev2')):
         cmd = get_cmd('1.0.0')
+        cmd.pypi_client = XMLRPCPyPIAPI('http://example.com')
         cmd.new_build = True
         with pytest.raises(ValueError):
             cmd.finalize_options()
 
 
 def test_get_new_build_number_no_dev_versions_yet():
-    with patch('pkglib.pypi.ChishopPyPiApi.get_last_version', Mock(return_value=None)):
+    with patch('pkglib.pypi.xmlrpc.XMLRPCPyPIAPI.get_last_version',
+               Mock(return_value=None)):
         cmd = get_cmd('1.0.0')
+        cmd.pypi_client = XMLRPCPyPIAPI('http://example.com')
         cmd.new_build = True
         cmd.finalize_options()
         assert cmd.egg_version == '0.0.dev1'
 
 
 def test_get_new_build_number():
-    with patch('pkglib.pypi.ChishopPyPiApi.get_last_version', Mock(return_value='0.0.dev2')):
+    with patch('pkglib.pypi.xmlrpc.XMLRPCPyPIAPI.get_last_version',
+               Mock(return_value='0.0.dev2')):
         cmd = get_cmd('1.0.0')
+        cmd.pypi_client = XMLRPCPyPIAPI('http://example.com')
         cmd.new_build = True
         cmd.finalize_options()
         assert cmd.egg_version == '0.0.dev3'

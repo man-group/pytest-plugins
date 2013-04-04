@@ -23,21 +23,45 @@ def get_spec(specs):
                                i[1].replace('>', '\>')) for i in specs)
 
 
-def get_dot_node(req):
-    """ Get a pydot node object from a networkx node """
+def get_dot_dist_node(req):
+    """ Get a pydot node object from a networkx node that represents the
+        dist for that node
+    """
     import pydot
     fill_colour = "#cccccc"
     shape = "box"
     if is_inhouse_package(req.project_name):
         fill_colour = "green"
-    return pydot.Node(' '.join((str(req.project_name), req._chosen_dist.version)),
+    return pydot.Node(' '.join((str(req.project_name),
+                                req._chosen_dist.version)),
                       style="filled",
                       fillcolor=fill_colour,
                       shape=shape)
 
 
-def get_dot_edge(edge, nodes):
-    """ Get a pydot edge object from a networkx edge """
+def get_dot_req_node(req):
+    """ Get a pydot node object from a networkx node that represents the
+        requirement and its installed dist
+    """
+    import pydot
+    fill_colour = "#cccccc"
+    shape = "box"
+    if is_inhouse_package(req.project_name):
+        fill_colour = "green"
+    if hasattr(req, '_chosen_dist'):
+        dist = req._chosen_dist.version
+    else:
+        dist = ''
+    return pydot.Node('{0} ({1})'.format(req, dist),
+                      style="filled",
+                      fillcolor=fill_colour,
+                      shape=shape)
+
+
+def get_dot_dist_edge(edge, nodes):
+    """ Get a pydot edge object from a networkx edge that represents the
+        requirement that makes up the dependency from one dist to another.
+    """
     import pydot
     # PyDot's lame argument handling means I can't pass in label=None
     if edge[1].specs:
@@ -47,30 +71,63 @@ def get_dot_edge(edge, nodes):
     return pydot.Edge(nodes[edge[0]], nodes[edge[1]])
 
 
-def draw_networkx_with_pydot(nx_graph, include_third_party=False, outfile=None):
-    """ Draws a networkx graph using PyDot.
+def get_dot_req_edge(edge, nodes):
+    """ Get a pydot edge object from a networkx edge that represents the
+        dependency from one requirement to another.
+        Er, this means it's just a line  :)
     """
-    log.info("")
+    import pydot
+    return pydot.Edge(nodes[edge[0]], nodes[edge[1]])
+
+
+def draw_networkx_with_pydot(nx_graph, include_third_party=False,
+                             outfile=None, show_reqs=False):
+    """ Draws a networkx graph using PyDot.
+
+    Parameters
+    ----------
+    nx_graph: `networkx.DiGraph`
+        The requirements graph
+    include_third_party: `bool`
+        Show third-party packages on the graph
+    outfile: `path`
+        If set, will save the graph to this path
+    show_reqs: `bool`
+        If set, will show the graph of requirements instead of the related
+        distributions - this more closely mirrors the underlying data.
+    """
     import pydot
     dot_graph = pydot.Dot(graph_type='digraph', suppress_disconnected=False)
     dot_nodes = {}
+    fn_node = get_dot_dist_node
+    fn_edge = get_dot_dist_edge
+    if show_reqs:
+        fn_node = get_dot_req_node
+        fn_edge = get_dot_req_edge
+
     for nx_node in nx_graph.nodes_iter():
-        if not include_third_party and not is_inhouse_package(nx_node.project_name):
+        if (not include_third_party and
+            not is_inhouse_package(nx_node.project_name)):
             continue
-        dot_node = get_dot_node(nx_node)
-        dot_nodes[nx_node] = dot_node
-        dot_graph.add_node(dot_node)
+
+        # Skip requirements that aren't yet 'installed' - this is only the
+        # case mid-way through dependency resolution
+        if hasattr(nx_node, '_chosen_dist'):
+            dot_node = fn_node(nx_node)
+            dot_nodes[nx_node] = dot_node
+            dot_graph.add_node(dot_node)
 
     for edge in nx_graph.edges_iter():
         if edge[0] not in dot_nodes or edge[1] not in dot_nodes:
             continue
-        dot_graph.add_edge(get_dot_edge(edge, dot_nodes))
+        dot_graph.add_edge(fn_edge(edge, dot_nodes))
 
     if not outfile:
         tmpdir = tempfile.mkdtemp()
         outfile = os.path.abspath(os.path.join(tmpdir, 'graph.png'))
     # TODO: make neato work for nicer layouts
     #dot_graph.write_png(outfile, prog='neato')
+    log.info("Rendering graph to {0}".format(outfile))
     dot_graph.write_png(outfile)
     webbrowser.open('file://%s' % outfile)
     time.sleep(5)
@@ -89,7 +146,8 @@ def draw_networkx_with_d3(nx_graph, include_third_party=False, outfile=None):
 
     i = 0
     for req in nx_graph.nodes_iter():
-        if not include_third_party and not is_inhouse_package(req.project_name):
+        if (not include_third_party and
+            not is_inhouse_package(req.project_name)):
             continue
         #print "Node %d: %s" % (i, req.project_name)
         nodes[req.key] = (i, req.project_name)
@@ -129,7 +187,8 @@ def get_req_node(all_modules, dist_name, req):
         get_module_node(all_modules, req.project_name))
 
 
-def draw_graph(inclusions=None, exclusions=None, renderer='boxart', outfile=None):
+def draw_graph(inclusions=None, exclusions=None, renderer='boxart',
+               outfile=None):
     """
     Draw a graph of our current working set.
 
@@ -169,13 +228,14 @@ def draw_graph(inclusions=None, exclusions=None, renderer='boxart', outfile=None
          if included(r.project_name)]
 
     if renderer == "boxart":
-        log.info("Using UTF-8 boxart: if this looks strange set your terminal chacter encoding to "
-                 "UTF-8 or use --ascii")
+        log.info("Using UTF-8 boxart: if this looks strange set your terminal "
+                 "chacter encoding to UTF-8 or use --ascii")
     run_graph_easy(entries, renderer, outfile)
 
 
 def run_graph_easy(entries, renderer, outfile=None):
-    """ Given the path edge entries, run the graphing tools and produce the output.
+    """ Given the path edge entries, run the graphing tools and produce the
+        output.
 
         Parameters
         ----------
@@ -184,7 +244,8 @@ def run_graph_easy(entries, renderer, outfile=None):
         renderer :   `str`
             One of 'ascii', 'boxart' or 'graphviz'
         outfile :   `str`
-            File to save to, only for graphviz. If None, it will delete the generated file.
+            File to save to, only for graphviz. If None, it will delete the
+            generated file.
     """
     from path import path
     if renderer == 'graphviz' and not os.getenv('DISPLAY'):
@@ -203,7 +264,9 @@ def run_graph_easy(entries, renderer, outfile=None):
                 outfile = path(outfile)
                 outfile = outfile.abspath()
 
-                run(['-c', '../bin/graph-easy --as=%s | /usr/bin/dot -Tpng -o %s' % (renderer, outfile)],
+                run(['-c', ('../bin/graph-easy --as={0} | '
+                            '/usr/bin/dot -Tpng -o {1}'
+                            .format(renderer, outfile))],
                     capture_stdout=False, stdin=instream, shell=True)
                 if not outfile.isfile:
                     log.error("Failed to create image file.")
@@ -215,6 +278,7 @@ def run_graph_easy(entries, renderer, outfile=None):
                 else:
                     log.info("Created graph at %s" % outfile)
             else:
-                run(['../bin/graph-easy', '--as=%s' % renderer], capture_stdout=False, stdin=instream)
+                run(['../bin/graph-easy', '--as=%s' % renderer],
+                    capture_stdout=False, stdin=instream)
         return
     log.warn("Can't find graphing tool at %s" % CONFIG.graph_easy)
