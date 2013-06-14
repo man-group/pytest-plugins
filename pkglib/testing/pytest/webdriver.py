@@ -3,6 +3,33 @@ import os
 import pytest
 import py.builtin
 
+from pkglib import CONFIG
+
+
+def browser_to_use(webdriver, browser):
+    """Recover the browser to use with the given webdriver instance.
+
+    The browser string is case insensitive and needs to be one of the values
+    from BROWSERS_CFG.
+
+    """
+    browser = browser.strip().upper()
+
+    # Have a look the following to see list of supported browsers:
+    #
+    #   http://selenium.googlecode.com/git/docs/api/
+    #     py/_modules/selenium/webdriver/common/desired_capabilities.html
+    #
+    b = getattr(webdriver.DesiredCapabilities(), browser, None)
+    if not b:
+        raise ValueError(
+            "Unknown browser requested '{}'.".format(browser)
+        )
+
+    print "{}\n\nbrowser: {}\n\n{}".format('-'*80, browser, '-'*80)
+
+    return b
+
 
 def pytest_funcarg__webdriver(request):
     """ Connects to a remote selenium webdriver and returns the browser handle.
@@ -41,8 +68,14 @@ def pytest_funcarg__webdriver(request):
         pass
 
     def setup():
-        res = webdriver.Remote('http://%s:%s' % (os.environ["SELENIUM_HOST"], os.environ['SELENIUM_PORT']),
-                               webdriver.DesiredCapabilities().CHROME)
+        browser = os.environ.get('SELENIUM_BROWSER', 'chrome')
+        res = webdriver.Remote(
+            'http://%s:%s' % (
+                os.environ["SELENIUM_HOST"],
+                os.environ['SELENIUM_PORT']
+            ),
+            browser_to_use(webdriver, browser)
+        )
         if root_uri:
             res.__dict__['root_uri'] = root_uri[0]
         return res
