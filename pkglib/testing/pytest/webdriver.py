@@ -70,12 +70,19 @@ def pytest_funcarg__webdriver(request):
 
     """
     from selenium import webdriver
-    try:
-        os.environ['SELENIUM_HOST']
-        os.environ['SELENIUM_PORT']
-    except KeyError:
-        print "Please ensure SELENIUM_HOST and SELENIUM_PORT are set in the environment"
-        raise
+
+    selenium_uri = os.environ.get('SELENIUM_URI')
+    if not selenium_uri:
+        try:
+            os.environ['SELENIUM_HOST']
+            os.environ['SELENIUM_PORT']
+        except KeyError:
+            print (
+                "Please ensure SELENIUM_HOST and SELENIUM_PORT "
+                "are set in the environment"
+            )
+            raise
+
 
     # Look for the pyramid server funcarg in the current session, and save away its root uri
     root_uri = []
