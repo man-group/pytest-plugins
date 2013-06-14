@@ -51,6 +51,23 @@ def pytest_funcarg__webdriver(request):
         *Important* If there is a pyramid_server funcarg also running in the current test, it will
          set the 'root_uri' attribute on the webdriver instance so you can use this to base
          URLs off of.
+
+        *Note SELENIUM_URI*:
+
+        Allow the end user to specify there own host, port and path and
+        anything else e.g.:
+
+          http://localhost:4444/wd/hub
+
+        This is needed when dealing with selenium server and not chrome
+        driver i.e.:
+
+        https://groups.google.com/forum/?fromgroups#!topic/
+          selenium-users/xodZDJxt81o
+
+        If SELENIUM_URI is not defined SELENIUM_HOST & SELENIUM_PORT will
+        be used.
+
     """
     from selenium import webdriver
     try:
@@ -68,14 +85,22 @@ def pytest_funcarg__webdriver(request):
         pass
 
     def setup():
-        browser = os.environ.get('SELENIUM_BROWSER', 'chrome')
-        res = webdriver.Remote(
-            'http://%s:%s' % (
+        """
+        """
+        selenium_uri = os.environ.get('SELENIUM_URI')
+        if not selenium_uri:
+            selenium_uri = 'http://%s:%s' % (
                 os.environ["SELENIUM_HOST"],
                 os.environ['SELENIUM_PORT']
-            ),
+            )
+
+        browser = os.environ.get('SELENIUM_BROWSER', 'chrome')
+
+        res = webdriver.Remote(
+            selenium_uri,
             browser_to_use(webdriver, browser)
         )
+
         if root_uri:
             res.__dict__['root_uri'] = root_uri[0]
         return res
