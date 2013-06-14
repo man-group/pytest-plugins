@@ -26,7 +26,7 @@ def browser_to_use(webdriver, browser):
             "Unknown browser requested '{}'.".format(browser)
         )
 
-    print "{}\n\nbrowser: {}\n\n{}".format('-'*80, browser, '-'*80)
+    #print "{}\n\nbrowser: {}\n\n{}".format('-'*80, browser, '-'*80)
 
     return b
 
