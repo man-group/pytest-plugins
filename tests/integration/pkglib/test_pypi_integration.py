@@ -1,7 +1,7 @@
 import os.path
 import copy
 
-from pkglib.pypi import XMLRPCPyPIAPI
+from pkglib.pypi.xmlrpc import XMLRPCPyPIAPI
 
 from pkglib.testing.util import PkgTemplate
 

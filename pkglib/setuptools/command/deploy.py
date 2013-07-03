@@ -30,10 +30,6 @@ class deploy(Command, CommandMixin):
         self.console_scripts = []
 
     def finalize_options(self):
-        si = self.distribution.get_command_obj('setup_instpckg')
-        if self.enabled and si.enabled:
-            log.warn("cannot enable both setup_instpckg and install_research_app, disabling instpckg")
-            si.enabled = False
         if self.console_scripts:
             self.console_scripts = self.parse_multiline(self.console_scripts)
 
@@ -57,7 +53,7 @@ class deploy(Command, CommandMixin):
             raise DistutilsOptionError("Package already installed at %s" % pyenv_dir)
 
         self.execute(manage.create_virtualenv, (pyenv_dir,),
-                     "creating InstallTools virtualenv at %s" % pyenv_dir)
+                     "creating virtualenv at %s" % pyenv_dir)
         self.execute(manage.install_pkg, (pyenv_dir, 'pkglib'),
                      "installing pkglib into virtualenv at %s" % pyenv_dir)
 

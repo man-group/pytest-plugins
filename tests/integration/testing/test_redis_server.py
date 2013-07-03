@@ -1,4 +1,4 @@
-from pkglib.testing.pytest.redis_server import pytest_funcarg__redis_server
+pytest_plugins = ['pkglib.testing.pytest.redis_server_session']
 
 
 def test_server_runner(redis_server):

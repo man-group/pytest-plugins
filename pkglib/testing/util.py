@@ -87,7 +87,8 @@ def unset_env(env_var_skiplist):
     # Save variables that are going to be updated.
     saved_values = dict(os.environ)
 
-    new_values = dict((k, v) for k, v in os.environ.iteritems() if k not in env_var_skiplist)
+    new_values = dict((k, v) for k, v in os.environ.iteritems()
+                      if k not in env_var_skiplist)
 
     # Update variables to their temporary values
     update_environment(new_values)
@@ -173,8 +174,8 @@ def get_clean_python_env():
 
 
 def launch(cmd, **kwds):
-    """Runs the command in a separate process and returns the lines of stdout and stderr
-    as lists
+    """Runs the command in a separate process and returns the lines of stdout
+       and stderr as lists
     """
     if isinstance(cmd, basestring):
         cmd = [cmd]
@@ -184,7 +185,8 @@ def launch(cmd, **kwds):
 
 class Shell(object):
     """Create a shell script which runs the command and optionally runs
-    another program which returns to stdout/err retults to confirm success or failure
+       another program which returns to stdout/err retults to confirm success
+       or failure
     """
     fname = None
 
@@ -281,9 +283,11 @@ class Workspace(object):
     def __del__(self):
         self.teardown()
 
-    def run(self, cmd, capture=False, check_rc=True, cd=None, shell=True, **kwargs):
+    def run(self, cmd, capture=False, check_rc=True, cd=None, shell=True,
+            **kwargs):
         """
-        Run a command relative to a given directory, defaulting to the workspace root
+        Run a command relative to a given directory, defaulting to the
+        workspace root
 
         Parameters
         ----------
@@ -305,7 +309,8 @@ class Workspace(object):
             #import sys; sys.stderr.write("chdir: %s run %s\n" % (cd, cmd))
             print "run: %s" % str(cmd)
             if capture:
-                p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
+                p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT, **kwargs)
             else:
                 p = subprocess.Popen(cmd, shell=shell, **kwargs)
             (out, _) = p.communicate()
@@ -364,12 +369,14 @@ class TmpVirtualEnv(Workspace):
         if env is None:
             self.env = dict(os.environ)
         else:
-            self.env = dict(env)  # ensure we take a copy just in case there's some modification
+            # ensure we take a copy just in case there's some modification
+            self.env = dict(env)
 
         self.env['VIRTUAL_ENV'] = self.virtualenv
         if 'PYTHONPATH' in self.env:
             del(self.env['PYTHONPATH'])
-        self.run('%s %s --distribute' % (CONFIG.virtualenv_executable, self.virtualenv))
+        self.run('%s %s --distribute' % (CONFIG.virtualenv_executable,
+                                         self.virtualenv))
         #self.install_package('yolk', installer='easy_install')
 
     def run(self, *args, **kwargs):
@@ -390,20 +397,25 @@ class TmpVirtualEnv(Workspace):
         args:
             Args passed into `pkglib.testing.pytest.coverage.run_with_coverage`
         kwargs:
-            Keyword arguments to pass to `pkglib.testing.pytest.coverage.run_with_coverage`
+            Keyword arguments to pass to
+            `pkglib.testing.pytest.coverage.run_with_coverage`
         """
         if 'env' not in kwargs:
             kwargs['env'] = self.env
-        return coverage.run_with_coverage(*args, coverage='%s/bin/coverage' % self.virtualenv,
-                                          **kwargs)
+        return coverage.run_with_coverage(
+              *args, coverage='%s/bin/coverage' % self.virtualenv, **kwargs)
 
-    def install_package(self, pkg_name, installer='pyinstall', build_egg=False):
+    def install_package(self, pkg_name, installer='pyinstall',
+                        build_egg=False):
         """
         Install a given package name. If it's already setup in the
         test runtime environment, it will use that.
-        :param build_egg:  `bool`
-            Only used when the package is installed as a source checkout, otherwise it
-            runs the installer to get it from PyPI
+
+        Parameters
+        ----------
+        build_egg:  `bool`
+            Only used when the package is installed as a source checkout,
+            otherwise it runs the installer to get it from PyPI
             True: builds an egg and installs it
             False: Runs 'python setup.py develop'
         """
@@ -413,7 +425,8 @@ class TmpVirtualEnv(Workspace):
             installer = os.path.join(self.virtualenv, 'bin', installer)
             if not self.debug:
                 installer += ' -q'
-            # Note we're running this as 'python easy_install foobar', instead of 'easy_install foobar'
+            # Note we're running this as 'python easy_install foobar', instead 
+            # of 'easy_install foobar'
             # This is to circumvent #! line length limits :(
             cmd.append('%s %s %s' % (self.python, installer, pkg_name))
         else:
@@ -426,17 +439,20 @@ class TmpVirtualEnv(Workspace):
                  'pyversion': '%d.%d' % sys.version_info[:2],
                  }
 
-            d['egg_file'] = path(pkg.location) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
+            d['egg_file'] = (path(pkg.location) / 'dist' /
+                             ('%(name)s-%(version)s-py%(pyversion)s.egg' % d))
 
             if build_egg:
-                cmd += ['cd %(src_dir)s' % d, '%(python)s setup.py -q bdist_egg' % d]
+                cmd += ['cd %(src_dir)s' % d,
+                        '%(python)s setup.py -q bdist_egg' % d]
 
             # See if there's an egg available already.
             if d['egg_file'].isfile():
                 cmd += ['%(python)s %(easy_install)s %(egg_file)s' % d]
 
             else:
-                cmd += ['cd %(src_dir)s' % d, '%(python)s setup.py -q develop' % d]
+                cmd += ['cd %(src_dir)s' % d,
+                        '%(python)s setup.py -q develop' % d]
 
         self.run(';'.join(cmd), capture=True)
 
@@ -448,12 +464,14 @@ class TmpVirtualEnv(Workspace):
         if package_type is None:
             package_type = PackageEntry.ANY
         elif package_type not in PackageEntry.PACKAGE_TYPES:
-            raise ValueError('invalid package_type parameter (%s)' % str(package_type))
+            raise ValueError('invalid package_type parameter ({})'
+                             .format(package_type))
 
         res = {}
         code = "from pkg_resources import working_set\n"\
                "for i in working_set: print i.project_name, i.version, i.location"
-        lines = self.run('%s -c "%s"' % (self.python, code), capture=True).split('\n')
+        lines = (self.run('%s -c "%s"' % (self.python, code), capture=True)
+                 .split('\n'))
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
             res[name] = PackageEntry(name, version, location)
@@ -483,7 +501,8 @@ class TmpVirtualEnv(Workspace):
         if package_type is None:
             package_type = PackageEntry.ANY
         elif package_type not in (PackageEntry.DEV, PackageEntry.REL):
-            raise ValueError('invalid package_type parameter for dependencies (%s)' % str(package_type))
+            raise ValueError('invalid package_type parameter for dependencies '
+                             '({})'.format(package_type))
 
         res = {}
         code = "from pkglib.setuptools.dependency import get_all_requirements; " \

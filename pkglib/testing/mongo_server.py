@@ -48,6 +48,7 @@ class MongoTestServer(TestServer):
         """Test connection to the server."""
         print "Connecting to Mongo at %s:%s" % (self.hostname, self.port)
         try:
+            # TODO: update this to use new pymongo Client
             self.api = pymongo.Connection(self.hostname, self.port)
             return True
         except (AutoReconnect, ConnectionFailure), e:

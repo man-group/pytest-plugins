@@ -43,6 +43,8 @@ class test(Command, CommandMixin):
         ("quiet", 'q', "Run tests quietly"),
         ("ignore", None, "Ignore tests matching this pattern"),
         ("no-pylint", None, "Disable pylint checking"),
+        ("no-deps", 'N',
+         "Disable resolving of test dependencies"),
         ("test-root", None,
          "Root directory for tests, defaults to all directories matching "
          "'{0}' under {1}".format(CONFIG.test_dirname, os.getcwd())),
@@ -57,6 +59,7 @@ class test(Command, CommandMixin):
         'pdb',
         'quiet',
         'no-pylint',
+        'no-deps',
     ]
 
     def initialize_options(self):
@@ -76,6 +79,7 @@ class test(Command, CommandMixin):
         self.quiet = False
         self.ignore = None
         self.no_pylint = False
+        self.no_deps = False
         self.file = None
         self.test_root = []
         self.default_options = self.get_option_list()
@@ -288,7 +292,8 @@ class test(Command, CommandMixin):
     def run(self):
         """ Main run function
         """
-        self.execute(self.fetch_requirements, [], "Fetching test requirements")
+        if not self.no_deps:
+            self.execute(self.fetch_requirements, [], "Fetching test requirements")
 
         pytest_args, doctest_args = self.get_args()
 
