@@ -22,13 +22,14 @@ class build_sphinx(Command, CommandMixin):
         ('doctest', None, 'run doctests'),
         ('no-doctest', None, 'Skip doctests'),
         ('no-build', None, 'Skip build'),
+        ('no-sphinx', None, 'Skip Sphinx operations'),
         ('source-dir=', 's', 'Source directory'),
         ('build-dir=', None, 'Build directory'),
         ('autodoc-dynamic', None, 'Autodoc uses import, not directory walk'),
         ('autodoc-external-methods', None, 'Autodoc includes methods defined in other packages'),
     ]
     boolean_options = ['all-files', 'doctest', 'autodoc-dynamic', 'no-build', 'no-doctest',
-                       'autodoc-external-methods']
+                       'autodoc-external-methods', 'no-sphinx']
 
     def initialize_options(self):
         self.all_files = True
@@ -39,6 +40,7 @@ class build_sphinx(Command, CommandMixin):
         self.source_dir = 'docs'
         self.autodoc_dynamic = False
         self.autodoc_external_methods = True
+	self.no_sphinx = False
 
     def finalize_options(self):
         self.doctest = not self.no_doctest  # Backwards compatibility here, --doctest wasn't on by default before
@@ -102,9 +104,10 @@ class build_sphinx(Command, CommandMixin):
 
         # Run the builder
 
-        app.build(force_all=self.all_files)
-
-        return app.statuscode
+	if not self.no_sphinx:
+	    app.build(force_all=self.all_files)
+	    return app.statuscode
+	return 0
         #print "--------- RC: %r " % rc
 
     def run(self):
