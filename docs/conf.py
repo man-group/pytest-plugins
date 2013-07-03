@@ -8,5 +8,3 @@ if os.environ.get('READTHEDOCS', None) == 'True':
     print os.getcwd()
     sys.argv = ['setup.py', 'build_sphinx']
     execfile('setup.py')
-
-    
