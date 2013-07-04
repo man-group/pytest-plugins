@@ -5,10 +5,6 @@ Kindly open-sourced by AHL, this library has the goal of providing a
 one-stop-shop for Python development houses to get up and running using Python 
 with the minimum of fuss in a Linux development environment.
 
-*IMPORTANT*: this library has a bit of cleanup work to be done before it is 
-releasable on pypi.python.org (like getting all the tests passing again), 
-this will be completed over the next couple of months.
-
 This library has three main components: 
 
 - ``pkglib``: a set of packaging tools which extend on a number of the major 
@@ -20,6 +16,14 @@ This library has three main components:
                       
 - ``pkglib.project_template``: a PasteScript template for generating packages 
   that integrate with ``pkglib``
+
+
+Documentation
+=============
+
+There are the slides from my EuroPython 2013 talk up at 
+http://github.com/eeaston/pkglib-docs, and the API docs are published at 
+https://readthedocs.org/projects/pkglib.
                           
 Headline Features
 =================
