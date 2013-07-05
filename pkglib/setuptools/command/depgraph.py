@@ -1,4 +1,5 @@
 from distutils.errors import DistutilsOptionError
+from distutils import log
 
 from setuptools import Command
 from pkg_resources import safe_name, working_set
@@ -65,6 +66,8 @@ class depgraph(Command, CommandMixin):
             self.renderer = 'pydot'
         if self.exclude:
             self.exclude = self.exclude.split(',')
+        if self.everything:
+            self.third_party = True
 
     def run(self):
         if not self.distribution.get_name() == 'UNKNOWN':
@@ -76,6 +79,10 @@ class depgraph(Command, CommandMixin):
                            exclusions=self.exclude,
                            include_third_party=self.third_party,
                            exclude_pinned=False)
+        if not all_packages:
+            log.info("No matching packages to render")
+            return
+
 
         if self.distribution.get_name() == 'UNKNOWN' and not self.args:
             # Pick any package and set the 'everything' flag if nothing was 
