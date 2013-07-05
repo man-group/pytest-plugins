@@ -19,14 +19,12 @@ def set_working_dir():
         actually a setup.py file.
     """
     setup_py = sys.argv[0]
-    if os.path.basename(setup_py) != 'setup.py':
-        log.fatal("You should only only be running this as "
-                  "'python path/to/setup.py'")
-        sys.exit(1)
-
-    setup_py_dir = os.path.dirname(setup_py)
-    if setup_py_dir:
-        os.chdir(setup_py_dir)
+    if os.path.basename(setup_py) == 'setup.py':
+        setup_py_dir = os.path.dirname(setup_py)
+        if setup_py_dir:
+            os.chdir(setup_py_dir)
+    if not os.path.isfile(os.path.join(os.getcwd(), 'setup.cfg')):
+        log.fatal("Can't find setup.cfg")
 
 
 def clean_requires(reqs):
