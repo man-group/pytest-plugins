@@ -535,8 +535,8 @@ class PkgTemplate(TmpVirtualEnv):
     ----------
     vcs_uri : `str`
         path to a local repository for this package
-    trunk_dir : `path.path`
-        path to the trunk package directory
+    pkg_dir : `path.path`
+        path to the package directory
     """
 
     def __init__(self, repo_base='http://svn_foo', name='acme.foo', metadata={}, dev=True,
@@ -569,11 +569,11 @@ class PkgTemplate(TmpVirtualEnv):
                                                          paster_args=paster_args), capture=True)
 
         self.vcs_uri = '%s/%s' % (repo_base, self.name)
-        self.trunk_dir = self.workspace / self.name / 'trunk'
+        self.pkg_dir = self.workspace / self.name
 
         # Update setup.cfg
         c = ConfigParser()
-        cfg = self.trunk_dir / 'setup.cfg'
+        cfg = self.pkg_dir / 'setup.cfg'
         c.read(cfg)
         _metadata = dict(
             url=self.vcs_uri,
