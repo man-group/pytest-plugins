@@ -13,6 +13,7 @@ import pkg_resources
 
 import errors
 import manage
+import util
 import pyenv
 
 
@@ -51,14 +52,13 @@ ORG_SLOTS = ('pypi_url',
              'jenkins_war',
              'mongo_bin',
              'redis_executable',
-)
+             )
+
 
 class OrganisationConfig(Config):
     """ This object represents an organisation's packaging configuration.
     """
     __slots__ = ORG_SLOTS
-
-
 
 
 ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages', 'installer_search_path', 'virtualenv_executable']
@@ -243,7 +243,6 @@ def validate_metadata(metadata):
                                       metadata['name'], req.project_name))
 
 
-
 def get_pkg_description(metadata):
     """
     Returns the long description text for the given package metadata, based
@@ -309,7 +308,7 @@ def parse_pkg_metadata(parser, validate=True):
     metadata['long_description'] = get_pkg_description(metadata)
 
     # Determine namespace packages based off of the name
-    metadata['namespace_packages'] = manage.get_namespace_packages(metadata['name'])
+    metadata['namespace_packages'] = util.get_namespace_packages(metadata['name'])
 
     # Overrides from setup.cfg file. console_scripts is a bit special in this
     # regards as it lives under entry_points

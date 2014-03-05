@@ -4,11 +4,16 @@ Module for working with Python packages.
 """
 import logging
 import os
+import sys
 
-from pkg_resources import parse_requirements, working_set
+import pkg_resources
 
-from pkglib import CONFIG, config
+from pkglib import CONFIG
+import config
+import util
 import cmdline
+import pyenv
+import errors
 
 
 def get_log():
@@ -106,9 +111,9 @@ def get_inhouse_dependencies(pkg_dir, exceptions=[], indent_txt=''):
     with cmdline.chdir(pkg_dir):
         if os.path.isfile('setup.cfg'):
             metadata = config.parse_pkg_metadata(config.get_pkg_cfg_parser())
-            for req in parse_requirements(
+            for req in pkg_resources.parse_requirements(
                 list(r for r in metadata.get('install_requires', [])
-                     if is_inhouse_package(r))):
+                     if util.is_inhouse_package(r))):
                 if req.project_name not in exceptions:
                     yield req.project_name
         else:
@@ -159,7 +164,7 @@ def install_pkg(virtualenv, pkg, options=DEFAULT_OPTIONS, version=None,
     """
     requirement = pkg
     if allow_source_package:
-        dists = [d for d in working_set if d.project_name == pkg]
+        dists = [d for d in pkg_resources.working_set if d.project_name == pkg]
         if dists and not dists[0].location.endswith('.egg'):
             setup_pkg(virtualenv, dists[0].location, options)
             return
@@ -173,3 +178,83 @@ def install_pkg(virtualenv, pkg, options=DEFAULT_OPTIONS, version=None,
     # Using easy_install as an argument here to get around #! path limits
     cmdline.run([os.path.join(virtualenv, 'bin', 'python'),
                  os.path.join(virtualenv, 'bin', 'easy_install'), requirement])
+
+
+def deploy_pkg(egg_or_req, python=sys.executable, package_base=None,
+               console_script_base=None, pypi_index_url=None):
+    """ Deploys a package to a versioned, isolated virtual environment in a package
+        base directory. Maintains a 'current' symlink to the last version that
+        was deployed.
+
+    Parameters
+    ----------
+    egg_or_req : `str`
+        Either a string requirement (eg, 'foo==1.2') or the path to an egg file.
+    python : `str` or `pyenv.PythonInstallation`
+        Python interpreter from which the python interpreter is derived
+    package_base: `str`
+        Path to package base directory under which the versioned virtual environment
+        is created.
+    console_script_base: `str`
+        Path to directory into which all the console scripts for the deployed package
+        are symlinked.
+    """
+    package_base = package_base or CONFIG.deploy_path
+    console_script_base = console_script_base or CONFIG.deploy_bin
+
+    try:
+        req = pkg_resources.Requirement.parse(egg_or_req)
+    except ValueError:
+        req = pkg_resources.Distribution.from_filename(egg_or_req).as_requirement()
+    version = next(ver for op, ver in req.specs if op == '==')
+
+    package_dir = os.path.join(package_base, req.project_name)
+    if not isinstance(python, pyenv.PythonInstallation):
+        python = pyenv.PythonInstallation(python)
+
+    pyenv_dir = os.path.join(package_dir, version,
+                             python.short_version(3, prefix="PYTHON_"))
+
+    if os.path.isdir(pyenv_dir):
+        raise errors.UserError("Package [%s] version [%s] is already installed at: %s"
+                               % (req.project_name, version, pyenv_dir))
+
+    # Set umask for file creation: 0022 which is 'rwx r.x r.x'
+    with cmdline.umask(0o022):
+        virtualenv = pyenv.VirtualEnv(force_dir=os.path.abspath(pyenv_dir),
+                                      delete=False, python=python, verbose=False)
+        virtualenv.install_pkgutils(verbose=False,
+                                    pypi_index_url=pypi_index_url)
+        virtualenv.install_package(egg_or_req, installer='pyinstall',
+                                   debug=True, verbose=False,
+                                   pypi_index_url=pypi_index_url, dev=False)
+
+        current_link = os.path.join(package_dir, 'current')
+        if os.path.islink(current_link):
+            get_log().info("removing current link %s" % current_link)
+            os.unlink(current_link)
+
+        base = os.path.abspath(os.path.join(pyenv_dir, os.pardir, os.pardir))
+        relative_link = pyenv_dir[len(base):].lstrip(os.path.sep)
+        get_log().info("creating current link %s -> %s" % (current_link, relative_link))
+        os.symlink(relative_link, current_link)
+
+        if not os.path.isdir(console_script_base):
+            get_log().info("creating console script base: %s" % console_script_base)
+            os.makedirs(console_script_base)
+
+        scripts = virtualenv.run_python_cmd(['-c', r"""
+from pkg_resources import working_set
+dist = working_set.by_key[{0!r}]
+print('\n'.join(dist.get_entry_map().get('console_scripts', {{}}).keys()))
+""".format(req.key)]).split()
+        get_log().warn(scripts)
+        for item in scripts:
+            src = os.path.join(console_script_base, item)
+            dest = os.path.join(current_link, 'bin', item)
+            if os.path.islink(src):
+                get_log().info("Removing console script link: %s" % src)
+                os.unlink(src)
+
+            get_log().info("linking console script %s -> %s" % (src, dest))
+            os.symlink(dest, src)

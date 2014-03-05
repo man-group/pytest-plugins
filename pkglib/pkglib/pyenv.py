@@ -188,9 +188,9 @@ class PythonInstallation(object):
             yield tmp
 
     def short_version(self, max_parts=None, prefix=None, suffix=None,
-                      separator=DEFAULT_VERSION_SEP):
-        return util.short_version(self.version, max_parts=max_parts,
-                             prefix=prefix, suffix=suffix, separator=separator)
+                      separator=util.DEFAULT_VERSION_SEP):
+        return util.short_version(self.version, max_parts=max_parts, prefix=prefix,
+                                  suffix=suffix, separator=separator)
 
     def py_version(self):
         return py_version(self.version)
@@ -389,3 +389,92 @@ def create_virtualenv(dest, virtualenv_cmd=None, virtualenv_args='',
                            "Python executable at: %s" % dest)
 
     return os.path.realpath(executable)
+
+
+class VirtualEnv(cmdline.TempDir, PythonInstallation):
+    """Context manager for a Python virtual environment.
+
+    Creates virtual environment on initialisation if it does not exist already.
+    Activates virtual environment on entry and restores previous environment
+    on exit. By default, deletes the virtual environment on exit.
+
+    Parameters
+    ----------
+    virtualenv_cmd : `str`
+        a path to virtualenv script which will be used to create the virtual
+        environment. If not provided an attempt will be made to get the path
+        for virtualenv script from CONFIG.virtualenv_executable, or failing
+        that the following environment variables:
+
+            * "VIRTUALENV_CMD"
+            * "VIRTUALENVWRAPPER_VIRTUALENV"
+
+        A RuntimeError is raised if virtualenv command cannot be resolved.
+    python : `str`
+        a path to Python executable which virtualenv will be using (defaults
+        to current Python executable). If path is not found a RuntimeError is
+        raised.
+    virtualenv_args : `str`
+        arguments to pass to virtualenv script
+    delete : `boolean`
+        If set, will delete the virtualenv directory on exit (defaults to True)
+    temp_dir : `str`
+        root directory where virtualenv is to be created (defaults to a system
+        temporary directory)
+    force_dir : `str`
+        existing virtualenv directory to use
+    verbose : `bool`
+        whether to show command output (defaults to False)
+
+    Examples
+    --------
+
+    >>> import os
+    >>> import sys
+    >>> from pkgutils.pyenv import VirtualEnv
+    >>> with VirtualEnv(python=sys.executable) as v:  # creates virtualenv
+    ...   env_dir = v.dir
+    ...   os.path.exists(env_dir)
+    True
+    >>> os.path.exists(env_dir)
+    False
+
+    """
+    log = logging.getLogger("VirtualEnv")
+
+    def __init__(self, virtualenv_cmd=None, virtualenv_args='', python=None,
+                 delete=True, temp_dir=None, force_dir=None, verbose=False):
+        self.environ = None
+        super(VirtualEnv, self).__init__(delete=delete, temp_dir=temp_dir,
+                                         force_dir=force_dir)
+
+        if force_dir and not self.created:
+            overwrite = (python or virtualenv_cmd or virtualenv_args)
+            if overwrite:
+                raise RuntimeError("Overwriting virtual environments at "
+                                   "existing locations is not supported: "
+                                   "%s" % self.dir)
+            new_executable = os.path.join(self.dir, "bin", "python")
+        else:
+            new_executable = create_virtualenv(self.dir,
+                                               virtualenv_cmd=virtualenv_cmd,
+                                               virtualenv_args=virtualenv_args,
+                                               python=python, verbose=verbose)
+
+        PythonInstallation.__init__(self, new_executable)
+
+    def close(self):
+        super(VirtualEnv, self).close()
+        if self.environ:
+            self.environ.__exit__(None, None, None)
+        self.environ = None
+
+    def __enter__(self):
+        if not self.dir:
+            raise RuntimeError("Virtual environment does not exist or has "
+                               "been deleted")
+
+        self.log.info("Using virtual environment located at: %s" % self.dir)
+        self.environ = cmdline.set_env(**self._make_env())
+        self.environ.__enter__()
+        return self

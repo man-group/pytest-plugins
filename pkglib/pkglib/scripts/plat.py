@@ -6,11 +6,10 @@ import argparse
 import termcolor
 import os.path
 
-from ConfigParser import ConfigParser
-from pkglib import platypus
-from pkglib import manage, CONFIG, config, errors
+from six.moves import configparser
 
-from pkglib.platypus import PlatError
+from pkglib import platypus
+from pkglib import CONFIG, config, errors, util
 
 
 def cprint(*args, **kwargs):
@@ -19,8 +18,8 @@ def cprint(*args, **kwargs):
     termcolor.cprint(*args, **kwargs)
 
 
-def statusmsg(msg, **kwargs):
-    print msg
+def statusmsg(msg, **kwargs):  # @UnusedVariable
+    print(msg)
 
 
 errormsg = functools.partial(cprint, color="red", file=sys.stderr)
@@ -30,8 +29,8 @@ warnmsg = functools.partial(cprint, color="yellow", file=sys.stdout)
 def main(argv=sys.argv[1:]):
     """Script entry point.
     """
-    # TODO: allow cmdline override of org config 
-    config.setup_org_config()
+    # TODO: allow cmdline override of org config
+    config.setup_global_org_config()
     virtualenv_dir = sys.exec_prefix
 
     commands = {
@@ -45,11 +44,7 @@ def main(argv=sys.argv[1:]):
         "components": components_command,
     }
 
-    try:
-        ns = parse_options(argv)
-    except errors.UserError, e:
-        terminate(str(e))
-
+    ns = parse_options(argv)
     command = commands[ns.command]
     try:
         plat = platypus.Platypus(virtualenv_dir, quiet=ns.quiet, debug=ns.debug)
@@ -57,7 +52,7 @@ def main(argv=sys.argv[1:]):
     except Exception as e:
         if plat.captured_out:
             errormsg("Sub-command output:")
-            print plat.captured_out
+            print(plat.captured_out)
         terminate(str(e))
 
 
@@ -69,6 +64,7 @@ def parse_options(argv):
     if not CONFIG.default_platform_package:
         raise errors.UserError("No default platform packages defined, please set "
                                "[pkglib]:default_platform_package in your organisation config.")
+
 
     description = ("Manages the installation of platform packages and their "
                    "components")
@@ -139,13 +135,13 @@ def parse_options(argv):
         help="name of the package."
     )
 
-    parser_info = subparsers.add_parser(
+    subparsers.add_parser(
         "info",
         help="Shows details of the platform packages that are "
              "active in the current virtualenv.",
     )
 
-    parser_list = subparsers.add_parser(
+    subparsers.add_parser(
         "list",
         help="Shows the available platform packages.",
     )
@@ -170,7 +166,8 @@ def parse_options(argv):
         help="Shows the components of an installed platform package.",
     )
 
-    with warnings.catch_warnings(DeprecationWarning):
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         ns = parser.parse_args(argv)
     return ns
 
@@ -186,7 +183,7 @@ def use_command(plat, ns):
 
     platform_packages = set(plat.get_platform_packages())
     if ns.package not in platform_packages:
-        raise PlatError("package %s is not a platform package" % ns.package)
+        raise platypus.PlatError("package %s is not a platform package" % ns.package)
 
     if not ns.version:
         ns.version = "rel-current"
@@ -220,7 +217,8 @@ def up_command(plat, ns):
         return True
 
     if hasattr(ns, "package"):
-        packages = [ns.package] if is_needed(ns.package, ns.current_only) else []
+        packages = ([ns.package] if is_needed(ns.package, ns.current_only)
+                    else [])
     else:
         packages = [pkg for pkg in platforms
                     if is_needed(pkg, ns.current_only)]
@@ -248,7 +246,7 @@ def develop_command(plat, ns):
         # from the name as per setup.cfg that should live in the directory.
         setup_fname = os.path.join(ns.location, "setup.cfg")
         if os.path.isfile(setup_fname):
-            cfg = ConfigParser()
+            cfg = configparser.ConfigParser()
             cfg.read(setup_fname)
             try:
                 ns.package = cfg.get("metadata", "name")
@@ -282,8 +280,8 @@ def develop_command(plat, ns):
             except ValueError:
                 pass
     if not platform_pkg:
-        raise PlatError("Package %s is neither a platform package nor a "
-                        "component of a platform package" % ns.package)
+        raise platypus.PlatError("Package %s is neither a platform package nor a "
+                                 "component of a platform package" % ns.package)
 
     # If the package is a component of a platform package then verify that
     # the platform package version is at "dev"
@@ -314,9 +312,9 @@ def undevelop_command(plat, ns):
     for package in ns.package:
         info = plat.get_installed_version(package)
         if not info:
-            raise PlatError("package %s is not installed" % package)
+            raise platypus.PlatError("package %s is not installed" % package)
         if not info.isdevsrc:
-            raise PlatError("package %s is not a source installation" % package)
+            raise platypus.PlatError("package %s is not a source installation" % package)
 
         platforms.union(plat.get_owning_platforms(package))
         statusmsg("Undevelop package %s at %s" % (package, info.source))
@@ -332,7 +330,7 @@ def undevelop_command(plat, ns):
         up_command(plat, up_opts)
 
 
-def info_command(plat, ns):
+def info_command(plat, _ns):
     info, source_checkouts = plat.get_packages_information()
     for pkg, pkg_info in info:
         statusmsg(": ".join((pkg, pkg_info["version"])))
@@ -340,11 +338,13 @@ def info_command(plat, ns):
         #if dependencies:
     if source_checkouts:
         statusmsg("Other source checkouts:")
-        for dep in source_checkouts:
-            statusmsg("    %s: %s" % (dep.name, dep.version))
+        sorted_source_checkouts = sorted((dep.name, dep)
+                                         for dep in source_checkouts)
+        for name, dep in sorted_source_checkouts:
+            statusmsg("    %s: %s" % (name, dep.version))
 
 
-def list_command(plat, ns):
+def list_command(plat, _ns):
     platforms = plat.get_platform_packages()
     for pkg in platforms:
         version = plat.get_current_version(pkg)
@@ -355,7 +355,7 @@ def list_command(plat, ns):
 def versions_command(plat, ns):
     platforms = plat.get_platform_packages()
     if ns.package not in platforms:
-        raise PlatError("Package %s is not a platform package" % ns.package)
+        raise platypus.PlatError("Package %s is not a platform package" % ns.package)
 
     pkg_info = plat.get_installed_version(ns.package)
     if not pkg_info:
@@ -375,20 +375,20 @@ def versions_command(plat, ns):
 def components_command(plat, ns):
     platforms = plat.get_platform_packages()
     if ns.package not in platforms:
-        raise PlatError("Package %s is not a platform package" % ns.package)
+        raise platypus.PlatError("Package %s is not a platform package" % ns.package)
 
     pkg_info = plat.get_installed_version(ns.package)
     if not pkg_info:
-        raise PlatError("Package %s is not installed" % ns.package)
+        raise platypus.PlatError("Package %s is not installed" % ns.package)
 
     meta = plat.get_package_metadata(ns.package, pkg_info.version)
     platform = "%s (%s): %s" % (ns.package, pkg_info.version,
                meta.get("summary", ""))
     statusmsg(platform)
 
-    components = plat.get_package_dependencies(ns.package).itervalues()
+    components = plat.get_package_dependencies(ns.package).values()
     components = ["%s (%s)" % (pkg.name, pkg.version) for pkg in components
-                               if pkg and manage.is_inhouse_package(pkg.name)]
+                  if pkg and util.is_inhouse_package(pkg.name)]
     components.sort()
     for component in components:
         statusmsg("    " + component)
