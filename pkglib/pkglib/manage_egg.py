@@ -1,8 +1,4 @@
 import logging
-from zipfile import ZipFile
-from contextlib import closing
-
-from six.moves import cStringIO, configparser   # @UnresolvedImport
 
 from distutils.dist import DistributionMetadata
 
@@ -38,20 +34,3 @@ def get_egg_metadata(egg_file):
             setattr(metadata, f, val)
 
     return metadata
-
-
-def get_dev_externals(egg_file):
-    with closing(ZipFile(egg_file, "r")) as egg:
-        try:
-            externals = egg.read("EGG-INFO/externals.txt")
-        except KeyError:
-            return []
-
-    cfg = configparser.RawConfigParser()
-    cfg.readfp(cStringIO(externals))
-    return (cfg.get("dev", "files").strip().split("\n")
-            if cfg.has_option("dev", "files") else [])
-
-
-def has_dev_externals(egg_file):
-    return len(get_dev_externals(egg_file)) > 0

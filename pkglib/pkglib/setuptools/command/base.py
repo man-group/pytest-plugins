@@ -1,16 +1,40 @@
 import sys
 import os.path
 import string
+import itertools
 from distutils.fancy_getopt import longopt_xlate
 from distutils import log
 
-from setuptools.command.easy_install import easy_install
+from pkg_resources import resource_filename
+from setuptools.dist import Distribution
 
-from pkglib.setuptools.patches import patch_httplib
-from pkglib import manage, cmdline, CONFIG
+from pkglib.setuptools.patches import patch_http
+from pkglib import cmdline, config, CONFIG, util, pyenv
+
+
+def get_resource_file(name):
+    return resource_filename(__name__, os.path.join("resources", name))
+
+
+def merge_options(*opts):
+    final_opts = []
+    for opt in (o for opt_list in opts for o in opt_list):
+        existing = [o for o in final_opts if o[0] == opt[0]]
+        if existing:
+            final_opts.remove(existing[0])
+        final_opts.append(opt)
+
+    return final_opts
+
+
+def write_text(f, text):
+    with open(f, "wt") as f:
+        f.write(text)
 
 
 def _banner(msg):
+    """ Writes a banner to the distutils log
+    """
     from termcolor import colored
     w = (120 - len(msg) - 6)
     log.info('')
@@ -18,8 +42,95 @@ def _banner(msg):
     log.info('')
 
 
+def get_easy_install_cmd(distribution, build_only=False, **kwargs):
+    """ Returns a correctly setup easy_install cmd class for passing
+        into `pkglib.setuptools.buildout.install`.
+        Lifted from `setuptools.dist`
+
+        Parameters
+        ----------
+        distribution : `distutils.Distribution`
+            the main distribution
+        build_only : `bool`
+            Configured for build and testing packages - these will be installed
+            into the directory returned from:
+
+            `pkglib.util.get_build_egg_dir`
+
+        kwargs:
+            Other kwargs to pass to easy_install constructor
+
+        Returns
+        -------
+        cmd : `setuptools.Command`
+            Configured command-class
+    """
+    # late import to resolve circularity
+    from pkglib.setuptools.command.easy_install import easy_install
+
+    dist = distribution.__class__({'script_args': ['easy_install']})
+    dist.parse_config_files()
+    dist.verbose = getattr(distribution, 'verbose', 1)
+    dist.dry_run = getattr(distribution, 'dry_run', 0)
+
+    if build_only:
+        cmd = easy_install(
+            dist, args=["x"], install_dir=util.get_build_egg_dir(),
+            exclude_scripts=True, always_copy=False, build_directory=None,
+            editable=False, upgrade=False, multi_version=True, no_report=True,
+            **kwargs)
+    else:
+        cmd = easy_install(dist, args=['x'], **kwargs)
+
+    cmd.ensure_finalized()
+    return cmd
+
+
+def fetch_build_eggs(reqs, dist=None, prefer_final=True, use_existing=False,
+                     add_to_env=False):
+    """ Uses the buildout installer for fetching setup requirements.
+        Mostly lifted from setuptools.dist
+
+        Parameters
+        ----------
+        reqs : `list`
+            List if package requirements
+        dist : `distutils.dist.Distribution`
+            the main distribution
+        prefer_final : `bool`
+            Prefer non-dev versions of package dependencies
+        use_existing : `bool`
+            Will use eggs found in working set, and not try and update them if
+            it can
+        add_to_env : `bool`
+            whether distributions should be added to the virtual environment
+    """
+    # Lazy imports here to allow ahl.pkgutils to bootstrap itself.
+    from pkglib.setuptools.buildout import install
+
+    # Run the installer and set the option to add to the global working_set
+    # so that other commands in this run can use the packages straight away.
+
+    # Setting build_only to false here now, as we don't want build eggs
+    # installed in the cwd(), it just makes a mess of people's home directories.
+
+    # Also setting pth_file to None in order to disable polluting virtual
+    # environment with distributions required only during setup
+
+    if not dist:
+        dist = Distribution(attrs=dict(name="pkglib.fetcher", version="1.0.0"))
+    cmd = get_easy_install_cmd(dist, exclude_scripts=not add_to_env)
+
+    if not add_to_env:
+        cmd.pth_file = None
+
+    return install(cmd, reqs, add_to_global=True, prefer_final=prefer_final,
+                   use_existing=use_existing)
+
+
 class CommandMixin(object):
     """ Common command methods """
+
     def banner(self, msg):
         """ Prints a banner text to the terminal.
         """
@@ -29,7 +140,7 @@ class CommandMixin(object):
     #       maybe base this from Command as well
 
     def _run(self, command_object, command_name):
-        with patch_httplib() as status_codes:
+        with patch_http() as status_codes:
             command_object.run(self)
         if not status_codes:
             log.error("Couldn't determine success or failure of %s" % command_name)
@@ -42,71 +153,29 @@ class CommandMixin(object):
                     "all status codes: %r" % (final_status_code, status_codes))
                 self.distribution._failed = True
 
-    def get_easy_install_cmd(self, build_only=False, **kwargs):
-        """ Returns a correctly setup easy_install cmd class for passing
-            into `pkglib.setuptools.buildout.install`.
-            Lifted from `setuptools.dist`
+    def get_requirements(self, extras=False, test=False):
+        """ Get a set of all our requirements
 
-            Parameters
-            ----------
-            build_only : `bool`
-                Configured for build and testing packages - these will be
-                installed into the directory returned from
-                `pkglib.manage.get_build_egg_dir`
+        Parameters
+        ----------
+        extras : `bool`
+            Include extras_require
+        test : `bool`
+            Include tests_require
 
-            kwargs:
-                Other kwargs to pass to easy_install constructor
-
-            Returns
-            -------
-            cmd : `setuptools.Command`
-                Configured command-class
         """
-        dist = self.distribution.__class__({'script_args': ['easy_install']})
-        dist.parse_config_files()
+        install_reqs = self.distribution.install_requires
+        install_reqs = install_reqs[:] if install_reqs else []
 
-        if build_only:
-            cmd = easy_install(
-                dist, args=["x"], install_dir=manage.get_build_egg_dir(),
-                exclude_scripts=True, always_copy=False, build_directory=None,
-                editable=False, upgrade=False, multi_version=True,
-                no_report=True, **kwargs)
-        else:
-            cmd = easy_install(dist, args=['x'], **kwargs)
+        if test:
+            install_reqs += self.distribution.tests_require or []
 
-        cmd.ensure_finalized()
-        return cmd
+        if extras:
+            extras_reqs = self.distribution.extras_require
+            if extras_reqs:
+                install_reqs += list(itertools.chain(*extras_reqs.values()))
 
-    def fetch_build_eggs(self, reqs, prefer_final=True, use_existing=False):
-        """ Uses the buildout installer for fetching setup requirements.
-            Mostly lifted from setuptools.dist
-
-            Parameters
-            ----------
-            reqs : `list`
-                List if package requirements
-            prefer_final : `bool`
-                Prefer non-dev versions of package dependencies
-            use_existing : `bool`
-                Will use eggs found in working set, and not try and update
-                them if it can
-        """
-        # Lazy import for bootstrapping
-        from pkglib.setuptools.buildout import install
-        # Run the installer, set the option to add to global working_set
-        # so other commands in this run can use the packages.
-
-        # Setting build_only to false here now, as we don't
-        # really need to have the feature whereby test and build eggs are
-        # installed in the cwd(), it just makes a mess of people's home
-        # directories.
-        if hasattr(self, 'index_url'):
-            url = self.maybe_add_simple_index(self.index_url)
-        else:
-            url = self.maybe_add_simple_index(CONFIG.pypi_url)
-        cmd = self.get_easy_install_cmd(build_only=False, index_url=url)
-        return install(cmd, reqs, add_to_global=True, prefer_final=prefer_final,
-                       use_existing=use_existing)
+        return set(install_reqs)
 
     def maybe_add_simple_index(self, url):
         """Checks if the server URL should have a /simple on the end of it.
@@ -133,7 +202,7 @@ class CommandMixin(object):
     def get_site_packages(self):
         """ Returns the site-packages dir for this virtualenv
         """
-        return manage.get_site_packages()
+        return pyenv.get_site_packages()
     site_packages = property(get_site_packages)
 
     def run_cleanup_in_subprocess(self):
@@ -179,7 +248,7 @@ class CommandMixin(object):
     def create_relative_link(self, src, dest):
         """ Create relative symlink from src -> dest
         """
-        with manage.chdir(os.path.dirname(src)):
+        with cmdline.chdir(os.path.dirname(src)):
             os.symlink(dest, os.path.basename(src))
 
     def parse_multiline(self, val):
@@ -187,4 +256,4 @@ class CommandMixin(object):
         """
         if not val:
             return []
-        return [i.strip() for i in val.split('\n') if i.strip()]
+        return config.parse_multi_line_value(val)

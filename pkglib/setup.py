@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
         # Read in our org config as to use a non-standard package index we'll
         # need to set vanilla develop's command-line manually
-        config.setup_org_config()
+        config.setup_global_org_config()
         sys.argv.extend(['-i', get_index_url()])
 
     # Run setup with our boostrapping args

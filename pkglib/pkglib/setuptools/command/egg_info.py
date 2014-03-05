@@ -3,13 +3,10 @@ from distutils import log
 
 from setuptools.command.egg_info import egg_info as _egg_info
 import pkg_resources
-
 from pip.vcs import vcs
 
 from base import CommandMixin
-from pkglib.manage import (read_allrevisions_file, is_inhouse_package,
-                           is_strict_dev_version)
-from pkglib import CONFIG, pypi
+from pkglib import CONFIG, pypi, util, config
 from pkglib.setuptools import dependency
 
 
@@ -76,13 +73,13 @@ class egg_info(_egg_info, CommandMixin):
                              dist_dir / '{}.egg-info'.format(dist.project_name)]:
             all_revs_fname = egg_info_dir / 'allrevisions.txt'
             if all_revs_fname.exists():
-                revisions = read_allrevisions_file(all_revs_fname)
+                revisions = config.read_allrevisions_file(all_revs_fname)
                 for rev_data in revisions:
                     if pkg_resources.safe_name(rev_data[0]) == dist.project_name:
                         return tuple(rev_data)  # name,version,url,rev
         return None
 
-    def write_all_revisions(self):
+    def write_all_revisions_(self):
         """ Create ``allrevisions.txt`` file containing subversion revision
             of every project upon which we depend. This won't have the
             dependencies in it if we've not yet been set-up with
@@ -90,14 +87,12 @@ class egg_info(_egg_info, CommandMixin):
         """
         my_dist = dependency.get_dist(self.distribution.metadata.name)
 
-        revisions = []  # list of (name,version,url,rev) tuples
+        # list of (name,version,url,rev) tuples
+        allrevisions = [(self.distribution.metadata.get_name(),
+                         self.distribution.metadata.get_version(),
+                         self.full_url,
+                         self.revision)]
 
-        revisions.append((self.distribution.metadata.get_name(),
-                          self.distribution.metadata.get_version(),
-                          self.full_url,
-                          self.revision))
-
-        # get all our requirements
         all_requires = []
         if my_dist:
             my_require = my_dist.as_requirement()
@@ -110,26 +105,33 @@ class egg_info(_egg_info, CommandMixin):
                 pass
 
         for dist in all_requires:
-            if dist == my_dist or not is_inhouse_package(dist.project_name):
+            if dist == my_dist or not util.is_inhouse_package(dist.project_name):
                 continue
-            rev_data = self.read_all_revisions(dist)  # (name,version,url,rev)
-            if rev_data:
-                revisions.append(rev_data)
+            try:
+                revisions = config.read_allrevisions(dist.location, dist.project_name)
+            except IOError as ex:
+                log.warn("Can't read allrevisions for %s: %s", dist, ex)
+            for name, version, url, rev in revisions:
+                if pkg_resources.safe_name(name) == dist.project_name:
+                    allrevisions.append((name, version, url, rev))
+                    break
+            else:
+                log.warn("No revision for %s in %s", dist.project_name, dist)
 
-        data = ['# These are the VCS revision numbers used for this particular',
-                '# build. This file can be used by release tools to tag a',
-                '# working build.']
-        for rev_data in revisions:
-            data.append(','.join([str(e) for e in rev_data]))
+        data = ['# These are the VCS revision numbers used for this particular build.',
+                '# This file is used by release tools to tag a working build.'
+                ] + [','.join(str(e) for e in rev_data)
+                     for rev_data in allrevisions]
         self.write_file("all revisions", self.all_revisions_file,
                         '\n'.join(data))
 
     def discover_url(self):
-        location = os.path.normcase(os.path.abspath(os.curdir))
         # Pip registers the VCS handlers on import now- kinda lame really.
-        import pip.vcs.subversion
-        import pip.vcs.mercurial
-        import pip.vcs.git
+        import pip.vcs.subversion  # @UnusedImport # NOQA
+        import pip.vcs.mercurial  # @UnusedImport # NOQA
+        import pip.vcs.git  # @UnusedImport # NOQA
+
+        location = os.path.normcase(os.path.abspath(os.curdir))
         backend = vcs.get_backend_from_location(location)
         self.revision = None
 
@@ -145,18 +147,15 @@ class egg_info(_egg_info, CommandMixin):
             for i in range(len(parts) - 1, 0, -1):
                 if parts[i] in ('trunk', 'tags', 'tag', 'branch', 'branches'):
                     url = '/'.join(parts[:i])
-                    print "discovered URL for %s backend: %s" % (backend.name, url)
+                    print("discovered URL for %s backend: %s" % (backend.name,
+                                                                 url))
                     self.distribution.metadata.url = url
                     self.revision = revision
                     break
             else:
                 pass
-                #print "WARNING: This is not a regular repository (no trunk, tags, or branches)"
-                #print "         Using discovered URL: %s" %  self.distribution.metadata.url
         else:
             pass
-            #print "WARNING: This package is not in any repository."
-            #print "         Using discovered URL: %s" %  self.distribution.metadata.url
 
     def pin_requirements(self):
         """
@@ -169,15 +168,17 @@ class egg_info(_egg_info, CommandMixin):
         for req_set in ['install_requires', 'tests_require']:
             log.info("pinning %s" % req_set)
             old = getattr(self.distribution, req_set)
+            if not old:
+                continue
             new = []
-            if old:
-                for req in pkg_resources.parse_requirements(old):
-                    if not req.project_name in ws:
-                        raise ValueError("Requirement %s is not installed " \
-                                         "(have you run python setup.py develop?)" % req.project_name)
-                    new.append('%s==%s' % (req.project_name, ws[req.project_name]))
-                    log.info("  %s == %s" % (req.project_name, ws[req.project_name]))
-                setattr(self.distribution, req_set, new)
+            for req in pkg_resources.parse_requirements(old):
+                if not req.project_name in ws:
+                    raise ValueError("Requirement %s is not installed "
+                                     "(have you run python setup.py develop?)"
+                                     % req.project_name)
+                new.append('%s==%s' % (req.project_name, ws[req.project_name]))
+                log.info("  %s == %s" % (req.project_name, ws[req.project_name]))
+            setattr(self.distribution, req_set, new)
 
     def setup_new_build(self):
         """
@@ -190,10 +191,10 @@ class egg_info(_egg_info, CommandMixin):
         latest = self.pypi_client.get_last_version(self.distribution.get_name(),
                                                    dev=True, strict=True)
         if not latest:
-            log.info("No dev distributions exist yet for %s, using default version %s" % \
-                     (self.distribution.get_name(), '%s%s' % (version, tag)))
+            log.info("No dev distributions exist yet for %s, using default version %s"
+                     % (self.distribution.get_name(), '%s%s' % (version, tag)))
         else:
-            if not (is_strict_dev_version(latest)):
+            if not (util.is_strict_dev_version(latest)):
                 raise ValueError("Latest version (%s) is not a dev build" % latest)
 
             build_number = latest.rsplit('dev', 1)[-1]
