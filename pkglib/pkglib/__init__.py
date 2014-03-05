@@ -16,6 +16,7 @@ CONFIG = config.OrganisationConfig(
     dev_build_number='0.0',
     platform_packages=[],
     installer_search_path=[],
+    installer_dev_search_path=[],
     default_platform_package=None,
     deploy_path=os.path.expandvars('${HOME}/pydeploy/packages'),
     deploy_bin=os.path.expandvars('${HOME}/pydeploy/bin'),

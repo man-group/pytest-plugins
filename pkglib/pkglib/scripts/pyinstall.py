@@ -11,7 +11,7 @@ usage: %(script)s [options] requirement_or_url ...
 
 def main(argv=None, **kw):
     # TODO: allow cmdline override of org config?
-    config.setup_org_config()
+    config.setup_global_org_config()
     run_setup_command(pyinstall,
                       usage=USAGE,
                       argv=argv,

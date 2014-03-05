@@ -12,9 +12,7 @@ import operator
 
 from pkg_resources import working_set
 
-from pkglib.cmdline import run
-from pkglib.manage import chdir, is_inhouse_package
-from pkglib import CONFIG
+from pkglib import cmdline, manage, CONFIG, util
 
 
 def get_spec(specs):
@@ -30,7 +28,7 @@ def get_dot_dist_node(req):
     import pydot
     fill_colour = "#cccccc"
     shape = "box"
-    if is_inhouse_package(req.project_name):
+    if util.is_inhouse_package(req.project_name):
         fill_colour = "green"
     return pydot.Node(' '.join((str(req.project_name),
                                 req._chosen_dist.version)),
@@ -46,7 +44,7 @@ def get_dot_req_node(req):
     import pydot
     fill_colour = "#cccccc"
     shape = "box"
-    if is_inhouse_package(req.project_name):
+    if util.is_inhouse_package(req.project_name):
         fill_colour = "green"
     if hasattr(req, '_chosen_dist'):
         dist = req._chosen_dist.version
@@ -107,7 +105,7 @@ def draw_networkx_with_pydot(nx_graph, include_third_party=False,
 
     for nx_node in nx_graph.nodes_iter():
         if (not include_third_party and
-            not is_inhouse_package(nx_node.project_name)):
+            not util.is_inhouse_package(nx_node.project_name)):
             continue
 
         # Skip requirements that aren't yet 'installed' - this is only the
@@ -147,7 +145,7 @@ def draw_networkx_with_d3(nx_graph, include_third_party=False, outfile=None):
     i = 0
     for req in nx_graph.nodes_iter():
         if (not include_third_party and
-            not is_inhouse_package(req.project_name)):
+            not util.is_inhouse_package(req.project_name)):
             continue
         #print "Node %d: %s" % (i, req.project_name)
         nodes[req.key] = (i, req.project_name)
@@ -258,7 +256,7 @@ def run_graph_easy(entries, renderer, outfile=None):
 
     instream = '\n'.join(entries)
     if os.path.isfile(CONFIG.graph_easy / 'bin' / 'graph-easy'):
-        with chdir(CONFIG.graph_easy / 'lib'):
+        with cmdline.chdir(CONFIG.graph_easy / 'lib'):
             if renderer == 'graphviz':
                 delete = False
                 if not outfile:
@@ -268,10 +266,9 @@ def run_graph_easy(entries, renderer, outfile=None):
                 outfile = path(outfile)
                 outfile = outfile.abspath()
 
-                run(['-c', ('../bin/graph-easy --as={0} | '
-                            '/usr/bin/dot -Tpng -o {1}'
-                            .format(renderer, outfile))],
-                    capture_stdout=False, stdin=instream, shell=True)
+                cmdline.run(['-c', ('../bin/graph-easy --as={0} | /usr/bin/dot -Tpng -o {1}'
+                                    .format(renderer, outfile))],
+                            capture_stdout=False, stdin=instream, shell=True)
                 if not outfile.isfile:
                     log.error("Failed to create image file.")
                     return
@@ -282,7 +279,7 @@ def run_graph_easy(entries, renderer, outfile=None):
                 else:
                     log.info("Created graph at %s" % outfile)
             else:
-                run(['../bin/graph-easy', '--as=%s' % renderer],
-                    capture_stdout=False, stdin=instream)
+                cmdline.run(['../bin/graph-easy', '--as=%s' % renderer],
+                            capture_stdout=False, stdin=instream)
         return
     log.warn("Can't find graphing tool at %s" % CONFIG.graph_easy)

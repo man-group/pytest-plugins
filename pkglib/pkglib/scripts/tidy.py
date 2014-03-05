@@ -1,38 +1,22 @@
-#! /bin/env python
+from pkglib import config
+from pkglib.scripts import run_setup_command
+from pkglib.setuptools.command.tidy import tidy
 
-import sys
-import os.path
-import subprocess
-
-this_dir = os.path.dirname(__file__)
-
-
-def main():
-    top = os.getcwd()
-    run(top)
+USAGE = """\
+usage: %(script)s [options]
+   or: %(script)s --help
+"""
 
 
-def find_setup_py_dir(dirname):
-    orig_dirname = dirname
-    while dirname.count('/') > 2:
-        if 'setup.py' in os.listdir(dirname):
-            break
-        dirname = os.path.dirname(dirname)
-    else:
-        raise RuntimeError('setup.py not found in %s or any parent' % orig_dirname)
-    return dirname
-
-
-def run(dirname=this_dir):
-    # check that setup.py exists in this directory .. or any parent .
-    dirname = find_setup_py_dir(dirname)
-    setup_py = os.path.abspath(os.path.join(dirname, 'setup.py'))
-    cmd = ['python', setup_py, 'tidy']
-    print 'tidying "%s"' % dirname
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdoutdata, _ = p.communicate()
-    sys.stdout.write(stdoutdata)
-
+def main(argv=None, **kw):
+    config.setup_global_org_config()
+    run_setup_command(tidy,
+                      usage=USAGE,
+                      argv=argv,
+                      cmdclass={
+                          'tidy': tidy,
+                      },
+                      **kw)
 
 if __name__ == '__main__':
     main()

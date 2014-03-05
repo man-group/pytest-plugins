@@ -94,7 +94,7 @@ def normalize_dir(dir_name):
 def main():
     """Main method of pycheckout"""
     # TODO: allow cmdline override of org config?
-    config.setup_org_config()
+    config.setup_global_org_config()
     options = get_options()
 
     try:

@@ -9,8 +9,8 @@ I think I'm having an Extensisential crisis.
 
 import sys
 from setuptools.extension import _Extension as Extension
-import distutils.core
-import distutils.extension
+import distutils.core  # @UnusedImport
+import distutils.extension  # @UnusedImport
 
 distutils.core.Extension = Extension
 distutils.extension.Extension = Extension

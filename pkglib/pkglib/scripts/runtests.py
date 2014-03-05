@@ -16,7 +16,7 @@ def main(argv=None, **kw):
     """ Run a test package's tests.
     """
     # TODO: allow cmdline override of org config?
-    config.setup_org_config()
+    config.setup_global_org_config()
 
     from path import path
 

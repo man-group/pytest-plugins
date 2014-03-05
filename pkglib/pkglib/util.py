@@ -103,3 +103,23 @@ def flatten(*args):
         else:
             output.append(arg)
     return output
+
+
+class ReadOnlyDict(dict):
+    def __setitem__(self, key, item):
+        raise TypeError
+
+    def __delitem__(self, key):
+        raise TypeError
+
+    def clear(self):
+        raise TypeError
+
+    def pop(self, key, *args):
+        raise TypeError
+
+    def popitem(self):
+        raise TypeError
+
+    def update(self, other=None):  # @ReservedAssignment
+        raise TypeError
