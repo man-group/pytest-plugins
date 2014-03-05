@@ -11,6 +11,7 @@ CONFIG = config.OrganisationConfig(
     pypi_variant=None,
     namespaces=['acme'],
     namespace_separator='.',
+    third_party_build_prefix='acme',
     email_suffix='acme.example',
     dev_build_number='0.0',
     platform_packages=[],
@@ -27,9 +28,5 @@ CONFIG = config.OrganisationConfig(
     test_linter="flake8",
     test_linter_package="flake8",
     test_dirname="tests",
-    java_executable="java",
     jenkins_url=None,
-    jenkins_war=None,
-    mongo_bin="/usr/sbin",
-    redis_executable="/usr/sbin/redis-server",
 )

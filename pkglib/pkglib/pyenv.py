@@ -277,7 +277,7 @@ class PythonInstallation(object):
         if debug:
             cmd.append('-v')
         if pypi_index_url:
-            cmd.extend(['-i', base.maybe_add_simple_index(pypi_index_url)])
+            cmd.extend(['-i', util.maybe_add_simple_index(pypi_index_url)])
         if not deps:
             cmd.append('--no-deps')
 

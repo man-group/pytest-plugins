@@ -6,7 +6,7 @@ import itertools
 import pkg_resources
 from os import path
 
-from pkglib import pypi, manage, CONFIG
+from pkglib import pypi, CONFIG, util
 import errors
 
 
@@ -36,7 +36,7 @@ class PackageInfo(object):
 
     @property
     def isdev(self):
-        return manage.is_dev_version(self.version)
+        return util.is_dev_version(self.version)
 
     @property
     def isrel(self):

@@ -5,8 +5,15 @@ PkgLib Testing Library
 This library contains useful helpers for writing unit and acceptance tests.
 """
 
-# Many of the features here require pkglib configuration, we'll  parse this on
-# import for simplicity's sake.
-from pkglib import config
+from pkglib_testing import config
 
-config.setup_org_config()
+# Global config for finding system resources.
+# Set this up using pkglib_testing.setup_testing_config
+
+CONFIG = config.TestingConfig(
+    java_executable="java",
+    jenkins_url=None,
+    jenkins_war=None,
+    mongo_bin="/usr/sbin",
+    redis_executable="/usr/sbin/redis-server",
+)
