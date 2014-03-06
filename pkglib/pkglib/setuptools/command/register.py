@@ -1,17 +1,16 @@
-import urllib2
-import urlparse
-
 from setuptools.command.register import register as _register
 from distutils import log
 
-from base import CommandMixin
+from six.moves import urlparse, HTTPPasswordMgr  # @UnresolvedImport
+
+from .base import CommandMixin
 
 
 class register(_register, CommandMixin):
     """ Wrapper around register command to raise correct return codes
         to the system.
     """
-    __doc__ = _register.__doc__
+    __doc__ = _register.__doc__  # @ReservedAssignment
     _ok_status_codes = [200]
 
     def run(self):
@@ -44,13 +43,13 @@ class register(_register, CommandMixin):
 
             You will always be prompted for a password unless it has already
             been set in the .pypirc file. There will be an option to save
-            your credentials in a file to speed up future access to PyPI.
+            your credentials in a file to speed up future access to AHL PyPI.
         """
         username, password = self.request_credentials(self.repository)
 
         # set up the authentication
-        auth = urllib2.HTTPPasswordMgr()
-        host = urlparse.urlparse(self.repository)[1]
+        auth = HTTPPasswordMgr()
+        host = urlparse(self.repository)[1]
         auth.add_password(self.realm, host, username, password)
 
         # send the info to the server and report the result

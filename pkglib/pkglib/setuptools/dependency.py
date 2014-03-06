@@ -415,6 +415,90 @@ def remove_from_ws(ws, dist):
         pass
 
 
+def merge_matching_reqs(ws, dist):
+    # log.debug('  evaluating dist in working set: %r' % dist)
+    # Have a go at trying to figure out why it was installed,
+    # by finding all the matching requirements from the ws.
+    ws_reqs = get_matching_reqs(ws, dist)
+    # log.debug("   requirements from ws that match this dist:")
+    # [log.debug("     %s (from %s)" % (i, i._dist)) for i in ws_reqs]
+
+    # Sanity check for conflicts.
+    conflicts = [i for i in ws_reqs if dist not in i]
+    if conflicts:
+        log.warn("This virtualenv is inconsistent - %s is installed "
+                 "but there are conflicting requirements:" % dist)
+        [log.warn("  %s (from %s)" % (i, i._dist)) for i in conflicts]
+        return None
+    elif len(ws_reqs) > 1:
+        # Now attempt to merge all the requirements from the ws. We do this so
+        # that we only count the most specific req when comparing incoming
+        # versions.
+        try:
+            return reduce(merge_requirements, ws_reqs)
+        except CannotMergeError:
+            log.warn("This virtualenv is inconsistent - %s is installed "
+                     "but there are non-mergeable requirements:" % dist)
+            [log.warn("  %s (from %s)" % (i, i._dist)) for i in ws_reqs]
+            return None
+    elif len(ws_reqs) == 1:
+        return ws_reqs[0]
+    else:
+        # log.debug("   no requirements from ws match this dist")
+
+        # We don't know how this package was installed.
+        # Set the requirement to a synthetic req which is just the
+        # package name, this allows it to be overridden by anything else
+        # later on.
+
+        # TODO: keep some sort of record on disk as to why these packages
+        #       were installed. Eg, 'pyinstall foo' vs 'pyinstall foo==1.2'
+        #       The second invocation should store the full requirement here,
+        #       so that the user needs to override their own req manually.
+        return pkg_resources.Requirement.parse(dist.project_name)
+
+
+def get_requirements_from_ws(ws, req_graph):
+    """ Given a working set, return a dict of { dist.key -> (dist, req) }
+        where req is the merged requirements for this dist, based on the dists
+        in the ws.
+        This will flag up inconsistent working sets, and trim any dists from
+        the ws that are in an inconsistent state.
+
+        It will also fill out edges and nodes on the networkx req_graph.
+        child requirements, which is used by the backtracker.
+    """
+    best = {}
+    baseline_reqs = {}
+    for dist in ws:
+        req = merge_matching_reqs(ws, dist)
+        if req is None:
+            log.warn("Trimming dist from baseline ws as it's inconsistent: %r",
+                     dist)
+            remove_from_ws(ws, dist)
+        else:
+            # log.debug("   best is now (%s): %r" % (req, dist))
+            best[req.key] = (dist, req)
+            req._chosen_dist = dist
+            baseline_reqs[req.key] = req
+
+    # Now fill out the requirements graph.
+    # We can do this easily as at this point there is exactly one req for each
+    # dist.
+    for dist, req in list(best.values()):
+        req_graph.add_node(req)
+        for r in dist.requires(req.extras):
+            if r.key in baseline_reqs:
+                req_graph.add_edge(req, baseline_reqs[r.key])
+            if r.key not in best:
+                log.debug("   unsatisfied dependency %s from %s (from %s)",
+                          r, dist, req)
+                best[r.key] = (None, r)
+                req_graph.add_node(r)
+
+    return best
+
+
 def get_graph_from_ws(ws):
     """ Converts a working set into a requirements graph.
         This will flag up inconsistant working sets, and trim any dists from

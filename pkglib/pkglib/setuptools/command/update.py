@@ -1,17 +1,18 @@
 import sys
 import os
+
+from functools import partial
 from distutils import log
 from distutils.errors import DistutilsOptionError
 
+import setuptools
 from setuptools import Command
-from pkg_resources import working_set, parse_version
+from pkg_resources import working_set
 
-from pkglib.cmdline import run
+from pkglib import cmdline, pypi
 from pkglib.setuptools import dependency
-from pkglib import pypi
-from pkglib import manage
 
-from base import CommandMixin
+from .base import CommandMixin, get_easy_install_cmd
 
 # These are never updated.
 UPDATE_BLACKLIST = [
@@ -29,12 +30,13 @@ class update(Command, CommandMixin):
     command_consumes_arguments = True
 
     user_options = [
-        ('dev', None, 'Will install dev packages if they are available. ' \
-                      'Set implicitly if this is run as `python setup.py update`.'),
+        ('dev', None, 'Will install dev packages if they are available. '
+         'Set implicitly if this is run as `python setup.py update`.'),
         ('third-party', 't', 'Include third-party packages'),
         ('source', 's', 'Update only source checkouts'),
         ('eggs', 'e', 'Update only eggs'),
-        ('everything', 'E', 'Update all currently installed packages unless they are pinned.'),
+        ('everything', 'E', 'Update all currently installed packages unless '
+         'they are pinned.'),
         ('no-cleanup', None, 'Skip cleanup of site-packages'),
         ("index-url=", "i", "base URL of Python Package Index"),
     ]
@@ -69,20 +71,25 @@ class update(Command, CommandMixin):
             self.eggs = True
             self.source = True
 
-        self.pypi_client = pypi.PyPi(self.get_finalized_command('upload').repository)
+        self.pypi_client = pypi.PyPi(self.get_finalized_command('upload').
+                                     repository)
 
     def run(self):
+        setuptools._dont_write_bytecode = True
+
         if self.distribution.get_name() == 'UNKNOWN' and not self.args:
-            raise DistutilsOptionError('Please specify some packages to update.')
+            raise DistutilsOptionError('Please specify some packages to '
+                                       'update.')
 
         if self.distribution.get_name() != 'UNKNOWN':
-            log.info("Setting dev mode as this has been run from a setup.py file")
+            log.info("Setting dev mode as this has been run from a setup.py "
+                     "file")
             self.dev = True
 
         # These are all the packages that could possibly be updated
-        all_packages = dependency.all_packages(exclusions=self.exclusions,
-                                               include_third_party=self.third_party,
-                                               )
+        all_packages = (dependency.all_packages
+                        (exclusions=self.exclusions,
+                         include_third_party=self.third_party))
         full_name_list = [i.project_name for i in working_set]
 
         log.debug("All: %r" % all_packages.keys())
@@ -95,17 +102,22 @@ class update(Command, CommandMixin):
                 if not i in full_name_list:
                     raise DistutilsOptionError("Unknown package: %s" % i)
                 if not i in all_packages:
-                    raise DistutilsOptionError("Unable to update package %s, it is pinned (See list above)." % i)
+                    raise DistutilsOptionError("Unable to update package %s, "
+                                               "it is pinned (See list above)."
+                                               % i)
             roots = self.args
 
         if not roots:
             roots = [self.distribution.get_name()]
 
-        source_targets, egg_targets = dependency.get_targets(roots, all_packages, everything=self.everything,
-                                                             immediate_deps=True, follow_all=True,
-                                                             include_eggs=self.eggs, include_source=self.source)
-        # Filter egg targets for upgrading
-        egg_targets = self.filter_upgrades(egg_targets)
+        targets = dependency.get_targets(roots, all_packages,
+                                         everything=self.everything)
+        source_targets = ([i for i in targets
+                           if dependency.is_source_package(all_packages[i])]
+                          if self.source else [])
+        egg_targets = ([i for i in targets
+                       if not dependency.is_source_package(all_packages[i])]
+                       if self.eggs else [])
 
         # Update as required.
         if source_targets:
@@ -127,11 +139,11 @@ class update(Command, CommandMixin):
         [self.update_source(all_packages[i]) for i in source_targets]
 
         # 2) Pull in the latest versions of any non-pinned eggs
-        # TODO: During this run, the 'pinned packages' list may actually change.
-        #       This is the case when you're updating a prod graph to a dev graph.
-        #       It would be nice to figure out these changes before printing the list
-        #       of pinned packages earlier, otherwise you have to run the command
-        #       twice to get the correct behavior.
+        # TODO: During this run, the 'pinned packages' list may actually
+        # change. This is the case when you're updating a prod graph to a dev
+        # graph. It would be nice to figure out these changes before printing
+        # the list of pinned packages earlier, otherwise you have to run the
+        # command twice to get the correct behavior.
 
         # Make sure egg targets get done in the right order:
         self.update_egg_packages(egg_targets)
@@ -154,56 +166,32 @@ class update(Command, CommandMixin):
 
         open_files = [i for i in self.get_open_files() if is_open(i)]
         if open_files:
-            err = ["Can't update whilst the following files and directories remain open:"]
+            err = ["Can't update whilst the following files and directories "
+                   "remain open:"]
             for pid, fname in open_files:
                 err.append("%s %s" % ("(pid %0.10s)" % pid, fname))
             raise DistutilsOptionError('\n'.join(err))
-
-    def filter_upgrades(self, egg_targets):
-        """ Exclude packages where the latest version on pypi is lower than
-            the currently installed version.
-        """
-        def is_upgrade(package):
-            if package not in working_set.by_key:
-                return True
-            current_version = working_set.by_key[package].version
-
-            # TODO: get revision numbers from server so we can skip the auto-upgrade
-            #       of dev versions even if they haven't changed.
-            if manage.is_dev_version(current_version):
-                return True
-            last_version = self.pypi_client.get_last_version(package, self.dev)
-            # Pypi does not return any versions for this package.
-            if not last_version:
-                return False
-            return parse_version(current_version) < parse_version(last_version)
-
-        return [et for et in egg_targets if is_upgrade(et)]
 
     def update_egg_packages(self, egg_targets):
         """
         Updates egg packages
         """
-        # This is a lazy import to support bootstrapping pkglib
+        # This is a lazy import to support bootstrapping ahl.pkgutils
         from pkglib.setuptools.buildout import install
 
         self.banner("Updating egg packages: %s" % ' '.join(egg_targets))
-        if self.dev:
-            self.execute(install, [self.get_easy_install_cmd(index_url=self.index_url),
-                                    egg_targets,
-                                    False, # add_to_global,
-                                    False, # prefer_final,
-                                    True], # force_upgrade
-                        "Updating %s (will use dev packages)" % ' '.join(egg_targets),
-                        not self.verbose)
-        else:
-            self.execute(install, [self.get_easy_install_cmd(index_url=self.index_url),
-                                    egg_targets,
-                                    False, # add_to_global,
-                                    True, # prefer_final,
-                                    True], # force_upgrade
-                        "Updating %s (will use released packages)" % ' '.join(egg_targets),
-                        not self.verbose)
+        easy_install_cmd = get_easy_install_cmd(self.distribution,
+                                                index_url=self.index_url)
+        self.execute(partial(install,
+                             easy_install_cmd,
+                             egg_targets,
+                             add_to_global=False,
+                             prefer_final=not self.dev,
+                             force_upgrade=True,
+                             reinstall=True), (),
+                     "Updating %s (will use %s packages)"
+                     % (' '.join(egg_targets),
+                        'dev' if self.dev else 'released'))
 
     def update_source(self, pkg):
         """
@@ -211,28 +199,32 @@ class update(Command, CommandMixin):
         requirements file.
         """
         self.banner("Updating source checkout: %s" % pkg.project_name)
-        self.execute(run, (['svn', 'up', pkg.location], None, not self.verbose),
-            msg="Updating source checkout at %s" % pkg.location)
-        cmd = [sys.executable, os.path.join(pkg.location, 'setup.py'), 'egg_info']
+        self.execute(cmdline.run, (['svn', 'up', pkg.location], None, not self.verbose),
+                     msg="Updating source checkout at %s" % pkg.location)
+        cmd = [sys.executable, os.path.join(pkg.location, 'setup.py'),
+               'egg_info']
         if self.index_url:
             cmd.extend(['-i', self.index_url])
-        self.execute(run, (cmd, None, not self.verbose),
-            msg="Running setup.py egg_info for %s" % pkg.project_name)
+        self.execute(cmdline.run, (cmd, None, not self.verbose),
+                     msg="Running setup.py egg_info for %s" % pkg.project_name)
 
     def develop_source(self, pkg):
         """
         Runs ``setup.py develop`` for a single source checkout
         """
         self.banner("Setting up source package: %s" % pkg.project_name)
-        cmd = [sys.executable, os.path.join(pkg.location, 'setup.py'), 'develop']
+        cmd = [sys.executable, os.path.join(pkg.location, 'setup.py'),
+               'develop']
         if self.dev:
             if self.index_url:
                 cmd.extend(['-i', self.index_url])
-            self.execute(run, (cmd, None, not self.verbose),
-                msg="Running setup.py develop for %s" % pkg.project_name)
+            self.execute(cmdline.run, (cmd, None, not self.verbose),
+                         msg="Running setup.py develop for %s" %
+                         pkg.project_name)
         else:
             cmd.append('--prefer-final')
             if self.index_url:
                 cmd.extend(['-i', self.index_url])
-            self.execute(run, (cmd, None, not self.verbose),
-                msg="Running setup.py develop for %s (final versions only)" % pkg.project_name)
+            self.execute(cmdline.run, (cmd, None, not self.verbose),
+                         msg="Running setup.py develop for %s (final versions "
+                         "only)" % pkg.project_name)

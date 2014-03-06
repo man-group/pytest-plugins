@@ -1,35 +1,34 @@
-import os
-import sys
-import socket
-import httplib
 import base64
-import urlparse
+import os
+import socket
+import sys
 
 from setuptools.command.upload_docs import upload_docs as _upload_docs
 from distutils import log
+from six import binary_type
+from six.moves import http_client, urlparse  # @UnresolvedImport
 
-from base import CommandMixin
+from pkglib import CONFIG
+from .base import CommandMixin
+
 
 _IS_PYTHON3 = sys.version > '3'
 
-try:
-    bytes
-except NameError:
-    bytes = str
 
 def b(str_or_bytes):
     """Return bytes by either encoding the argument as ASCII or simply return
     the argument as-is."""
-    if not isinstance(str_or_bytes, bytes):
+    if not isinstance(str_or_bytes, binary_type):
         return str_or_bytes.encode('ascii')
     else:
         return str_or_bytes
+
 
 class upload_docs(_upload_docs, CommandMixin):
     """ Wrapper around upload_docs command to raise correct return codes
         to the system.
     """
-    __doc__ = _upload_docs.__doc__
+    __doc__ = _upload_docs.__doc__  # @ReservedAssignment
     _ok_status_codes = [200, 301]
 
     def run(self):
@@ -49,7 +48,7 @@ class upload_docs(_upload_docs, CommandMixin):
         # set up the authentication
         credentials = username + ':' + password
         if _IS_PYTHON3:  # base64 only works with bytes in Python 3.
-            encoded_creds = base64.encodebytes(credentials.encode('utf8'))
+            encoded_creds = base64.encodebytes(credentials.encode('utf8'))  # @UndefinedVariable # NOQA
             auth = bytes("Basic ")
         else:
             encoded_creds = base64.encodestring(credentials)
@@ -63,7 +62,7 @@ class upload_docs(_upload_docs, CommandMixin):
         body = []
         for key, values in data.items():
             # handle multiple entries for the same name
-            if type(values) != type([]):
+            if not isinstance(values, list):
                 values = [values]
             for value in values:
                 if type(value) is tuple:
@@ -72,7 +71,8 @@ class upload_docs(_upload_docs, CommandMixin):
                 else:
                     fn = b("")
                 body.append(sep_boundary)
-                body.append(b('\nContent-Disposition: form-data; name="%s"' % key))
+                body.append(b('\nContent-Disposition: form-data; name="%s"'
+                              % key))
                 body.append(fn)
                 body.append(b("\n\n"))
                 body.append(b(value))
@@ -89,12 +89,12 @@ class upload_docs(_upload_docs, CommandMixin):
         # We can't use urllib2 since we need to send the Basic
         # auth right with the first request
         schema, netloc, url, params, query, fragments = \
-            urlparse.urlparse(self.repository)
+            urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
-            conn = httplib.HTTPConnection(netloc)
+            conn = http_client.HTTPConnection(netloc)
         elif schema == 'https':
-            conn = httplib.HTTPSConnection(netloc)
+            conn = http_client.HTTPSConnection(netloc)
         else:
             raise AssertionError("unsupported schema " + schema)
 
@@ -108,7 +108,7 @@ class upload_docs(_upload_docs, CommandMixin):
             conn.putheader('Authorization', auth)
             conn.endheaders()
             conn.send(body)
-        except socket.error, e:
+        except socket.error as e:
             self.announce(str(e), log.ERROR)
             return
 
@@ -120,11 +120,11 @@ class upload_docs(_upload_docs, CommandMixin):
         elif r.status == 301:
             location = r.getheader('Location')
             if location is None:
-                location = 'http://packages.python.org/%s/' % meta.get_name()
+                location = '%s/docs/%s/' % (CONFIG.pypi_url, meta.get_name())
             self.announce('Upload successful. Visit %s' % location,
                           log.INFO)
         else:
             self.announce('Upload failed (%s): %s' % (r.status, r.reason),
                           log.ERROR)
         if self.show_response:
-            print '-' * 75, r.read(), '-' * 75
+            print("%s %s %s" % ('-' * 75, r.read(), '-' * 75))

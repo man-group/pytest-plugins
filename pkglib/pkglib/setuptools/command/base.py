@@ -12,8 +12,16 @@ from pkglib.setuptools.patches import patch_http
 from pkglib import cmdline, config, CONFIG, util, pyenv
 
 
-def get_resource_file(name):
-    return resource_filename(__name__, os.path.join("resources", name))
+def get_resource_file(name, path=None):
+    """ Returns the path to a resource file by name.
+        Default path for the files is the 'resources' directory
+    """
+    if path is None:
+        pkg = __name__
+        name = os.path.join('resources', name)
+    else:
+        pkg = path
+    return resource_filename(pkg, name)
 
 
 def merge_options(*opts):
@@ -196,7 +204,7 @@ class CommandMixin(object):
 
             # DevPI. TODO: use pip.conf / pydistutils.cfg for all of this
             elif CONFIG.pypi_variant == 'devpi':
-                url += '/root/pypi/+simple/' 
+                url += '/root/pypi/+simple/'
         return url
 
     def get_site_packages(self):

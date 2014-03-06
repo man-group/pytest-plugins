@@ -1,12 +1,11 @@
 from distutils.errors import DistutilsOptionError
-from distutils import log
-
 from setuptools import Command
-from pkg_resources import safe_name, working_set
+
+from pkg_resources import safe_name, working_set, parse_requirements
 
 from pkglib.setuptools import dependency, graph
 
-from base import CommandMixin
+from .base import CommandMixin, fetch_build_eggs
 
 
 class depgraph(Command, CommandMixin):
@@ -22,11 +21,10 @@ class depgraph(Command, CommandMixin):
         ('graphviz', 'g', 'Use GraphViz renderer'),
         ('d3', 'd', 'Use D3 renderer'),
         ('pydot', 'p', 'Use PyDot renderer'),
-        ('requirements', 'r',
-         'Show requirements graph instead of distributions. Currently only '
-         'supported by pydot.'),
         ('out=', 'o', 'Save file to given location'),
         ('exclude=', 'x', 'Exclude these packages, comma-separated'),
+        ('what-requires=', 'r',
+         'Shows what packages require the given package name'),
     ]
     boolean_options = [
         'everything',
@@ -36,7 +34,6 @@ class depgraph(Command, CommandMixin):
         'd3',
         'pydot',
         'graphviz',
-        'requirements',
     ]
 
     def initialize_options(self):
@@ -51,7 +48,8 @@ class depgraph(Command, CommandMixin):
         self.out = None
         self.renderer = 'pydot'
         self.exclude = []
-        self.requirements = False
+        self.what_requires = None
+        self.what_provides = None
 
     def finalize_options(self):
         if self.ascii:
@@ -66,26 +64,14 @@ class depgraph(Command, CommandMixin):
             self.renderer = 'pydot'
         if self.exclude:
             self.exclude = self.exclude.split(',')
-        if self.everything:
-            self.third_party = True
 
-    def run(self):
-        if not self.distribution.get_name() == 'UNKNOWN':
-            self.run_command('egg_info')
-        self.banner("Dependency Graph: note - includes only installed "
-                    "packages")
-
-        all_packages = dependency.all_packages(
-                           exclusions=self.exclude,
-                           include_third_party=self.third_party,
-                           exclude_pinned=False)
-        if not all_packages:
-            log.info("No matching packages to render")
-            return
-
+    def _resolve_all_packages(self):
+        all_packages = dependency.all_packages(exclusions=self.exclude,
+                                               include_third_party=self.third_party,
+                                               exclude_pinned=False)
 
         if self.distribution.get_name() == 'UNKNOWN' and not self.args:
-            # Pick any package and set the 'everything' flag if nothing was 
+            # Pick any package and set the 'everything' flag if nothing was
             # specified
             pkg = all_packages.keys()[0]
             self.everything = True
@@ -93,6 +79,9 @@ class depgraph(Command, CommandMixin):
             if 'UNKNOWN' in all_packages:
                 del all_packages['UNKNOWN']
 
+        return all_packages
+
+    def _resolve_roots(self, all_packages):
         roots = []
         if self.args:
             roots = [safe_name(i) for i in self.args]
@@ -103,27 +92,59 @@ class depgraph(Command, CommandMixin):
         if not roots:
             roots = [self.distribution.get_name()]
 
+        return roots
+
+    def _render_ascii(self, roots, all_packages):
+        tgts = dependency.get_targets(roots, all_packages, everything=self.everything)
+        graph.draw_graph(inclusions=tgts, renderer=self.renderer, outfile=self.out)
+
+    def _render_digraph(self, nx_graph):
+        if self.renderer == 'd3':
+            graph.draw_networkx_with_d3(nx_graph, self.third_party, self.out)
+        elif self.renderer == 'pydot':
+            fetch_build_eggs(['pydot'], dist=self.distribution)
+            graph.draw_networkx_with_pydot(nx_graph, self.third_party, self.out)
+
+    def _filter_nodes_leading_to(self, nx_graph, target_node):
+        # XXX do this properly
+        class d:
+            version = ""
+        guilty_nodes = set()
+        resolved = set()
+
+        for req in parse_requirements(target_node):
+            # fudge _chosen_dist, couldn't work out how to resolve it properly
+            req._chosen_dist = d
+            guilty_nodes.add(req)
+            resolved.add(req)
+            guilty_nodes.update(nx_graph.predecessors_iter(req))
+
+        while len(guilty_nodes) != len(resolved):
+            for n in [gn for gn in guilty_nodes if gn not in resolved]:
+                resolved.add(n)
+                guilty_nodes.update(nx_graph.predecessors_iter(n))
+
+        return nx_graph.subgraph(guilty_nodes)
+
+    def run(self):
+        if not self.distribution.get_name() == 'UNKNOWN':
+            self.run_command('egg_info')
+        self.banner("Dependency Graph: note: includes only installed packages")
+
+        all_packages = self._resolve_all_packages()
+        roots = self._resolve_roots(all_packages)
+
         self.banner("Rendering using %s" % self.renderer)
 
         if self.renderer in ['ascii', 'graphviz']:
             # TODO: use nx digraph as below, retire get_targets
-            src, eggs = dependency.get_targets(roots, all_packages,
-                                               everything=self.everything,
-                                               immediate_deps=True,
-                                               follow_all=True,
-                                               include_eggs=True,
-                                               include_source=True,)
-
-            graph.draw_graph(inclusions=src + eggs, renderer=self.renderer,
-                             outfile=self.out)
-
+            self._render_ascii(roots, all_packages)
         else:
-            nx_graph, _ = dependency.get_graph_from_ws(working_set)
+            import networkx
+            g = networkx.DiGraph()
+            dependency.get_requirements_from_ws(working_set, g)
 
-            if self.renderer == 'd3':
-                graph.draw_networkx_with_d3(nx_graph, self.third_party,
-                                            self.out)
-            elif self.renderer == 'pydot':
-                self.fetch_build_eggs(['pydot'])
-                graph.draw_networkx_with_pydot(nx_graph, self.third_party,
-                                               self.out, self.requirements)
+            if self.what_requires is not None:
+                g = self._filter_nodes_leading_to(g, self.what_requires)
+
+            self._render_digraph(g)

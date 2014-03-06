@@ -9,6 +9,8 @@ import config
 CONFIG = config.OrganisationConfig(
     pypi_url='http://pypi.python.org',
     pypi_variant=None,
+    pypi_default_username=None,
+    pypi_default_password=None,
     namespaces=['acme'],
     namespace_separator='.',
     third_party_build_prefix='acme',
@@ -30,4 +32,7 @@ CONFIG = config.OrganisationConfig(
     test_linter_package="flake8",
     test_dirname="tests",
     jenkins_url=None,
+    jenkins_job_xml=None,
+    jenkins_matrix_job_xml=None,
+    jenkins_matrix_job_pyversions=None,
 )

@@ -12,7 +12,6 @@ from contextlib import closing
 import pkg_resources
 
 import errors
-import manage
 import util
 import pyenv
 
