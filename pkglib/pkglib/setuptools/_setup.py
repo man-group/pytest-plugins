@@ -2,9 +2,9 @@ import os
 import sys
 
 from distutils import log
-from setuptools import setup as _setup, find_packages, dist as _dist
+from setuptools import setup as setuptools_setup, find_packages
 
-from pkglib import config, CONFIG
+from pkglib import config
 from pkglib.manage import get_pkg_description, get_namespace_packages
 
 from pkglib.setuptools.command import (
@@ -132,7 +132,7 @@ def setup(**kwargs):
             clean_requires(call_args['install_requires'])
 
     # Call base setup method, retrieve distribution
-    dist = _setup(**call_args)
+    dist = setuptools_setup(**call_args)
 
     # Check if we've set a failed flag this may be due to a failed upload.
     if hasattr(dist, '_failed') and dist._failed:
