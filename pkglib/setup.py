@@ -19,14 +19,6 @@ import distutils.config
 distutils.config.PyPIRCCommand = PyPIRCCommand
 
 from distutils import log
-#try:
-#    from setuptools import _distribute
-#except ImportError, e:
-#    log.fatal("Please install distribute to continue. "
-#              "Eg: 'easy_install distribute'. \n"
-#              "If using virtualenv you can do this with "
-#              "'virtualenv pyenv --distribute'")
-#    sys.exit(1)
 
 from setuptools.command import develop, easy_install
 from setuptools.dist import Distribution
