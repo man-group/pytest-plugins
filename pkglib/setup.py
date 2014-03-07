@@ -6,7 +6,6 @@ from setuptools import Distribution
 
 from pkglib.setuptools import dist, setup
 
-
 def fetch_build_eggs(requires, dist):
     return Distribution.fetch_build_eggs(dist, requires)
 
