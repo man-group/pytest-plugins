@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import os
 import sys
 
-from setuptools import setup as _setup, find_packages
+from setuptools import setup as setuptools_setup, find_packages
 
 from pkglib import config, util
 from pkglib.setuptools.command import (develop, test, jenkins, egg_info, easy_install,
@@ -138,7 +138,7 @@ def setup(**kwargs):
     check_distclass(call_args["distclass"])
 
     # Call base setup method, retrieve distribution
-    dist = _setup(**call_args)
+    dist = setuptools_setup(**call_args)
 
     # Check if we've set a failed flag this may be due to a failed upload.
     if hasattr(dist, '_failed') and dist._failed:

@@ -247,8 +247,8 @@ class CommandMixin(object):
         # running it with the +D option to only return results under a certain
         # directory
         # TODO: this might not be on the path, and be hidden by the >/dev/null
-        cmd = ("lsof 2>/dev/null | grep {} |"
-               "awk '{{ print $2 \" \" $9 }}'").format(self.site_packages)
+        cmd = ("lsof 2>/dev/null | grep {0} |"
+               "awk '{{ print $2 " " $9 }}'").format(self.site_packages)
         return [i.split() for i in
                 cmdline.run(cmd, capture_stdout=True, check_rc=False,
                             shell=True).split('\n') if i]

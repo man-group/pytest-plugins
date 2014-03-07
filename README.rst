@@ -13,6 +13,8 @@ This repository has two packages:
 - ``pkglib-testing``: a suite of testing utilities to assist with handling 
   services, databases, web drivers and coverage amongst other things, as well 
   as a number of useful ``py.test`` plugins.
+
+.. image:: https://travis-ci.org/ahlmss/pkglib.png?branch=master   :target: https://travis-ci.org/ahlmss/pkglib
                       
 Documentation
 =============
