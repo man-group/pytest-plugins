@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import glob
 from distutils import log
 from distutils.errors import DistutilsOptionError
 
@@ -112,18 +113,19 @@ class test(Command, CommandMixin):
         """ Find test directories, skipping nested dirs and anything marked
             to skip under [pytest]:norecursedirs
         """
-        from path import path
         res = []
         no_recurse = []
         cfg = config.get_pkg_cfg_parser()
         if cfg.has_section('pytest') and \
            cfg.has_option('pytest', 'norecursedirs'):
-            [no_recurse.extend(path.getcwd().glob(i)) for i in
-             cfg.get('pytest', 'norecursedirs').split()]
-            no_recurse = [i.abspath() for i in no_recurse]
+            [no_recurse.extend(glob.glob(os.path.join(os.getcwd(), i)))
+             for i in cfg.get('pytest', 'norecursedirs').split()]
+            no_recurse = [os.path.abspath(i) for i in no_recurse]
 
-        test_dirs = [i for i in
-                     path.getcwd().walkdirs(CONFIG.test_dirname)]
+        test_dirs = []
+        for (dirpath, dirnames, _) in os.walk(os.getcwd()):
+            if CONFIG.test_dirname in dirnames:
+                test_dirs.append(os.path.join(dirpath, CONFIG.test_dirname))
         test_dirs.sort(key=len)
         for i in test_dirs:
             try:
@@ -330,16 +332,16 @@ class test(Command, CommandMixin):
             test_dirs = self.test_root
         else:
             if self.unit:
-                test_dirs.extend([i / 'unit' for i in self.test_root])
+                test_dirs.extend([os.path.join(i, 'unit') for i in self.test_root])
             if self.integration:
-                test_dirs.extend([i / 'integration' for i in self.test_root])
+                test_dirs.extend([os.path.join(i, 'integration') for i in self.test_root])
             if self.regression:
-                test_dirs.extend([i / 'regression' for i in self.test_root])
+                test_dirs.extend([os.path.join(i, 'regression') for i in self.test_root])
 
         if self.file:
             pytest_args += self.file.split()
         else:
-            extant_test_dirs = [i for i in test_dirs if i.isdir()]
+            extant_test_dirs = [i for i in test_dirs if os.path.isdir(i)]
             if not extant_test_dirs:
                 msg = "Can't find any test directories, tried {0}".format(
                       ','.join(test_dirs))

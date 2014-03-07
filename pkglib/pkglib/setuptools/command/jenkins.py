@@ -23,15 +23,13 @@ from .base import CommandMixin, fetch_build_eggs, get_resource_file
 #  $python_string_xml
 
 
-# --> setuptools.command.jenkins, without the ahl.jenkins link and without the kerberos integration.
-#     might be easier just to leave this as a complete override of the pkglib one
 
 class jenkins(Command, CommandMixin):
     """ Create or update Jenkins build job """
     description = "Create or update the Hudson build job"
 
     user_options = [
-        ('server=', 's', 'Jenkins server (defaults to ahlci)'),
+        ('server=', 's', 'Jenkins server (defaults to %s)' % CONFIG.jenkins_url),
         ('username=', 'u', 'Windows username (defaults to your current user)'),
         ('password=', 'p', 'Windows password (will prompt if omitted)'),
         ('keytab=', 'k', 'Kerberos keytab (will prompt if omitted)'),

@@ -12,8 +12,6 @@ from contextlib import closing
 import pkg_resources
 
 import errors
-import util
-import pyenv
 
 
 class Config(object):
@@ -40,6 +38,7 @@ ORG_SLOTS = ('pypi_url',
              'deploy_path',
              'deploy_bin',
              'virtualenv_executable',
+             'third_party_build_prefix',
              'sphinx_theme',
              'sphinx_theme_package',
              'graph_easy',
@@ -48,10 +47,9 @@ ORG_SLOTS = ('pypi_url',
              'test_linter',
              'test_linter_package',
              'jenkins_url',
-             'java_executable',
-             'jenkins_war',
-             'mongo_bin',
-             'redis_executable',
+             'jenkins_job_xml',
+             'jenkins_matrix_job_xml',
+             'jenkins_matrix_job_pyversions',
              )
 
 
@@ -61,7 +59,9 @@ class OrganisationConfig(Config):
     __slots__ = ORG_SLOTS
 
 
-ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages', 'installer_search_path', 'virtualenv_executable']
+ORG_MULTI_LINE_KEYS = ['namespaces', 'platform_packages', 'installer_search_path',
+                       'installer_dev_search_path', 'virtualenv_executable',
+                       'jenkins_matrix_job_pyversions']
 PKG_MULTI_LINE_KEYS = ['install_requires', 'extras_require', 'setup_requires',
                        'tests_require', 'console_scripts', 'classifiers',
                        'scripts', 'description']
@@ -217,10 +217,12 @@ def parse_extras_require(extras_require_list):
     for line in extras_require_list:
         n, d = parse_extras_require_line(line)
         res[n] = d
+    return res
 
 
 def clean_requires(reqs):
     """Removes requirements that aren't needed in newer python versions."""
+    import pyenv
     return [req for req in reqs if not
             pyenv.included_in_batteries(pkg_resources.Requirement.parse(req), sys.version_info)]
 
@@ -231,6 +233,7 @@ def validate_metadata(metadata):
                            "consider changing to '%s'" %
                            (metadata['name'], pkg_resources.safe_name(metadata['name'])))
 
+    return
     for section, reqs in ([(k, metadata[k]) for k in REQUIRES_KEYS] +
                           [('extras_require[%s]' % k, v) for k, v in
                            metadata['extras_require'].items()]):
@@ -291,13 +294,14 @@ def get_pkg_description(metadata):
 
 def parse_pkg_metadata(parser, validate=True):
     """
-    Parse the AHL metadata section in the ``setup.cfg`` file.
+    Parse the metadata section in the ``setup.cfg`` file.
 
     Parameters
     ----------
     parser : `ConfigParser.ConfigParser`
         ConfigParser instance for the ``setup.cfg`` file
     """
+    import util
     metadata = parse_section(parser, 'metadata', PKG_MULTI_LINE_KEYS)
 
     metadata['description'] = " ".join(metadata.get('description', []))

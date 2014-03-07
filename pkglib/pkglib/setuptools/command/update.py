@@ -176,7 +176,7 @@ class update(Command, CommandMixin):
         """
         Updates egg packages
         """
-        # This is a lazy import to support bootstrapping ahl.pkgutils
+        # This is a lazy import to support bootstrapping pkglib
         from pkglib.setuptools.buildout import install
 
         self.banner("Updating egg packages: %s" % ' '.join(egg_targets))

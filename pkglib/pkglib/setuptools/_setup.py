@@ -76,7 +76,7 @@ def check_distclass(distclass):
         return
 
     sys.stderr.write("Distribution class must be a subclass of "
-                     "`ahl.pkgtutils.setuptools.Distribution`, but got: %s\n"
+                     "`pkglib.setuptools.dist.Distribution`, but got: %s\n"
                      % str(distclass))
     sys.exit(1)
 
@@ -92,6 +92,7 @@ def setup(**kwargs):
         Override any of the default `setuptools.setup` keyword arguments.
 
     """
+    config.setup_global_org_config()
     check_multiple_call()
     original_cwd = os.getcwd()
     set_working_dir()

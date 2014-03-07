@@ -148,9 +148,9 @@ class PyPIRCCommand(_PyPIRCCommand):
         pypirc_template = textwrap.dedent("""\
         [distutils]
         index-servers =
-            ahlpypi
+            localpypi
 
-        [ahlpypi]
+        [localpypi]
         repository=%(repository)s
         username=%(username)s
         """)

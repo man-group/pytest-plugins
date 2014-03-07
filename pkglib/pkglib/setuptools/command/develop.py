@@ -7,6 +7,7 @@ import setuptools
 
 from setuptools.command.develop import develop as _develop
 
+from pkglib import CONFIG
 from .base import CommandMixin, merge_options
 from .easy_install import easy_install
 
@@ -80,7 +81,7 @@ class develop(_develop, easy_install, CommandMixin):
         # Now grab all the dependencies using buildout
         if not self.no_deps:
 
-            # Lazy imports here to allow ahl.pkgutils to bootstrap itself.
+            # Lazy imports here to allow pkglib to bootstrap itself.
             from pkglib.setuptools.buildout import install
 
             # We're running now in 'buildout' mode, so by default we dont use

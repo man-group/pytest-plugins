@@ -284,15 +284,15 @@ class PythonInstallation(object):
         cmd.append(pkg_name)
         self.run_python_cmd(cmd, capture_stdout=not verbose)
 
-    def install_pkgutils(self, **kwargs):
+    def install_pkglib(self, **kwargs):
         """
-        Install ahl.pkgutils into the given virtualenv. Same argument
+        Install pkglib into the given virtualenv. Same argument
 
         Parameters
         ----------
         Same as install_package()
         """
-        self.install_package("ahl.pkgutils", **kwargs)
+        self.install_package("pkglib", **kwargs)
 
     def get_package_location(self, pkg_name):
         key = pkg_resources.safe_name(pkg_name).lower()

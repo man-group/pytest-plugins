@@ -9,7 +9,7 @@ from pkg_resources import resource_filename
 from setuptools.dist import Distribution
 
 from pkglib.setuptools.patches import patch_http
-from pkglib import cmdline, config, CONFIG, util, pyenv
+from pkglib import cmdline, config, CONFIG, util
 
 
 def get_resource_file(name, path=None):
@@ -113,7 +113,7 @@ def fetch_build_eggs(reqs, dist=None, prefer_final=True, use_existing=False,
         add_to_env : `bool`
             whether distributions should be added to the virtual environment
     """
-    # Lazy imports here to allow ahl.pkgutils to bootstrap itself.
+    # Lazy imports here to allow pkglib to bootstrap itself.
     from pkglib.setuptools.buildout import install
 
     # Run the installer and set the option to add to the global working_set
@@ -210,6 +210,7 @@ class CommandMixin(object):
     def get_site_packages(self):
         """ Returns the site-packages dir for this virtualenv
         """
+        from pkglib import pyenv
         return pyenv.get_site_packages()
     site_packages = property(get_site_packages)
 

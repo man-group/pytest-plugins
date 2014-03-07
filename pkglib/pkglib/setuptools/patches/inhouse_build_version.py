@@ -25,7 +25,7 @@ def _parse_version_parts(s):
             yield part.zfill(8)    # pad for numeric comparison
         elif part == CONFIG.third_party_build_prefix:
             yield '*final'
-            yield '!%s' % CONFIG.third_party_build_prefex
+            yield '!%s' % CONFIG.third_party_build_prefix
         else:
             yield '*' + part
 

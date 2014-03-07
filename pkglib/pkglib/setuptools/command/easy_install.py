@@ -66,12 +66,12 @@ def monkeypatch(module, attr):
 @monkeypatch('setuptools.command.easy_install', 'easy_install')
 @monkeypatch('setuptools.command.develop', 'easy_install')
 class easy_install(_easy_install, CommandMixin):
-    ahl_pkgutils_bootstrap = False
+    pkglib_bootstrap = False
 
     create_index = egg_cache.EggCacheAwarePackageIndex
 
     def __init__(self, dist, **kw):
-        if type(self).ahl_pkgutils_bootstrap:
+        if type(self).pkglib_bootstrap:
             kw.pop('install_dir', None)
         _easy_install.__init__(self, dist, **kw)
 
@@ -94,18 +94,6 @@ class easy_install(_easy_install, CommandMixin):
         if not self.exclude_scripts:
             for args in get_script_args(dist):
                 self.write_script(*args)
-        self.install_static_data(dist)
-
-    def install_static_data(self, dist):
-        for name, ep in dist.get_entry_map('ahl.static_data').items():
-            src = os.path.join(self.install_data, 'share', name)
-            resource = '/'.join(ep.module_name.split('.') + list(ep.attrs))
-            dest = dist.get_resource_filename(pkg_resources.ResourceManager(), resource)
-            log.info("Installing symlink %s -> %s", src, dest)
-            self.mkpath(os.path.dirname(src))
-            if os.path.islink(src):
-                os.remove(src)
-            os.symlink(dest, src)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
         """ The only difference between this and the standard implementation is that it doesn't copy

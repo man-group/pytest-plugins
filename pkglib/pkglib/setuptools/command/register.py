@@ -43,7 +43,7 @@ class register(_register, CommandMixin):
 
             You will always be prompted for a password unless it has already
             been set in the .pypirc file. There will be an option to save
-            your credentials in a file to speed up future access to AHL PyPI.
+            your credentials in a file to speed up future access to PyPI.
         """
         username, password = self.request_credentials(self.repository)
 

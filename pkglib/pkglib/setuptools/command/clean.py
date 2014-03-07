@@ -22,9 +22,9 @@ class clean(_clean, CommandMixin):
 
     user_options = _clean.user_options + [
         ('tidy', None, "clean up the package environment in addition to build dirs"),
-        ('site-packages', None, "clean up unused packages in site-packages"),
+        ('packages', None, "clean up unused packages in site-packages"),
     ]
-    boolean_options = _clean.boolean_options + ['tidy', 'site-packages']
+    boolean_options = _clean.boolean_options + ['tidy', 'packages']
 
     victim_whitelist = [
          'pip',
@@ -36,8 +36,8 @@ class clean(_clean, CommandMixin):
 
     def initialize_options(self):
         _clean.initialize_options(self)
-        self.tidy = None
-        self.site_packages = None
+        self.tidy = False
+        self.packages = False
         self._ignore_directories_patt = [re.compile(d) for d in IGNORE_DIRECTORIES]
 
     def finalize_options(self):
@@ -80,7 +80,7 @@ class clean(_clean, CommandMixin):
                              'Deleting {}'.format(victim))
 
     def run(self):
-        if self.site_packages:
+        if self.packages:
             self.clean_site_packages()
         _clean.run(self)
         if self.tidy:

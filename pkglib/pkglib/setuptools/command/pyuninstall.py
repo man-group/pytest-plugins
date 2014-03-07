@@ -78,7 +78,7 @@ class pyuninstall(Command, CommandMixin):
         """ Wire in the pip uninstall command
         """
         with pip_logging_to_distutils_log():
-            # Lazy imports here to allow ahl.pkgutils to bootstrap itself.
+            # Lazy imports here to allow pkglib to bootstrap itself.
             from pip import req, exceptions
 
             rs = req.RequirementSet(build_dir=None, src_dir=None, download_dir=None)

@@ -1,6 +1,8 @@
-import io
+from contextlib import contextmanager
 
-from mock import Mock
+from mock import Mock, patch
+
+from six.moves import builtins, cStringIO  # @UnresolvedImport
 
 
 class Req(object):
@@ -93,4 +95,25 @@ clue_page = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.
 
 
 def mock_clue():
-    return Mock(return_value=io.BytesIO(clue_page))
+    return Mock(return_value=cStringIO(clue_page))
+
+
+# FIXME: needs to be moved to pkglib-testing
+def _get_open_mock(file_dict):
+
+    def open_func(f):
+        print("open?")
+        file_io = file_dict[f]
+        file_io.seek(0)
+        return file_io
+
+    mock_open = Mock()
+    mock_open.side_effect = lambda *a, **kw: open_func(a[0])  # @UnusedVariable
+    return mock_open
+
+
+@contextmanager
+def _patch_open(file_dict):
+    with patch(builtins.__name__ + '.open', new=_get_open_mock(file_dict)):
+        yield file_dict
+

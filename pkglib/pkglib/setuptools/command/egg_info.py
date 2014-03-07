@@ -33,7 +33,6 @@ class egg_info(_egg_info, CommandMixin):
         _egg_info.initialize_options(self)
 
     def finalize_options(self):
-        from path import path
         self.index_url = self.index_url or \
                          self.maybe_add_simple_index(CONFIG.pypi_url)
         self.pypi_client = self.pypi_client or pypi.PyPi(self.index_url)
@@ -43,10 +42,9 @@ class egg_info(_egg_info, CommandMixin):
 
         _egg_info.finalize_options(self)
 
-        self.egg_info = path(self.egg_info)
-        self.revision_file = self.egg_info / 'revision.txt'
-        self.test_option_file = self.egg_info / 'test_options.txt'
-        self.all_revisions_file = self.egg_info / 'allrevisions.txt'
+        self.revision_file = os.path.join(self.egg_info, 'revision.txt')
+        self.test_option_file = os.path.join(self.egg_info, 'test_options.txt')
+        self.all_revisions_file = os.path.join(self.egg_info, 'allrevisions.txt')
 
     def write_test_options(self):
         """ Convert raw test options into the lines to be written to
@@ -64,20 +62,6 @@ class egg_info(_egg_info, CommandMixin):
         """
         self.write_file('revision number %s' % revno, self.revision_file,
                         str(revno))
-
-    def read_all_revisions(self, dist):
-        """Read revision from egg directory."""
-        from path import path
-        dist_dir = path(dist.location)
-        for egg_info_dir in [dist_dir / 'EGG-INFO',
-                             dist_dir / '{}.egg-info'.format(dist.project_name)]:
-            all_revs_fname = egg_info_dir / 'allrevisions.txt'
-            if all_revs_fname.exists():
-                revisions = config.read_allrevisions_file(all_revs_fname)
-                for rev_data in revisions:
-                    if pkg_resources.safe_name(rev_data[0]) == dist.project_name:
-                        return tuple(rev_data)  # name,version,url,rev
-        return None
 
     def write_all_revisions_(self):
         """ Create ``allrevisions.txt`` file containing subversion revision
