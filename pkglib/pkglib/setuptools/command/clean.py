@@ -9,7 +9,7 @@ from distutils.command.clean import clean as _clean
 
 from pkg_resources import working_set
 
-from pkglib.cmdline import chdir
+from pkglib_util.cmdline import chdir
 
 from .base import CommandMixin, fetch_build_eggs
 

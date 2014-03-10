@@ -5,7 +5,7 @@ import logging
 import ConfigParser
 from multiprocessing import Pool
 
-from pkglib.cmdline import run
+from pkglib_util.cmdline import run
 
 
 def get_log():

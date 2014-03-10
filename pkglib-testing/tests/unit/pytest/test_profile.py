@@ -1,8 +1,11 @@
 # HACK: if the profile plugin is imported before the coverage plugin then all
 # the top-level code in pkglib_testing.pytest.profile will be omitted from
 # coverage, so force it to be reloaded within this test unit under coverage
+
+from six.moves import reload_module  # @UnresolvedImport
+
 import pkglib_testing.pytest.profile
-reload(pkglib_testing.pytest.profile)
+reload_module(pkglib_testing.pytest.profile)
 from pkglib_testing.pytest.profile import Profiling, pytest_addoption, pytest_configure
 from mock import Mock, ANY, patch, sentinel
 

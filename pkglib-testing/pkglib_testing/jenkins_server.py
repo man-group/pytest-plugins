@@ -8,7 +8,7 @@ import shutil
 
 import jenkins
 
-from pkglib import CONFIG
+from pkglib_testing import CONFIG
 
 from server import HTTPTestServer
 

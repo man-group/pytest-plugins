@@ -17,7 +17,8 @@ from zc.buildout import easy_install
 from pip.util import is_local
 from setuptools.command.easy_install import chmod, uncache_zipdir
 
-from pkglib import egg_cache, pyenv, cmdline, util
+from pkglib_util import cmdline
+from pkglib import egg_cache, pyenv, util
 from pkglib.setuptools import dependency, graph
 from pkglib.setuptools.dist import egg_distribution
 

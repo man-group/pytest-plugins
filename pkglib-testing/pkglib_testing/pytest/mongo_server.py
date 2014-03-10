@@ -14,7 +14,7 @@ from pkglib_testing.mongo_server import MongoTestServer
 # TODO: check that with the latest py.test this is still the case, work has
 #       been done to improve fixtures with xdist
 if 'WORKSPACE' in os.environ:
-    MongoTestServer.kill_all()
+    MongoTestServer.cleanup_all()
 
 
 def _mongo_server(request):

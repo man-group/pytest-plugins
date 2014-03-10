@@ -12,7 +12,8 @@ import operator
 
 from pkg_resources import working_set
 
-from pkglib import cmdline, manage, CONFIG, util
+from pkglib_util import cmdline
+from pkglib import manage, CONFIG, util
 
 
 def get_spec(specs):

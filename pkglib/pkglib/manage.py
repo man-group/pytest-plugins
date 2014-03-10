@@ -7,11 +7,11 @@ import os
 import sys
 
 import pkg_resources
+from pkglib_util import cmdline
 
 from pkglib import CONFIG
 import config
 import util
-import cmdline
 import pyenv
 import errors
 

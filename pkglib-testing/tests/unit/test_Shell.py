@@ -1,6 +1,7 @@
 import os.path
 
-from pkglib_testing.util import Shell, Workspace, chdir
+from pkglib_testing.util import Shell, Workspace
+from pkglib_util.cmdline import chdir
 
 
 def test_Shell_func_1():

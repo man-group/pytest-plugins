@@ -1,0 +1,4 @@
+from ahl.pkgutils.setuptools import setup
+from ahl.pkgutils.setuptools.extension import Extension
+
+setup(ext_modules=[Extension('ahl.foo.ext', ['src/ext.pyx'], include_dirs=['src'])])

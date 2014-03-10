@@ -17,8 +17,9 @@ trick to sidestep the setup ordering problem is to run the following in order::
 import sys
 import subprocess
 
+from pkglib_util import cmdline
+
 import config
-import cmdline
 
 
 def setup():

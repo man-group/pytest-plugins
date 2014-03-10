@@ -3,11 +3,12 @@ Created on 16 Apr 2012
 
 @author: eeaston
 '''
-from pkglib.cmdline import run
-from pkglib import manage
+import sys
+
+from pkglib_util import cmdline
 
 
-def run_with_coverage(cmd, pytestconfig, coverage='coverage', cd=None, **kwargs):
+def run_with_coverage(cmd, pytestconfig, coverage=None, cd=None, **kwargs):
     """
     Run a given command with coverage enabled. This won't make any sense
     if the command isn't a python script.
@@ -29,7 +30,7 @@ def run_with_coverage(cmd, pytestconfig, coverage='coverage', cd=None, **kwargs)
         If not None, will change to this directory before running the cmd.
         This is the directory that the coverage files will be created in.
     kwargs: keyword arguments
-        Any extra arguments to pass to `pkglib.cmdline.run`
+        Any extra arguments to pass to `ahl.pkgutils.cmdline.run`
 
     Returns
     -------
@@ -45,12 +46,17 @@ def run_with_coverage(cmd, pytestconfig, coverage='coverage', cd=None, **kwargs)
     if isinstance(cmd, str):
         cmd = [cmd]
 
-    args = [coverage, 'run', '-p']
+    if coverage is None:
+        coverage = [sys.executable, '-mcoverage.__main__']
+    elif isinstance(coverage, str):
+        coverage = [coverage]
+
+    args = coverage + ['run', '-p']
     if pytestconfig.option.cov_source:
         source_dirs = ",".join(pytestconfig.option.cov_source)
         args += ['--source=%s' % source_dirs]
     args += cmd
     if cd:
-        with manage.chdir(cd):
-            return run(args, **kwargs)
-    return run(args, **kwargs)
+        with cmdline.chdir(cd):
+            return cmdline.run(args, **kwargs)
+    return cmdline.run(args, **kwargs)

@@ -1,62 +1,55 @@
-"""     General util stuff.
+"""General utility stuff.
 """
+import getpass
+import imp
 import os
 import sys
 import tempfile
 import shutil
 import subprocess
-from subprocess import Popen, PIPE
-from ConfigParser import ConfigParser
-from contextlib import contextmanager, closing
-import getpass
-import types
+from functools import update_wrapper
+import inspect
+import textwrap
 
-from pkg_resources import working_set
+from mock import patch
 from path import path
 
-from pkglib import CONFIG
-from pkglib_testing.pytest import coverage
+from contextlib import contextmanager, closing
+from subprocess import Popen, PIPE
+from distutils import sysconfig
+import execnet
+
+import six_moves  # @UnusedImport
+from six import string_types
+from six.moves import builtins, configparser, cPickle  # @UnresolvedImport
+from six.moves import input as raw_input
+from six.moves import ExitStack  # @UnresolvedImport
+
+from pkg_resources import working_set
+
+from pkglib_testing import CONFIG
+from pkglib_util import cmdline
+
+from .pytest import coverage as cov
 
 # ---------- Methods -------------------------#
-
-
-def is_under_hudson():
-    """ True if we're running in Hudson """
-    tag = os.environ.get('BUILD_TAG', '')
-    return tag.startswith('hudson') or tag.startswith('jenkins')
 
 
 def get_base_tempdir():
     """ Returns an appropriate dir to pass into
         tempfile.mkdtemp(dir=xxx) or similar.
     """
-    if is_under_hudson():
-        return os.getenv('WORKSPACE')
-    return None
+    return os.getenv('WORKSPACE')
 
 
-@contextmanager
-def chdir(dirname):
-    """
-    Context Manager to change to a dir then change back
-    """
-    try:
-        here = os.getcwd()
-    except OSError:
-        here = None
-    os.chdir(dirname)
-    yield
-    if here is not None:
-        os.chdir(here)
-
-
+# TODO: merge with cmdline
 @contextmanager
 def set_env(*args, **kwargs):
     """Context Mgr to set an environment variable
 
     """
     def update_environment(env):
-        for k, v in env.iteritems():
+        for k, v in env.items():
             if v is None:
                 if k in os.environ:
                     del os.environ[k]
@@ -66,16 +59,18 @@ def set_env(*args, **kwargs):
     # Backward compatibility with the old interface which only allowed to
     # update a single environment variable.
     new_values = dict([(args[0], args[1])]) if len(args) == 2 else {}
-    new_values.update((k, v) for k, v in kwargs.iteritems())
+    new_values.update((k, v) for k, v in kwargs.items())
 
     # Save variables that are going to be updated.
-    saved_values = dict((k, os.environ.get(k)) for k in new_values.iterkeys())
+    saved_values = dict((k, os.environ.get(k)) for k in new_values.keys())
 
     # Update variables to their temporary values
-    update_environment(new_values)
-    (yield)
-    # Restore original environment
-    update_environment(saved_values)
+    try:
+        update_environment(new_values)
+        yield
+    finally:
+        # Restore original environment
+        update_environment(saved_values)
 
 
 @contextmanager
@@ -88,8 +83,7 @@ def unset_env(env_var_skiplist):
     # Save variables that are going to be updated.
     saved_values = dict(os.environ)
 
-    new_values = dict((k, v) for k, v in os.environ.iteritems()
-                      if k not in env_var_skiplist)
+    new_values = dict((k, v) for k, v in os.environ.items() if k not in env_var_skiplist)
 
     # Update variables to their temporary values
     update_environment(new_values)
@@ -151,18 +145,17 @@ def patch_raw_input(user_input):
     Patches the raw_input() built in function returning specified user input.
 
     """
-    import __builtin__ as bi
-
-    raw_input_prev_callable = bi.raw_input
+    _raw_input_func_name = raw_input.__name__  # @UndefinedVariable
+    raw_input_prev_callable = getattr(builtins, _raw_input_func_name)
 
     def _raw_input(msg=None):  # @UnusedVariable
         return user_input
 
     try:
-        bi.raw_input = _raw_input
+        setattr(builtins, _raw_input_func_name, _raw_input)
         yield
     finally:
-        bi.raw_input = raw_input_prev_callable
+        setattr(builtins, _raw_input_func_name, raw_input_prev_callable)
 
 
 def get_clean_python_env():
@@ -175,24 +168,123 @@ def get_clean_python_env():
 
 
 def launch(cmd, **kwds):
-    """Runs the command in a separate process and returns the lines of stdout
-       and stderr as lists
+    """Runs the command in a separate process and returns the lines of stdout and stderr
+    as lists
     """
-    if isinstance(cmd, basestring):
+    if isinstance(cmd, string_types):
         cmd = [cmd]
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, **kwds)
-    return p.communicate()
+    out, err = p.communicate()
+
+    # FIXME: can decoding below break on some unorthodox output?
+    if out is not None and not isinstance(out, string_types):
+        out = out.decode('utf-8')
+
+    if err is not None and not isinstance(err, string_types):
+        err = err.decode('utf-8')
+
+    return (out, err)
+
+
+def get_real_python_executable():
+    real_prefix = getattr(sys, "real_prefix", None)
+    if not real_prefix:
+        return sys.executable
+
+    executable_name = os.path.basename(sys.executable)
+    bindir = os.path.join(real_prefix, "bin")
+    if not os.path.isdir(bindir):
+        print("Unable to access bin directory of original Python "
+              "installation at: %s" % bindir)
+        return sys.executable
+
+    executable = os.path.join(bindir, executable_name)
+    if not os.path.exists(executable):
+        executable = None
+        for f in os.listdir(bindir):
+            if not f.endswith("ython"):
+                continue
+
+            f = os.path.join(bindir, f)
+            if os.path.isfile(f):
+                executable = f
+                break
+
+        if not executable:
+            print("Unable to locate a valid Python executable of original "
+                  "Python installation at: %s" % bindir)
+            executable = sys.executable
+
+    return executable
+
+
+def create_package_from_template(venv, name, template="pkglib_project", paster_args="", metadata=None,
+                                 repo_base="http://test_repo_base", dev=True, install_requires=None, **kwargs):
+    metadata = {} if metadata is None else dict(metadata)
+    if '-' in name:
+        pkg_name, _, version = name.rpartition('-')
+        pkg_name = metadata.setdefault('name', pkg_name)
+        version = metadata.setdefault('version', version)
+        dev = (version.rpartition('.')[2] == 'dev1')
+        if dev:
+            metadata['version'] = version = version.rpartition('.')[0]
+    else:
+        pkg_name = metadata.setdefault('name', name)
+        version = metadata.setdefault('version', '1.0.0.dev1' if dev else '1.0.0')
+    if install_requires is not None:
+        if not isinstance(install_requires, str):
+            install_requires = '\n'.join(install_requires)
+        metadata['install_requires'] = install_requires
+
+    venv.run('{python} {virtualenv}/bin/pymkproject -t {template_type} {name} '
+             '--no-interactive {paster_args}'.format(python=venv.python,
+                                                     virtualenv=venv.virtualenv,
+                                                     name=pkg_name,
+                                                     template_type=template,
+                                                     paster_args=paster_args), capture=True)
+    if name != pkg_name:
+        os.rename(venv.workspace / pkg_name, venv.workspace / name)
+    vcs_uri = '%s/%s' % (repo_base, pkg_name)
+    trunk_dir = venv.workspace / name / 'trunk'
+    update_setup_cfg(trunk_dir / 'setup.cfg', vcs_uri=vcs_uri, metadata=metadata, dev=dev, **kwargs)
+    return vcs_uri, trunk_dir
+
+
+def update_setup_cfg(cfg, vcs_uri, metadata={}, dev=True, **kwargs):
+    # Update setup.cfg
+    c = configparser.ConfigParser()
+    c.read(cfg)
+    _metadata = dict(
+        url=vcs_uri,
+        author='test',
+        author_email='test@test.example',
+    )
+    _metadata.update(metadata)
+    for k, v in _metadata.items():
+        c.set('metadata', k, v)
+
+    if not dev:
+        c.remove_option('egg_info', 'tag_build')
+        c.remove_option('egg_info', 'tag_svn_revision')
+
+    for section, vals in kwargs.items():
+        if not c.has_section(section):
+            c.add_section(section)
+        for k, v in vals.items():
+            c.set(section, k, v)
+
+    with open(cfg, 'w') as cfg_file:
+        c.write(cfg_file)
 
 
 class Shell(object):
     """Create a shell script which runs the command and optionally runs
-       another program which returns to stdout/err retults to confirm success
-       or failure
+    another program which returns to stdout/err retults to confirm success or failure
     """
     fname = None
 
     def __init__(self, func_commands, print_info=True, **kwds):
-        if isinstance(func_commands, basestring):
+        if isinstance(func_commands, string_types):
             self.func_commands = [func_commands]
         else:
             self.func_commands = func_commands
@@ -202,7 +294,7 @@ class Shell(object):
     def __enter__(self):
         with closing(tempfile.NamedTemporaryFile('w', delete=False)) as f:
             self.cmd = f.name
-            os.chmod(self.cmd, 0777)
+            os.chmod(self.cmd, 0o777)
             f.write('#!/bin/sh\n')
 
             for line in self.func_commands:
@@ -218,21 +310,21 @@ class Shell(object):
 
     def print_io(self):
         def print_out_err(name, data):
-            print name,
+            print(name)
             if data.strip() == '':
-                print ' <no data>'
+                print(' <no data>')
             else:
-                print
+                print()
                 for line in data.split('\n')[:-1]:
-                    print line
+                    print(line)
 
-        print '+++ Shell +++'
-        print '--cmd:'
+        print('+++ Shell +++')
+        print('--cmd:')
         for line in self.func_commands:
-            print '* %s' % line
+            print('* %s' % line)
         print_out_err('--out', self.out)
         print_out_err('--err', self.err)
-        print '=== Shell ==='
+        print('=== Shell ===')
 
 
 # ---------- Fixtures ----------------------- #
@@ -251,40 +343,45 @@ class Workspace(object):
     debug: `bool`
         If set to True, will print more debug when running subprocess commands.
     delete: `bool`
-        If set to False, will never delete the workspace on teardown
+        If True, will always delete the workspace on teardown; if None, delete
+        the workspace unless teardown occurs via an exception; if False, never
+        delete the workspace on teardown.
     """
     debug = False
     delete = True
 
-    def __init__(self, workspace=None):
-        print
-        print "======================================================="
+    def __init__(self, workspace=None, delete=None):
+        self.delete = delete
+
+        print("")
+        print("=======================================================")
         if workspace is None:
             self.workspace = path(tempfile.mkdtemp(dir=get_base_tempdir()))
-            print "pkglib_testing created workspace %s" % self.workspace
+            print("pkglib_testing created workspace %s" % self.workspace)
         else:
             self.workspace = workspace
-            print "pkglib_testing using workspace %s" % self.workspace
-            self.delete = False
+            print("pkglib_testing using workspace %s" % self.workspace)
         if 'DEBUG' in os.environ:
             self.debug = True
-        print "======================================================="
-        print
+        if self.delete is not False:
+            print("This workspace will delete itself on teardown")
+        print("=======================================================")
+        print("")
 
     def __enter__(self):
         return self
 
     def __exit__(self, errtype, value, traceback):  # @UnusedVariable
+        if self.delete is None:
+            self.delete = (errtype is None)
         self.teardown()
 
     def __del__(self):
         self.teardown()
 
-    def run(self, cmd, capture=False, check_rc=True, cd=None, shell=False,
-            **kwargs):
+    def run(self, cmd, capture=False, check_rc=True, cd=None, shell=True, **kwargs):
         """
-        Run a command relative to a given directory, defaulting to the
-        workspace root
+        Run a command relative to a given directory, defaulting to the workspace root
 
         Parameters
         ----------
@@ -297,40 +394,63 @@ class Workspace(object):
         cd : `str`
             Path to chdir to, defaults to workspace root
         """
-        if isinstance(cmd, types.StringTypes):
+        if isinstance(cmd, str):
             cmd = [cmd]
             shell = True
         if not cd:
             cd = self.workspace
-        with chdir(cd):
+        with cmdline.chdir(cd):
             # import sys; sys.stderr.write("chdir: %s run %s\n" % (cd, cmd))
-            print "run: %s" % str(cmd)
+            print("run: %s" % str(cmd))
             if capture:
-                p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT, **kwargs)
+                p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
             else:
                 p = subprocess.Popen(cmd, shell=shell, **kwargs)
             (out, _) = p.communicate()
-            if self.debug and capture:
-                print "Stdout/stderr:"
-                print out
 
-            if check_rc:
-                if not p.returncode == 0:
-                    raise subprocess.CalledProcessError(p.returncode, out)
+            if out is not None and not isinstance(out, string_types):
+                out = out.decode('utf-8')
+
+            if self.debug and capture:
+                print("Stdout/stderr:")
+                print(out)
+
+            if check_rc and p.returncode != 0:
+                err = subprocess.CalledProcessError(p.returncode, cmd)
+                err.output = out
+                if capture and not self.debug:
+                    print("Stdout/stderr:")
+                    print(out)
+                raise err
+
         return out
 
     def teardown(self):
         if not self.delete:
             return
-        # Don't delete the evidence if we're running in Hudson
-        if not is_under_hudson() and path(self.workspace).isdir():
-            print
-            print "======================================================="
-            print "pkglib_testing deleting workspace %s" % self.workspace
-            print "======================================================="
-            print
+        if os.path.isdir(self.workspace):
+            print("")
+            print("=======================================================")
+            print("pkglib_testing deleting workspace %s" % self.workspace)
+            print("=======================================================")
+            print("")
             shutil.rmtree(self.workspace)
+
+    def create_pypirc(self, config):
+        """
+        Create a .pypirc file in the workspace
+
+        Parameters
+        ----------
+        config : `ConfigParser.ConfigParser`
+            config instance
+        """
+        f = os.path.join(self.workspace, '.pypirc')
+        mode = os.O_WRONLY | os.O_CREAT
+        perm = 0o600
+
+        with os.fdopen(os.open(f, mode, perm), 'wt') as rc_file:
+            config.write(rc_file)
 
 
 # enumeration of options of package types to describe the sub-types of those installed
@@ -354,23 +474,29 @@ class TmpVirtualEnv(Workspace):
 
     """
 
-    def __init__(self, env=None):
-        Workspace.__init__(self)
-        self.virtualenv = self.workspace / '.env'
+    def __init__(self, env=None, workspace=None, name='.env', python=None):
+        Workspace.__init__(self, workspace)
+        self.virtualenv = self.workspace / name
         self.python = self.virtualenv / 'bin' / 'python'
         self.easy_install = self.virtualenv / "bin" / "easy_install"
 
         if env is None:
             self.env = dict(os.environ)
         else:
-            # ensure we take a copy just in case there's some modification
-            self.env = dict(env)
+            self.env = dict(env)  # ensure we take a copy just in case there's some modification
 
         self.env['VIRTUAL_ENV'] = self.virtualenv
-        # Make sure we're cleaning off the pythonpath
+        self.env['PATH'] = os.path.dirname(self.python) + ((os.path.pathsep + self.env["PATH"])
+                                                           if "PATH" in self.env else "")
         if 'PYTHONPATH' in self.env:
             del(self.env['PYTHONPATH'])
-        self.run([CONFIG.virtualenv_executable, str(self.virtualenv)])
+
+        virtualenv_cmd = CONFIG.virtualenv_executable
+        self.run('%s -p %s %s --distribute' % (virtualenv_cmd,
+                                               python or get_real_python_executable(),
+                                               self.virtualenv))
+        self.install_package('six', installer='easy_install')
+        # self.install_package('yolk', installer='easy_install')
 
     def run(self, *args, **kwargs):
         """
@@ -390,38 +516,32 @@ class TmpVirtualEnv(Workspace):
         args:
             Args passed into `pkglib_testing.pytest.coverage.run_with_coverage`
         kwargs:
-            Keyword arguments to pass to
-            `pkglib_testing.pytest.coverage.run_with_coverage`
+            Keyword arguments to pass to `pkglib_testing.pytest.coverage.run_with_coverage`
         """
         if 'env' not in kwargs:
             kwargs['env'] = self.env
-        return coverage.run_with_coverage(
-              *args, coverage='%s/bin/coverage' % self.virtualenv, **kwargs)
+        coverage = [self.python, '%s/bin/coverage' % self.virtualenv]
+        return cov.run_with_coverage(*args, coverage=coverage, **kwargs)
 
-    def install_package(self, pkg_name, installer='pyinstall',
-                        build_egg=False):
+    def install_package(self, pkg_name, installer='pyinstall', build_egg=None):
         """
         Install a given package name. If it's already setup in the
         test runtime environment, it will use that.
-
-        Parameters
-        ----------
-        build_egg:  `bool`
-            Only used when the package is installed as a source checkout,
-            otherwise it runs the installer to get it from PyPI
+        :param build_egg:  `bool`
+            Only used when the package is installed as a source checkout, otherwise it
+            runs the installer to get it from AHLPyPI
             True: builds an egg and installs it
             False: Runs 'python setup.py develop'
+            None (default): installs the egg if available in dist/, otherwise develops it
         """
-        cmd = []
         installed = [p for p in working_set if p.project_name == pkg_name]
         if not installed or installed[0].location.endswith('.egg'):
             installer = os.path.join(self.virtualenv, 'bin', installer)
             if not self.debug:
                 installer += ' -q'
-            # Note we're running this as 'python easy_install foobar', instead
-            # of 'easy_install foobar'
+            # Note we're running this as 'python easy_install foobar', instead of 'easy_install foobar'
             # This is to circumvent #! line length limits :(
-            cmd.append('%s %s %s' % (self.python, installer, pkg_name))
+            cmd = '%s %s %s' % (self.python, installer, pkg_name)
         else:
             pkg = installed[0]
             d = {'python': self.python,
@@ -429,25 +549,19 @@ class TmpVirtualEnv(Workspace):
                  'src_dir': pkg.location,
                  'name': pkg.project_name,
                  'version': pkg.version,
-                 'pyversion': '%d.%d' % sys.version_info[:2],
+                 'pyversion': sysconfig.get_python_version(),
                  }
 
-            d['egg_file'] = (path(pkg.location) / 'dist' /
-                             ('%(name)s-%(version)s-py%(pyversion)s.egg' % d))
+            d['egg_file'] = path(pkg.location) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
+            if build_egg and not d['egg_file'].isfile():
+                self.run('cd %(src_dir)s; %(python)s setup.py -q bdist_egg' % d, capture=True)
 
-            if build_egg:
-                cmd += ['cd %(src_dir)s' % d,
-                        '%(python)s setup.py -q bdist_egg' % d]
-
-            # See if there's an egg available already.
-            if d['egg_file'].isfile():
-                cmd += ['%(python)s %(easy_install)s %(egg_file)s' % d]
-
+            if build_egg or (build_egg is None and d['egg_file'].isfile()):
+                cmd = '%(python)s %(easy_install)s %(egg_file)s' % d
             else:
-                cmd += ['cd %(src_dir)s' % d,
-                        '%(python)s setup.py -q develop' % d]
+                cmd = 'cd %(src_dir)s; %(python)s setup.py -q develop' % d
 
-        self.run(';'.join(cmd), capture=True)
+        self.run(cmd, capture=True)
 
     def installed_packages(self, package_type=None):
         """
@@ -457,14 +571,12 @@ class TmpVirtualEnv(Workspace):
         if package_type is None:
             package_type = PackageEntry.ANY
         elif package_type not in PackageEntry.PACKAGE_TYPES:
-            raise ValueError('invalid package_type parameter ({})'
-                             .format(package_type))
+            raise ValueError('invalid package_type parameter (%s)' % str(package_type))
 
         res = {}
         code = "from pkg_resources import working_set\n"\
-               "for i in working_set: print i.project_name, i.version, i.location"
-        lines = (self.run('%s -c "%s"' % (self.python, code), capture=True)
-                 .split('\n'))
+               "for i in working_set: print(i.project_name + ' ' + i.version + ' ' + i.location)"
+        lines = self.run('%s -c "%s"' % (self.python, code), capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
             res[name] = PackageEntry(name, version, location)
@@ -494,13 +606,12 @@ class TmpVirtualEnv(Workspace):
         if package_type is None:
             package_type = PackageEntry.ANY
         elif package_type not in (PackageEntry.DEV, PackageEntry.REL):
-            raise ValueError('invalid package_type parameter for dependencies '
-                             '({})'.format(package_type))
+            raise ValueError('invalid package_type parameter for dependencies (%s)' % str(package_type))
 
         res = {}
         code = "from pkglib.setuptools.dependency import get_all_requirements; " \
                "for i in get_all_requirements(['%s']): " \
-               "  print i.project_name, i.version, i.location"
+               "  print(i.project_name + ' ' + i.version + ' ' + i.location)"
         lines = self.run('%s -c "%s"' % (self.python, code), capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
@@ -535,78 +646,26 @@ class PkgTemplate(TmpVirtualEnv):
     ----------
     vcs_uri : `str`
         path to a local repository for this package
-    pkg_dir : `path.path`
-        path to the package directory
+    trunk_dir : `path.path`
+        path to the trunk package directory
     """
 
-    def __init__(self, repo_base='http://svn_foo', name='acme.foo', metadata={}, dev=True,
-                 template_type="pkglib_project", paster_args='', **kwargs):
+    def __init__(self, name='acme.foo-1.0.dev1', **kwargs):
         """
         Parameters
         ----------
-        repo_base : `str`
-            repository base uri
         name : `str`
             package name
-        metadata : `dict`
-            override any metadata
-        dev : `bool`
-            set dev marker (ie, pkg-version.dev1)
 
         kwargs: any other config options to set
         """
         TmpVirtualEnv.__init__(self)
         self.name = name
 
-        # Install pkgutils
-        self.install_package('pkglib', installer='easy_install')
+        # Install pkglib
+        self.install_package('pkglib', installer='easy_install', build_egg=True)
 
-        # Create template
-        self.run('{virtualenv}/bin/paster create -t {template_type} {name} '
-                 '--no-interactive {paster_args}'.format(virtualenv=self.virtualenv,
-                                                         name=self.name,
-                                                         template_type=template_type,
-                                                         paster_args=paster_args), capture=True)
-
-        self.vcs_uri = '%s/%s' % (repo_base, self.name)
-        self.pkg_dir = self.workspace / self.name
-
-        # Update setup.cfg
-        c = ConfigParser()
-        cfg = self.pkg_dir / 'setup.cfg'
-        c.read(cfg)
-        _metadata = dict(
-            url=self.vcs_uri,
-            author='test',
-            author_email='test@test.example',
-        )
-        _metadata.update(metadata)
-        for k, v in _metadata.items():
-            c.set('metadata', k, v)
-
-        if not dev:
-            c.set('egg_info', 'tag_build', '')
-
-        for section, vals in kwargs.items():
-            if not c.has_section(section):
-                c.add_section(section)
-            for k, v in vals.items():
-                c.set(section, k, v)
-
-        with open(cfg, 'wb') as cfg_file:
-            c.write(cfg_file)
-
-    def create_pypirc(self, config):
-        """
-        Create a .pypirc file in the workspace
-
-        Parameters
-        ----------
-        config : `ConfigParser.ConfigParser`
-            config instance
-        """
-        with open(os.path.join(self.workspace, '.pypirc'), 'wb') as rc_file:
-            config.write(rc_file)
+        self.vcs_uri, self.trunk_dir = create_package_from_template(self, name, **kwargs)
 
 
 class PackageEntry(object):
@@ -646,3 +705,107 @@ class PackageEntry(object):
             if self.issrc:
                 return True
         return False
+
+
+def run_as_main(module, argv=[]):
+    where = os.path.dirname(module.__file__)
+    filename = os.path.basename(module.__file__)
+    filename = os.path.splitext(filename)[0] + ".py"
+
+    with patch("sys.argv", new=argv):
+        imp.load_source('__main__', os.path.join(where, filename))
+
+
+def _evaluate_fn_source(src, *args, **kwargs):
+    locals_ = {}
+    eval(compile(src, '<string>', 'single'), {}, locals_)
+    fn = next(iter(locals_.values()))
+    if isinstance(fn, staticmethod):
+        fn = fn.__get__(None, object)
+    return fn(*args, **kwargs)
+
+
+def _invoke_method(obj, name, *args, **kwargs):
+    return getattr(obj, name)(*args, **kwargs)
+
+
+def _find_class_from_staticmethod(fn):
+    for _, cls in inspect.getmembers(sys.modules[fn.__module__], inspect.isclass):
+        for name, member in inspect.getmembers(cls):
+            if member is fn or (isinstance(member, staticmethod) and member.__get__(None, object) is fn):
+                return cls, name
+    return None, None
+
+
+def _make_pickleable(fn):
+    # return a pickleable function followed by a tuple of initial arguments
+    # could use partial but this is more efficient
+    try:
+        cPickle.dumps(fn, protocol=0)
+    except TypeError:
+        pass
+    else:
+        return fn, ()
+    if inspect.ismethod(fn):
+        name, self_ = fn.__name__, fn.__self__
+        if self_ is None:  # Python 2 unbound method
+            self_ = fn.im_class
+        return _invoke_method, (self_, name)
+    elif inspect.isfunction(fn) and fn.__module__ in sys.modules:
+        cls, name = _find_class_from_staticmethod(fn)
+        if (cls, name) != (None, None):
+            try:
+                cPickle.dumps((cls, name), protocol=0)
+            except cPickle.PicklingError:
+                pass
+            else:
+                return _invoke_method, (cls, name)
+    # Fall back to sending the source code
+    return _evaluate_fn_source, (textwrap.dedent(inspect.getsource(fn)),)
+
+
+def _run_in_subprocess_redirect_stdout(fd):
+    import os  # @Reimport
+    import sys  # @Reimport
+    sys.stdout.close()
+    os.dup2(fd, 1)
+    os.close(fd)
+    sys.stdout = os.fdopen(1, 'w', 1)
+
+
+def _run_in_subprocess_remote_fn(channel):
+    from six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
+    fn, args, kwargs = cPickle.loads(channel.receive(-1))
+    channel.send(cPickle.dumps(fn(*args, **kwargs), protocol=0))
+
+
+def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=(-1)):
+    """Wrap a function to run in a subprocess.  The function must be
+    pickleable or otherwise must be totally self-contained; it must not
+    reference a closure or any globals.  It can also be the source of a
+    function (def fn(...): ...).
+
+    Raises execnet.RemoteError on exception.
+    """
+    pkl_fn, preargs = (_evaluate_fn_source, (fn,)) if isinstance(fn, str) else _make_pickleable(fn)
+    spec = '//'.join(filter(None, ['popen', 'python=' + python, 'chdir=' + cd if cd else None]))
+
+    def inner(*args, **kwargs):
+        # execnet sends stdout to /dev/null :(
+        fix_stdout = sys.version_info < (3, 0, 0)  # Python 3 passes close_fds=True to subprocess.Popen
+        with ExitStack() as stack:
+            with ExitStack() as stack2:
+                if fix_stdout:
+                    fd = os.dup(1)
+                    stack2.callback(os.close, fd)
+                gw = execnet.makegateway(spec)  # @UndefinedVariable
+                stack.callback(gw.exit)
+            if fix_stdout:
+                with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
+                    chan.send(cPickle.dumps((_run_in_subprocess_redirect_stdout, (fd,), {}), protocol=0))
+                    chan.receive(-1)
+            with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
+                payload = (pkl_fn, tuple(i for t in (preargs, args) for i in t), kwargs)
+                chan.send(cPickle.dumps(payload, protocol=0))
+                return cPickle.loads(chan.receive(timeout))
+    return inner if isinstance(fn, str) else update_wrapper(inner, fn)

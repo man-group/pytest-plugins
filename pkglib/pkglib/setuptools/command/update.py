@@ -9,7 +9,8 @@ import setuptools
 from setuptools import Command
 from pkg_resources import working_set
 
-from pkglib import cmdline, pypi
+from pkglib_util import cmdline
+from pkglib import pypi
 from pkglib.setuptools import dependency
 
 from .base import CommandMixin, get_easy_install_cmd

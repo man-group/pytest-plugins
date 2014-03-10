@@ -4,7 +4,7 @@ import functools
 
 import pytest
 
-from pkglib import CONFIG
+from pkglib_testing import CONFIG
 from pkglib_testing.util import Workspace, TmpVirtualEnv, PkgTemplate, SVNRepo
 
 
@@ -92,17 +92,17 @@ def pytest_funcarg__svn_repo(request):
     )
 
 
-def requires_config(vars):
+def requires_config(vars_):
     """ Decorator for fixtures that will skip tests if the required config variables
-        are missing from pkglib.CONFIG
+        are missing from pkglib_testing.CONFIG
     """
     def decorator(f):
         # We need to specify 'request' in the args here to satisfy pytest's fixture logic
         @functools.wraps(f)
         def wrapper(request, *args, **kwargs):
-            for var in vars:
+            for var in vars_:
                 if not getattr(CONFIG, var):
-                    pytest.skip('pkglib config variable {} missing, skipping test'.format(var))
+                    pytest.skip('pkglib_testing config variable {} missing, skipping test'.format(var))
             return f(request, *args, **kwargs)
         return wrapper
     return decorator

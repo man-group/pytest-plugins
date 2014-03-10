@@ -5,12 +5,11 @@ from util import requires_config
 
 
 @requires_config(['jenkins_war', 'java_executable'])
-@pytest.fixture(scope='session')
-def jenkins_server(request):
+@pytest.yield_fixture(scope='session')
+def jenkins_server():
     """ Boot up Jenkins in a local thread.
         This also provides a temp workspace.
     """
-    server = JenkinsTestServer()
-    request.addfinalizer(lambda: server.teardown())
-    server.start()
-    return server
+    with JenkinsTestServer() as p:
+        p.start()
+        yield p

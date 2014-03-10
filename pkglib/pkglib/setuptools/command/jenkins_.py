@@ -71,7 +71,7 @@ class jenkins(Command, base.CommandMixin):
             sys.exit(1)
 
         # Pull down Jenkins package
-        base.fetch_build_eggs(['jenkins'], dist=self.distribution)
+        base.fetch_build_eggs(['python-jenkins'], dist=self.distribution)
         from jenkins import Jenkins
         server = CONFIG.jenkins_url
         log.info("Connecting to Jenkins at %s" % server)

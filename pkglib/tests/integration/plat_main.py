@@ -21,8 +21,8 @@ def test_main(argv=sys.argv[1:]):
     sys.argv = [arg for arg in argv if arg != "--yes-on-prompt"]
 
     def test_prompt(text):
-        print text
-        print "Answer: " + "Y" if yes_on_prompt else "N"
+        print(text)
+        print("Answer: " + "Y" if yes_on_prompt else "N")
         return yes_on_prompt
 
     plat.prompt = test_prompt

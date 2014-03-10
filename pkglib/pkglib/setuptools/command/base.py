@@ -9,7 +9,8 @@ from pkg_resources import resource_filename
 from setuptools.dist import Distribution
 
 from pkglib.setuptools.patches import patch_http
-from pkglib import cmdline, config, CONFIG, util
+from pkglib_util import cmdline
+from pkglib import config, CONFIG, util
 
 
 def get_resource_file(name, path=None):

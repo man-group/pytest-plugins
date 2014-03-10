@@ -24,22 +24,22 @@ class PageObject(object):
         --------
         With page elements::
 
-            from pkglib_testing.page_objects import PageObject, page_element
+            from ahl.testing.page_objects import PageObject, page_element
 
             class LoginPage(PageObject):
                 username = page_element(id_='username')
                 password = page_element(name='username')
                 login = page_element(css='input[type="submit"]')
 
-            login_page = LoginPage(webdriver)
+            login_page = LoginPage(webdriver, locators)
             login_page.username = 'foo'
             assert login_page.username.text == 'foo'
             login_page.login.click()
 
     """
-    def __init__(self, webdriver, root_uri=''):
+    def __init__(self, webdriver, root_uri=None):
         self.w = webdriver
-        self.root_uri = root_uri
+        self.root_uri = root_uri if root_uri else getattr(self.w, 'root_uri', None)
 
 
 class PageElement(object):
@@ -123,7 +123,7 @@ def page_element(klass=PageElement, **kwargs):
         --------
         Page Elements can be used like this::
 
-            from pkglib_testing.page_objects import PageObject, page_element
+            from ahl.testing.page_objects import PageObject, page_element
             class MyPage(PageObject)
                 elem1 = page_element(css='div.myclass')
                 elem2 = page_element(id_='foo')
@@ -133,7 +133,7 @@ def page_element(klass=PageElement, **kwargs):
         raise ValueError("Please specify a locator")
     if len(kwargs) > 1:
         raise ValueError("Please specify only one locator")
-    k, v = kwargs.items()[0]
+    k, v = next(iter(kwargs.items()))
 
     class Element(klass):
         locator = (_LOCATOR_MAP[k], v)

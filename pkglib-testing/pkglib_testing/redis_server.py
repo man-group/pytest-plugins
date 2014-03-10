@@ -6,7 +6,7 @@ Created on 25 Apr 2012
 '''
 import redis
 
-from pkglib import CONFIG
+from pkglib_testing import CONFIG
 from server import TestServer
 
 

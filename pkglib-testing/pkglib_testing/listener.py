@@ -1,14 +1,16 @@
-from threading import Thread, Event
-from time import sleep
-import cPickle as pickle
 import collections
 import json
 import logging
 import socket
 import time
+from threading import Thread, Event
+from time import sleep
 
-TERMINATOR = ['STOP']
-CLEAR = ['CLEAR']
+from six import string_types
+from six.moves import cPickle
+
+TERMINATOR = json.dumps(['STOP']).encode('utf-8')
+CLEAR = json.dumps(['CLEAR']).encode('utf-8')
 HOST = 'localhost'
 PORT = 8101
 
@@ -32,9 +34,10 @@ def stop_listener(listener):
     # the listener is most likely to be blocked on waiting for an accept,
     # so send it the STOP message:
     s = socket.socket()
+    s.settimeout(2)
     try:
         s.connect((listener.host, listener.port))
-        s.send(json.dumps(TERMINATOR))
+        s.send(TERMINATOR)
     except socket.error:
         s.close()
 
@@ -47,8 +50,8 @@ class TimedMsg(object):
     def __str__(self):
         return 'TimedMsg: %s (@ %s)' % (str(self.value), self.time)
 
-    def for_json(self):
-        return pickle.dumps(self)
+    def pickled(self):
+        return cPickle.dumps(self)
 
 
 class Listener(Thread):
@@ -56,13 +59,13 @@ class Listener(Thread):
     def __init__(self, host=HOST):
         super(Listener, self).__init__()
         self.host = host
-        self._stop = Event()
+        self._stop_event = Event()
         self.clear_time = None
 
         self.s = socket.socket()
         self.queue = collections.deque()
         while True:
-            self.port = gen.next()
+            self.port = next(gen)
             try:
                 self.s.bind((self.host, self.port))
                 break
@@ -82,7 +85,6 @@ class Listener(Thread):
             data = c.recv(1024)
             if DEBUG:
                 logger.info('got data: %s' % str(data))
-            data = json.loads(data)
             if data == TERMINATOR:
                 self.stop()
                 return
@@ -108,21 +110,28 @@ class Listener(Thread):
         except IndexError:
             return None, None
 
-        if isinstance(data, basestring):
+        try:
+            data = cPickle.loads(data)
+        except:
             try:
-                data = str(data)
-                data = pickle.loads(data)
-                if DEBUG:
-                    logger.info('got %s' % str(data))
-            except IndexError:  # what you get if you unpickle an arbitrary string
+                data = data.decode('utf-8')
+            except:
                 pass
 
+        if DEBUG:
+            logger.info('got %s' % str(data))
+
+        t = None
         if isinstance(data, TimedMsg):
             d = data.value
             t = data.time
+        elif isinstance(data, string_types):
+            try:
+                d = json.loads(data)
+            except:
+                d = data
         else:
             d = data
-            t = None
 
         return d, t
 
@@ -165,24 +174,23 @@ class Listener(Thread):
         return d
 
     def send(self, data, timeout=TIMEOUT_DEFAULT):  # @UnusedVariable
-
-        jc = json.dumps(TimedMsg(data).for_json())
+        payload = TimedMsg(data).pickled()
         if DEBUG:
             logger.info('sending %s' % str(data))
-        self.put_data(jc)
+        self.put_data(payload)
 
     def clear_queue(self):
-        self.put_data(json.dumps(CLEAR))
+        self.put_data(CLEAR)
         time.sleep(.05)
 
     def stop(self):
         self.s.shutdown(socket.SHUT_WR)
         self.s.close()
-        self._stop.set()
+        self._stop_event.set()
 
     @property
     def stopped(self):
-        return self._stop.isSet()
+        return self._stop_event.isSet()
 
 
 if __name__ == '__main__':

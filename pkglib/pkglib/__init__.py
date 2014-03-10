@@ -2,7 +2,6 @@
 """
 import os
 import config
-import six_moves  # @UnresolvedImport
 
 # Organisation configuration, this is updated when calling
 #     pkglib.setuptools.setup(my_config)

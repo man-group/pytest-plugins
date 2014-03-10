@@ -1,9 +1,8 @@
 import os
+import traceback
 
 import pytest
 import py.builtin
-
-from pkglib import CONFIG
 
 
 def browser_to_use(webdriver, browser):
@@ -36,7 +35,7 @@ def pytest_funcarg__webdriver(request):
         Scoped on a per-function level so you get one browser window per test.
 
         To use this function, follow the following steps:
-        1) Nominate a Windows host. This can be your desktop machine, or a VM
+        1) Nominate a browser host.
         2) Download the latest zip file from here: https://code.google.com/p/chromedriver/downloads/list
         3) Unpack onto the target host, and run the unpacked chromedriver.exe file
         4) Set the environment variables SELENIUM_HOST and SELENIUM_PORT to be the windows host, the default
@@ -128,6 +127,7 @@ def pytest_funcarg__webdriver(request):
 #        help="Save a screenshot for each failing Selenium test.")
 
 
+
 @pytest.mark.tryfirst
 def pytest_runtest_makereport(item, call, __multicall__):
     if not 'webdriver' in item.funcargs:
@@ -138,5 +138,9 @@ def pytest_runtest_makereport(item, call, __multicall__):
         return
     fname = item.nodeid.replace('/', '__') + '.png'
     py.builtin.print_("Saving screenshot to %s" % fname)
-    item.funcargs['webdriver'].get_screenshot_as_file(fname)
+    try:
+        item.funcargs['webdriver'].get_screenshot_as_file(fname)
+    except:
+        print traceback.format_exc()
     return
+

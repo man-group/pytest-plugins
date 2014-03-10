@@ -12,7 +12,7 @@ from contextlib import contextmanager
 
 import pkg_resources
 
-import cmdline
+from pkglib_util import cmdline
 import util
 
 
