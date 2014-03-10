@@ -227,13 +227,12 @@ def clean_requires(reqs):
             pyenv.included_in_batteries(pkg_resources.Requirement.parse(req), sys.version_info)]
 
 
-def validate_metadata(metadata):
+def validate_strict_metadata(metadata):
     if metadata['name'] != pkg_resources.safe_name(metadata['name']):
         raise RuntimeError("Package name '%s' contains illegal character(s); "
                            "consider changing to '%s'" %
                            (metadata['name'], pkg_resources.safe_name(metadata['name'])))
 
-    return
     for section, reqs in ([(k, metadata[k]) for k in REQUIRES_KEYS] +
                           [('extras_require[%s]' % k, v) for k, v in
                            metadata['extras_require'].items()]):
@@ -292,7 +291,7 @@ def get_pkg_description(metadata):
     return readme + '\n\n' + changes
 
 
-def parse_pkg_metadata(parser, validate=True):
+def parse_pkg_metadata(parser, strict=False):
     """
     Parse the metadata section in the ``setup.cfg`` file.
 
@@ -300,6 +299,10 @@ def parse_pkg_metadata(parser, validate=True):
     ----------
     parser : `ConfigParser.ConfigParser`
         ConfigParser instance for the ``setup.cfg`` file
+    strict: `boolean`
+        Doesn't allow package names with underscores in them,
+        or anything else that setuptools will change when
+        parsing using safe_name
     """
     import util
     metadata = parse_section(parser, 'metadata', PKG_MULTI_LINE_KEYS)
@@ -328,8 +331,8 @@ def parse_pkg_metadata(parser, validate=True):
                                 metadata['extras_require'].values()):
         reqs[:] = clean_requires(reqs)
 
-    if validate:
-        validate_metadata(metadata)
+    if strict:
+        validate_strict_metadata(metadata)
 
     return metadata
 

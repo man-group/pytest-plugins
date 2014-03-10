@@ -1,0 +1,5 @@
+
+. ./build/bin/activate
+cd %(project_name)s
+python setup.py build
+python setup.py upload_docs

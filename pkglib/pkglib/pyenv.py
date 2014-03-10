@@ -14,7 +14,6 @@ import pkg_resources
 
 import cmdline
 import util
-from .setuptools.command import base
 
 
 # List of packages in the working set that are treated as 'system' packages and

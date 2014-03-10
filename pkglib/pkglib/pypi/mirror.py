@@ -90,12 +90,17 @@ class EggMirrorMixin(object):
                  list of packages to mirror. Use None for all.
         """
         pkg_dirs = []
-        [pkg_dirs.extend(letter.dirs()) for letter in file_root.dirs()]
-        if target_packages:
-            pkg_dirs = [i for i in pkg_dirs if i.basename() in target_packages]
+        for root, dirs, _ in os.walk(file_root):
+            if os.path.dirname(root) == file_root:
+                pkg_dirs.extend([os.path.join(root, d) for d in dirs])
+                dirs[:] = []  # prune dirs
 
-        target_dirs = [target_root / self.get_mirror_dirname(i.basename())
-                       for i in pkg_dirs]
+        if target_packages:
+            pkg_dirs = [i for i in pkg_dirs
+                        if os.path.basename(i) in target_packages]
+
+        target_dirs = [os.path.join(target_root, self.get_mirror_dirname(bn))
+                       for bn in (os.path.basename(i) for i in pkg_dirs)]
 
         return pkg_dirs, target_dirs
 
@@ -104,8 +109,7 @@ class EggMirrorMixin(object):
         """
         print "Unpacking eggs: %r" % files
 
-        target_eggs = [(target_root /
-                        self.get_mirror_dirname(f.parent.basename()) / f.name)
+        target_eggs = [os.path.join(target_root, self.get_file_target(f))
                        for f in files]
         cmd = """set -x
             for EGG in %s; do
@@ -119,8 +123,8 @@ class EggMirrorMixin(object):
                     chmod -R 555 $EGG
                 fi
             done""" % ' '.join(target_eggs)
-        print "Running cmd on %s" % target_host
-        print cmd
+        print("Running cmd on %s" % target_host)
+        print(cmd)
         run(['/usr/bin/ssh', target_host, cmd])
 
     def mirror_eggs(self, file_root, target_host, target_root,
@@ -142,37 +146,38 @@ class EggMirrorMixin(object):
              subprocesses : `int`
                  number of subprocesses to spawn when doing the mirror
         """
-        from path import path
-        file_root = path(file_root)
-        target_root = path(target_root)
-
-        pkg_dirs, target_dirs = self.get_mirror_targets(file_root, target_root,
+        pkg_dirs, target_dirs = self.get_mirror_targets(file_root,
+                                                        target_root,
                                                         target_packages)
-
-        print "Creating target root dirs"
-        run(['/usr/bin/ssh', target_host, 'mkdir -p ' + ' '.join(target_dirs)])
 
         work = []
         for pkg in pkg_dirs:
             # Filter non-egg and dev packages out, as this is a site-packages
             # mirror which won't work with source packages.
-            files = [i for i in pkg.files()
-                     if i.basename().endswith('egg')
-                     and not 'dev' in i.basename()]
-            print "Found %s (%d files)" % (pkg.basename(), len(files))
+            files = [os.path.join(pkg, f) for f in os.listdir(pkg)
+                     if os.path.isfile(os.path.join(pkg, f)) and
+                     f.endswith('egg') and not 'dev' in f]
+            print("Found %s (%d files)" % (os.path.basename(pkg), len(files)))
             if files:
-                cmd = (['/usr/bin/rsync', '-av', '--ignore-existing'] +
-                       [i.abspath().strip() for i in files] +
-                       [target_host + ':' + target_root /
-                        self.get_mirror_dirname(pkg.basename())]
-                      )
+                mirror_dir = self.get_mirror_dirname(os.path.basename(pkg))
+                cmd = ['/usr/bin/rsync', '-av', '--ignore-existing']
+                cmd.extend(os.path.abspath(i).strip() for i in files)
+                cmd.append(os.path.join(target_host + ':' + target_root,
+                                        mirror_dir))
                 work.append(cmd)
 
-        # Using multiprocessing here to multiplex the transfers
-        if subprocesses > 1:
-            pool = Pool(processes=subprocesses)
-            pool.map(run, work)
-        else:
-            map(run, work)
+        if work:
+            print("Creating target root dirs")
+            run(['/usr/bin/ssh', target_host,
+                 'mkdir -p ' + ' '.join(target_dirs)])
 
-        self.unpack_eggs(files, target_host, target_root)
+            # Using multiprocessing here to multiplex the transfers
+            if subprocesses > 1:
+                pool = Pool(processes=subprocesses)
+                pool.map(run, work)
+            else:
+                map(run, work)
+
+            self.unpack_eggs(files, target_host, target_root)
+        else:
+            print("Nothing to do.")

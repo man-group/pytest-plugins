@@ -9,7 +9,7 @@ from setuptools import Command
 
 from pkglib import CONFIG, util
 
-from .base import CommandMixin, fetch_build_eggs, get_resource_file
+import base
 
 # Below, XML templates are loaded which are used to build and update Jenkins
 # jobs. They have the following variables:
@@ -24,7 +24,7 @@ from .base import CommandMixin, fetch_build_eggs, get_resource_file
 
 
 
-class jenkins(Command, CommandMixin):
+class jenkins(Command, base.CommandMixin):
     """ Create or update Jenkins build job """
     description = "Create or update the Hudson build job"
 
@@ -71,7 +71,7 @@ class jenkins(Command, CommandMixin):
             sys.exit(1)
 
         # Pull down Jenkins package
-        fetch_build_eggs(['jenkins'], dist=self.distribution)
+        base.fetch_build_eggs(['jenkins'], dist=self.distribution)
         from jenkins import Jenkins
         server = CONFIG.jenkins_url
         log.info("Connecting to Jenkins at %s" % server)
@@ -81,18 +81,18 @@ class jenkins(Command, CommandMixin):
 
         if (self.matrix):
             log.info("Matrix job")
-            if CONFIG.jenkins_matrix_job:
-                path, name = CONFIG.jenkins_matrix_job.split(':')
+            if CONFIG.jenkins_matrix_job_xml:
+                path, fname = CONFIG.jenkins_matrix_job.split(':')
             else:
-                path, name = None, 'jenkins_job_matrix.xml'
+                path, fname = None, 'jenkins_job_matrix.xml'
         else:
             log.info("Non-matrix job - use \'--matrix\' option for matrix builds")
-            if CONFIG.jenkins_job:
-                path, name = CONFIG.jenkins_job.split(':')
+            if CONFIG.jenkins_job_xml:
+                path, fname = CONFIG.jenkins_job.split(':')
             else:
-                path, name = None, 'jenkins_job.xml'
+                path, fname = None, 'jenkins_job.xml'
 
-        with open(get_resource_file(name, path)) as f:
+        with open(base.get_resource_file(fname, path)) as f:
             jenkins_config_xml = Template(f.read())
 
         cfg_xml = jenkins_config_xml.safe_substitute(

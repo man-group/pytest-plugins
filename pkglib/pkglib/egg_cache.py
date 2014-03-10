@@ -26,14 +26,14 @@ eggs in the dev egg cache.
 
 
 def _valid_paths(paths):
-    paths = []
+    res = []
     for path in paths:
         path = os.path.realpath(path)
         if not os.path.isdir(path):
             log.warn("Invalid egg cache directory: %s", path)
             continue
-        paths.append(path)
-    return paths
+        res.append(path)
+    return res
 
 
 def get_egg_cache_paths():

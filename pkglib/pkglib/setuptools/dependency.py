@@ -479,28 +479,45 @@ def merge_matching_reqs(ws, dist):
 def remove_from_ws(ws, dist):
     """ Safely removes a dist from a working set
     """
+    # TODO: fix the path issues below, re-instate realpath matching
+
     # This sucks - ws entries might not have resolved symlinks properly, so
     # dist.location != ws.entries[i] even though they point to the same file
     # or directory.
-    dist_path = os.path.realpath(dist.location)
-    ws_path = dist_path
-    for i in ws.entries:
-        if os.path.realpath(i) == dist_path:
-            ws_path = i
-            break
-    for path in set([dist_path, ws_path]):
-        try:
-            ws.entries.remove(path)
-        except ValueError:
-            pass
-        try:
-            del(ws.entry_keys[path])
-        except KeyError:
-            pass
-    try:
-        del(ws.by_key[dist.key])
-    except KeyError:
-        pass
+
+#     dist_path = os.path.realpath(dist.location)
+#     ws_path = dist_path
+#     for i in ws.entries:
+#         if os.path.realpath(i) == dist_path:
+#             ws_path = i
+#             break
+#     import pdb; pdb.set_trace()
+#     for path in set([dist_path, ws_path, dist.location]):
+#         try:
+#             ws.entries.remove(path)
+#         except ValueError:
+#             pass
+#         try:
+#             del(ws.entry_keys[path])
+#         except KeyError:
+#             pass
+#     try:
+#         del(ws.by_key[dist.key])
+#     except KeyError:
+#         pass
+
+    if dist.location in ws.entries or ws.entry_keys:
+        if dist.location in ws.entries:
+            ws.entries.remove(dist.location)
+        if dist.location in ws.entry_keys:
+            del(ws.entry_keys[dist.location])
+        for entry, keys in ws.entry_keys.items():
+            if dist.key in keys:
+                keys.remove(dist.key)
+                if not keys:
+                    ws.entries.remove(entry)
+        if dist.key in ws.by_key:
+            del(ws.by_key[dist.key])
 
 
 def get_graph_from_ws(ws):

@@ -6,7 +6,7 @@ import sys
 from setuptools import setup as setuptools_setup, find_packages
 
 from pkglib import config, util
-from pkglib.setuptools.command import (develop, test, jenkins, egg_info, easy_install,
+from pkglib.setuptools.command import (develop, test, jenkins_, egg_info, easy_install,
                                        pyinstall, update, pyuninstall, build_sphinx,
                                        build_ext, upload, register, upload_docs,
                                        depgraph, clean, test_egg, deploy,
@@ -20,7 +20,7 @@ DEFAULT_CMD_CLASS = util.ReadOnlyDict({
     'develop': develop.develop,
     'easy_install': easy_install.easy_install,
     'egg_info': egg_info.egg_info,
-    'jenkins': jenkins.jenkins,
+    'jenkins': jenkins_.jenkins,
     'update': update.update,
     'depgraph': depgraph.depgraph,
     'pyinstall': pyinstall.pyinstall,
