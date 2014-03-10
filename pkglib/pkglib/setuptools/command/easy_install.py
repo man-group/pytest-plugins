@@ -99,7 +99,6 @@ class easy_install(_easy_install, CommandMixin):
         """ The only difference between this and the standard implementation is that it doesn't copy
             eggs from the egg cache but links to them in place.
         """
-
         # Installation is also needed if file in tmpdir or is not an egg
         install_needed = install_needed or self.always_copy
         install_needed = install_needed or os.path.dirname(download) == tmpdir
@@ -119,7 +118,7 @@ class easy_install(_easy_install, CommandMixin):
                 if dist.location == download:
                     break
             else:
-                install_needed = True   # it's not in the local index
+                install_needed = True  # it's not in the local index
 
         log.info("Processing %s", os.path.basename(download))
 
@@ -128,7 +127,7 @@ class easy_install(_easy_install, CommandMixin):
             for dist in dists:
                 self.process_distribution(spec, dist, deps)
         else:
-            dists = [self.check_conflicts(self.egg_distribution(download))]
+            dists = [self.egg_distribution(download)]
             self.process_distribution(spec, dists[0], deps, "Using")
 
         if spec is not None:
