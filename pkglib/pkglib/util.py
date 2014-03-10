@@ -34,7 +34,7 @@ def is_strict_dev_version(version):
     our static build number.
     """
     # This one matches only versions that also match our dev build version
-    strict_re = re.compile('^{}\.dev\d*$'
+    strict_re = re.compile('^{0}\.dev\d*$'
                            .format(CONFIG.dev_build_number.replace('.', '\.')))
     return strict_re.search(version)
 
