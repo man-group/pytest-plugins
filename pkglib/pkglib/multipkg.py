@@ -18,17 +18,17 @@ import sys
 import subprocess
 
 import config
-import manage
+import cmdline
 
 
 def setup():
     """ Mirror pkglib's setup() method for each sub-package in this repository.
     """
     top_level_parser = config.get_pkg_cfg_parser()
-    cfg = config._parse_metadata(top_level_parser, 'multipkg', ['pkg_dirs'])
+    cfg = config.parse_section(top_level_parser, 'multipkg', ['pkg_dirs'])
     rc = [0]
     for dirname in cfg['pkg_dirs']:
-        with manage.chdir(dirname):
+        with cmdline.chdir(dirname):
             # Update sub-package setup.cfg with top-level version if it's specified
             if 'version' in cfg:
                 sub_parser = config.get_pkg_cfg_parser()
