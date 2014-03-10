@@ -6,7 +6,7 @@ install:
   - pip install six
   - python setup.py develop --no-test
 script:
-  - python setup.py test --unit
+  - python setup.py test
 matrix:
   allow_failures:
     - python: 2.6
