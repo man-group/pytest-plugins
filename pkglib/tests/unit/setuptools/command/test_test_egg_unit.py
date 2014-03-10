@@ -1,4 +1,5 @@
 import os
+import re
 from contextlib import contextmanager
 
 from setuptools.dist import Distribution
@@ -37,7 +38,7 @@ def test_options():
         cmd.finalize_options()
 
         assert cmd.test_dir == '/foo/tests'
-        assert cmd.dest_dir == 'build/lib/acmetests/acme/foo'
+        assert re.match("build/lib[^/]*/acmetests/acme/foo", cmd.dest_dir)
         assert cmd.distribution.metadata.name == 'test.acme.foo'
         assert cmd.distribution.namespace_packages == ['acmetests',
                                                        'acmetests.acme']
@@ -54,7 +55,8 @@ def test_get_file_dest():
 
         actual = cmd.get_file_dest(file_dest)
 
-        assert actual == 'build/lib/acmetests/acme/foo/integration/test_foo.py'
+        assert re.match('build/lib[^/]*/acmetests/acme/foo/integration/test_foo.py',
+                        actual)
 
 
 def test_copy_file():
