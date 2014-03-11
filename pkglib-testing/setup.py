@@ -1,6 +1,6 @@
 import sys
 import os
-from setuptools import setup, Command
+from setuptools import setup, Command, find_packages
 
 
 classifiers = [
@@ -89,6 +89,7 @@ def main():
         classifiers=classifiers,
         install_requires=install_requires,
         cmdclass={'test': Test},
+        packages=find_packages(),
     )
 
 if __name__ == '__main__':
