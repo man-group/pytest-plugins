@@ -4,7 +4,7 @@ from setuptools.dist import Distribution
 from mock import patch
 
 from pkglib.setuptools.command import clean
-from pkglib_testing.mock.subprocess import patch_subprocess, get_subprocess_mock
+from pkglib_testing.mocking.subprocess import patch_subprocess, get_subprocess_mock
 
 from .runner import Pkg, patch_obj
 

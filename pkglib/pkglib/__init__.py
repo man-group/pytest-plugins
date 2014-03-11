@@ -1,12 +1,12 @@
 """ PkgLib - a company-centric packaging and testing library
 """
 import os
-import config
+import config.org
 
 # Organisation configuration, this is updated when calling
 #     pkglib.setuptools.setup(my_config)
 
-CONFIG = config.OrganisationConfig(
+CONFIG = config.org.OrganisationConfig(
     pypi_url='http://pypi.python.org',
     pypi_variant=None,
     pypi_default_username=None,

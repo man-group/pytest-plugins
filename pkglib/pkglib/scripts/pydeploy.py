@@ -38,7 +38,6 @@ def main(argv=None, **kw):
     egg_file : `string`
         path to egg file.
     """
-
     run_setup_command(deploy,
                       usage=USAGE,
                       argv=argv,

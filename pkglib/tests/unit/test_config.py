@@ -2,7 +2,7 @@ from six.moves import configparser, cStringIO  # @UnresolvedImport
 
 import pytest
 
-from pkglib import config
+from pkglib.config import parse
 
 
 def parse_cfg(setup_cfg):
@@ -19,7 +19,7 @@ install_requires =
     foo
     bla ==  1.2,   <3
 """
-    metadata = config.parse_pkg_metadata(parse_cfg(setup_cfg))
+    metadata = parse.parse_pkg_metadata(parse_cfg(setup_cfg))
     assert metadata['name'] == "test1"
     assert metadata['extras_require'] == {}
     assert metadata['install_requires'] == ["foo", "bla ==  1.2,   <3"]
@@ -35,7 +35,7 @@ extras_require =
     Foo : Bla
     Ivan : Kremlin[Mausoleum, Lenin]==1.0, Putin
 """
-    metadata = config.parse_pkg_metadata(parse_cfg(setup_cfg))
+    metadata = parse.parse_pkg_metadata(parse_cfg(setup_cfg))
     assert metadata["name"] == "test2"
     expected = {"Foo": ["Bla"],
                 "Ivan": ["Kremlin[Mausoleum, Lenin]==1.0", "Putin"]}
@@ -48,7 +48,7 @@ def test_rejects_illegal_characters_in_package_name():
 name = test_4
 """
     with pytest.raises(RuntimeError) as exc:
-        config.parse_pkg_metadata(parse_cfg(setup_cfg), strict=True)
+        parse.parse_pkg_metadata(parse_cfg(setup_cfg), strict=True)
     assert str(exc.value) == ("Package name 'test_4' contains illegal "
                               "character(s); consider changing to 'test-4'")
 
@@ -61,7 +61,7 @@ install_requires =
     foo_bar
 """
     with pytest.raises(RuntimeError) as exc:
-        config.parse_pkg_metadata(parse_cfg(setup_cfg), strict=True)
+        parse.parse_pkg_metadata(parse_cfg(setup_cfg), strict=True)
     assert str(exc.value) == ("Invalid name 'foo_bar' in requirement 'foo_bar' "
                               "for 'install_requires' of 'test4'; "
                               "consider changing to 'foo-bar'")
@@ -80,7 +80,7 @@ name = test1
 console_scripts =
     alpha=beta:gamma
 """
-    metadata = config.parse_pkg_metadata(parse_cfg(setup_cfg))
+    metadata = parse.parse_pkg_metadata(parse_cfg(setup_cfg))
     assert metadata['entry_points'] == {'acme.foo': ['bar=baz:qux'],
                                         'console_scripts': ['one=two:three',
                                                             'alpha=beta:gamma',

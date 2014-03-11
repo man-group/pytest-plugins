@@ -1,4 +1,3 @@
-from pkglib import config
 from pkglib.scripts import run_setup_command
 from pkglib.setuptools.command.pyinstall import pyinstall
 from pkglib.setuptools.command.update import update
@@ -10,8 +9,6 @@ usage: %(script)s [options] requirement_or_url ...
 
 
 def main(argv=None, **kw):
-    # TODO: allow cmdline override of org config?
-    config.setup_global_org_config()
     run_setup_command(pyinstall,
                       usage=USAGE,
                       argv=argv,

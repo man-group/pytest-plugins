@@ -10,7 +10,7 @@ import pkg_resources
 from pkglib_util import cmdline
 
 from pkglib import CONFIG
-import config
+from config import parse
 import util
 import pyenv
 import errors
@@ -110,7 +110,7 @@ def get_inhouse_dependencies(pkg_dir, exceptions=[], indent_txt=''):
     """
     with cmdline.chdir(pkg_dir):
         if os.path.isfile('setup.cfg'):
-            metadata = config.parse_pkg_metadata(config.get_pkg_cfg_parser())
+            metadata = parse.parse_pkg_metadata(parse.get_pkg_cfg_parser())
             for req in pkg_resources.parse_requirements(
                 list(r for r in metadata.get('install_requires', [])
                      if util.is_inhouse_package(r))):

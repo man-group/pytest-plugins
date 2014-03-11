@@ -9,7 +9,7 @@ import pkglib  # @UnusedImport
 
 from six.moves import configparser, ExitStack
 
-from pkglib import config
+from pkglib.config import parse
 from pkglib.setuptools.command import test_egg
 from pkglib.setuptools.command.test_egg import NAMESPACE_PACKAGE_INIT
 
@@ -122,7 +122,7 @@ def test_create_pytest_config():
     parser_mock = Mock(return_value=parser)
 
     with ExitStack() as stack:
-        stack.enter_context(patch_obj(config, 'get_pkg_cfg_parser', parser_mock))
+        stack.enter_context(patch_obj(parse, 'get_pkg_cfg_parser', parser_mock))
         stack.enter_context(_patch_open())
 
         cmd = get_cmd()

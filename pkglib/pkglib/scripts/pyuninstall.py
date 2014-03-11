@@ -1,4 +1,3 @@
-from pkglib import config
 from pkglib.scripts import run_setup_command
 from pkglib.setuptools.command.pyuninstall import pyuninstall
 
@@ -9,7 +8,6 @@ usage: %(script)s [options] package_name
 
 
 def main(argv=None, **kw):
-    config.setup_global_org_config()
     run_setup_command(pyuninstall, usage=USAGE, argv=argv, **kw)
 
 if __name__ == '__main__':

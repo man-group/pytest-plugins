@@ -12,7 +12,7 @@ import pkglib  # @UnusedImport
 
 from six.moves import ExitStack  # @UnresolvedImport
 
-from pkglib import config
+from pkglib.config import org
 from pkglib.setuptools.command import jenkins_
 
 from .runner import patch_dict
@@ -91,7 +91,7 @@ def test_run__submits_matrix_job_with_correct_xml():
     description = "This description is not very helpful\nBut OK for testing"
     username = "Churchill"
     env_python_versions = '2.6.2 1.2.3 1.9.8.4'
-    TEST_CONFIG = config.OrganisationConfig(jenkins_matrix_job_pyversions=env_python_versions.split(),
+    TEST_CONFIG = org.OrganisationConfig(jenkins_matrix_job_pyversions=env_python_versions.split(),
                                             jenkins_url='http://acmejenkins.example.com',
                                             jenkins_matrix_job_xml=None,
                                             virtualenv_executable='virtualenv')
@@ -130,7 +130,7 @@ def test__submits_matrix_job():
     expected_python_versions = ['2.6.2', '5.4.3', '9.4.5.5']
     expected_build_cmd = COMMAND_TEMPLATE % {'project_name': project_name,
                                              'egg_name': project_name}
-    TEST_CONFIG = config.OrganisationConfig(jenkins_matrix_job_pyversions=env_python_versions.split(),
+    TEST_CONFIG = org.OrganisationConfig(jenkins_matrix_job_pyversions=env_python_versions.split(),
                                             jenkins_url='http://acmejenkins.example.com',
                                             jenkins_matrix_job_xml=None,
                                             jenkins_job_xml=None,
@@ -171,7 +171,7 @@ def test__submits_core_job_hyphened_or_underscored_name(project_name):
     jenkins_mock = Mock(side_effect=lambda *_args, **_kwargs: jenkins_mock)
     jenkins_mock.job_exists = Mock(return_value=False)
 
-    TEST_CONFIG = config.OrganisationConfig(jenkins_url='http://acmejenkins.example.com',
+    TEST_CONFIG = org.OrganisationConfig(jenkins_url='http://acmejenkins.example.com',
                                             jenkins_matrix_job_xml=None,
                                             jenkins_matrix_job_pyversions=None,
                                             jenkins_job_xml=None,

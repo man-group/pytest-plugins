@@ -18,7 +18,7 @@ _open_director_open = _open_director + '.open'
 from mock import patch
 from pytest import raises
 
-from pkglib_testing.mock.subprocess import patch_subprocess, get_subprocess_mock
+from pkglib_testing.mocking.subprocess import patch_subprocess, get_subprocess_mock
 
 from pkglib.pypi.clue import CluePyPIAPI
 from pkglib.pypi.pypirc import PyPIRC

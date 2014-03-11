@@ -1,4 +1,4 @@
-from ahl.testing.httpd_proxy_server import HTTPDProxyServer
+from pkglib_testing.httpd_proxy_server import HTTPDProxyServer
 
 
 def test_httpd_proxy_server():

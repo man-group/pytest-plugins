@@ -17,23 +17,22 @@ trick to sidestep the setup ordering problem is to run the following in order::
 import sys
 import subprocess
 
+from pkglib.config import parse
 from pkglib_util import cmdline
-
-import config
 
 
 def setup():
     """ Mirror pkglib's setup() method for each sub-package in this repository.
     """
-    top_level_parser = config.get_pkg_cfg_parser()
-    cfg = config.parse_section(top_level_parser, 'multipkg', ['pkg_dirs'])
+    top_level_parser = parse.get_pkg_cfg_parser()
+    cfg = parse.parse_section(top_level_parser, 'multipkg', ['pkg_dirs'])
     rc = [0]
     for dirname in cfg['pkg_dirs']:
         with cmdline.chdir(dirname):
             # Update sub-package setup.cfg with top-level version if it's specified
             if 'version' in cfg:
-                sub_parser = config.get_pkg_cfg_parser()
-                sub_cfg = config.parse_pkg_metadata(sub_parser)
+                sub_parser = parse.get_pkg_cfg_parser()
+                sub_cfg = parse.parse_pkg_metadata(sub_parser)
                 if sub_cfg['version'] != cfg['version']:
                     print ("Updating setup.cfg version for {0}: {1} -> {2}"
                            .format(dirname, sub_cfg['version'], cfg['version']))
@@ -44,9 +43,9 @@ def setup():
             cmd = [sys.executable, "setup.py"] + sys.argv[1:]
             print ("In directory {0}: Running '{1}'"
                    .format(dirname, ' '.join(cmd)))
-            p = subprocess.Popen(cmd)
-            p.communicate()
-            if p.returncode != 0:
+            try:
+                cmdline.run(cmd, capture_stdout=False, bufsize=0)
+            except subprocess.CalledProcessError as e:
                 # Here we exit straight away, unless this was a run as
                 # 'python setup.py test'. Reason for this is that we want to
                 # run all the packages' tests through and gather the results.
@@ -54,10 +53,10 @@ def setup():
                 # For any other setup.py command, a failure here is likely
                 # some sort of build or config issue and it's best not to
                 # plow on.
-                print "Command failed with exit code {0}".format(p.returncode)
+                print "Command failed with exit code {0}".format(e.returncode)
                 if 'test' in cmd and not '-x' in ' '.join(cmd)  \
                                  and not '--exitfirst' in ' '.join(cmd):
-                    rc[0] = p.returncode
+                    rc[0] = e.returncode
                 else:
-                    sys.exit(p.returncode)
+                    sys.exit(e.returncode)
     sys.exit(rc[0])

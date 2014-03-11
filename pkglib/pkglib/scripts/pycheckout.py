@@ -11,10 +11,11 @@ from optparse import OptionParser
 from subprocess import CalledProcessError
 from distutils import log
 
+from pkglib import CONFIG
 from pkglib.pypi import PyPi
 from pkglib.errors import UserError
 from pkglib.manage import checkout_pkg, setup_pkg, get_inhouse_dependencies
-from pkglib import CONFIG, config
+from pkglib.config import org
 
 INSPECTED_PACKAGES = []
 
@@ -94,7 +95,7 @@ def normalize_dir(dir_name):
 def main():
     """Main method of pycheckout"""
     # TODO: allow cmdline override of org config?
-    config.setup_global_org_config()
+    org.setup_global_org_config()
     options = get_options()
 
     try:

@@ -19,7 +19,7 @@ def pytest_generate_tests(metafunc):
 
     Example::
 
-        from ahl.testing.pytest.parametrize_ids import pytest_generate_tests
+        from pkglib_testing.pytest.parametrize_ids import pytest_generate_tests
         import pytest
 
         @pytest.mark.parametrize(('f', 't'), [(sum, list), (len, int)])

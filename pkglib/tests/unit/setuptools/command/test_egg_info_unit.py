@@ -13,7 +13,7 @@ def get_cmd(version='1.0.0'):
     cmd = egg_info.egg_info(dist)
     cmd.write_file = Mock()
     cmd.pin_requirements = Mock()
-    cmd.pypi_client = Mock()
+    cmd._pypi_client = Mock()
     return cmd
 
 

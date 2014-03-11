@@ -4,9 +4,9 @@ from pkg_resources import parse_version
 from zc.buildout import easy_install
 from mock import patch
 
-from pkglib import config
+from pkglib.config import org
 
-TEST_CONFIG = config.OrganisationConfig(third_party_build_prefix='acme')
+TEST_CONFIG = org.OrganisationConfig(third_party_build_prefix='acme')
 
 
 def test_inhouse_version_is_between_upstream_versions():

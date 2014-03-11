@@ -4,12 +4,13 @@ import os
 
 import mock
 
-from pkglib import manage, config
+from pkglib import manage
+from pkglib.config import org
 
 pytest_plugins = ['pkglib_testing.pytest.util']
 
 
-TEST_CONFIG = config.OrganisationConfig(namespaces=['acme'],
+TEST_CONFIG = org.OrganisationConfig(namespaces=['acme'],
                                       namespace_separator='.')
 
 

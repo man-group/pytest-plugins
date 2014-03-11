@@ -9,7 +9,8 @@ import os.path
 from six.moves import configparser
 
 from pkglib import platypus
-from pkglib import CONFIG, config, errors, util
+from pkglib import CONFIG, errors, util
+from pkglib.config import org
 
 
 def cprint(*args, **kwargs):
@@ -30,7 +31,7 @@ def main(argv=sys.argv[1:]):
     """Script entry point.
     """
     # TODO: allow cmdline override of org config
-    config.setup_global_org_config()
+    org.setup_global_org_config()
     virtualenv_dir = sys.exec_prefix
 
     commands = {

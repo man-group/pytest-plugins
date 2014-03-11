@@ -7,7 +7,8 @@ from distutils.errors import DistutilsOptionError
 
 from setuptools import Command
 
-from pkglib import CONFIG, config
+from pkglib import CONFIG
+from pkglib.config import parse
 
 from base import CommandMixin, fetch_build_eggs
 
@@ -16,12 +17,33 @@ HUDSON_XML_JUNIT = "junit.xml"
 # This is here only for reference, the filename can be changed only in .coveragerc
 HUDSON_XML_COVERAGE = "coverage.xml"
 
+# These are trailing arguments passed directly to pytest.
+trailing_args = []
+
+
+def gather_trailing_args():
+    """ Gather trailing arguments for pytest, this can't be done using setuptools' api """
+    global trailing_args
+    if 'test' in sys.argv:
+        test_args = sys.argv[sys.argv.index('test') + 1:]
+        test_switches = []
+        for (double, single, _) in test.user_options:
+            test_switches.append('--' + double.split('=')[0])
+            if single:
+                test_switches.append('-' + single)
+
+        for idx, arg in enumerate(test_args):
+            if arg not in test_switches:
+                trailing_args = test_args[idx:]
+                sys.argv = sys.argv[:-len(trailing_args)]
+                break
+        # print("Py.test switches: {}".format(test.trailing_args))
+
 
 class test(Command, CommandMixin):
     """ Enable Py.test for setup.py commands """
     description = "Run tests via py.test. " \
-                  "Extra arguments are passed to py.test, but must be " \
-                  "surrounded  with escaped quotes, eg \\\"--extra-arg\\\""
+                  "Trailing arguments are passed directly to py.test"
     command_consumes_arguments = True
 
     user_options = [
@@ -86,17 +108,6 @@ class test(Command, CommandMixin):
         self.default_options = self.get_option_list()
 
     def finalize_options(self):
-        # TODO: do this in a nicer fashion, so you dont have to quote things.
-        # Strip quotes off of any trailing arguments, these will be
-        # passed into pytest as extra args
-        if self.args is None:
-            self.args = []
-        for i in range(len(self.args)):
-            if self.args[i].startswith('"'):
-                self.args[i] = self.args[i][1:]
-            if self.args[i].endswith('"'):
-                self.args[i] = self.args[i][:-1]
-
         if self.unit or self.integration or self.doctest or self.file or \
            self.regression:
             self.all = False
@@ -115,7 +126,7 @@ class test(Command, CommandMixin):
         """
         res = []
         no_recurse = []
-        cfg = config.get_pkg_cfg_parser()
+        cfg = parse.get_pkg_cfg_parser()
         if cfg.has_section('pytest') and \
            cfg.has_option('pytest', 'norecursedirs'):
             [no_recurse.extend(glob.glob(os.path.join(os.getcwd(), i)))
@@ -295,10 +306,7 @@ class test(Command, CommandMixin):
         """ Build args for py.test
         """
         # Default py.test arguments can be passed in from the cmdline
-        if self.args:
-            pytest_args = self.args
-        else:
-            pytest_args = []
+        pytest_args = trailing_args[:]
 
         if not self.quiet:
             pytest_args += ['--verbose']

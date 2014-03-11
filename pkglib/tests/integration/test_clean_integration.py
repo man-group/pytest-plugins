@@ -1,9 +1,9 @@
-""" Unit tests for ahl.pkgutils.setuptools.command.tidy
+""" Unit tests for pkglib.setuptools.command.tidy
 """
 import os
 
 from pkglib.setuptools.command import clean
-from ahl.testing.util import Workspace
+from pkglib_testing.util import Workspace
 from setuptools.dist import Distribution
 
 

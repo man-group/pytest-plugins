@@ -62,9 +62,11 @@ class clean(_clean, CommandMixin):
         return True
 
     def find_victims(self):
+        site_packages = self.get_site_packages()
         active_things = set([i.location for i in working_set if
                             i.location.startswith(sys.exec_prefix)])
-        installed_things = set([i for i in os.listdir(self.get_site_packages())
+        installed_things = set([os.path.join(site_packages, i)
+                                for i in os.listdir(site_packages)
                                 if self.filter_victim(i)])
         victims = installed_things.difference(active_things)
         victims = filter(self.filter_open_files, victims)

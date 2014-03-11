@@ -163,7 +163,7 @@ class LocalPyPi(HTTPTestServer):
         def get_pkglib_reqs():
             from pkglib.setuptools.dependency import get_all_requirements
             return [(dist.project_name, dist.version)
-                    for dist in get_all_requirements(['ahl.pkgutils', 'pytest-cov'], ignore_explicit_builtins=True)
+                    for dist in get_all_requirements(['pkglib', 'pytest', 'pytest-cov'], ignore_explicit_builtins=True)
                     if dist.project_name not in ['virtualenv', 'setuptools']]
         for name, version in run_in_subprocess(get_pkglib_reqs, python=python, cd=self.workspace)():
             # Quick hack to get the built eggs into the test PyPi instance.
@@ -197,7 +197,7 @@ def checkout_develop_upload(pypi, venv, vcs_uri=None, name=None):
              (workspace, name, workspace, python))
 
 
-def create_pkg_raw(pypi, svn, name="ahl.foo", metadata={}, dev=True, venv=None, **kwargs):
+def create_pkg_raw(pypi, svn, name="acme.foo", metadata={}, dev=True, venv=None, **kwargs):
     """ creates a pkg """
     if not venv:
         venv = PkgTemplate(name=name, repo_base=svn.uri, metadata=metadata, dev=dev, **kwargs)
@@ -221,7 +221,7 @@ def create_pkg_raw(pypi, svn, name="ahl.foo", metadata={}, dev=True, venv=None, 
 
 
 @contextmanager
-def create_pkg(pypi, svn, name="ahl.foo", metadata={}, dev=True, venv=None, **kwargs):
+def create_pkg(pypi, svn, name="acme.foo", metadata={}, dev=True, venv=None, **kwargs):
     """ creates a pkg in a workspace as a context mgr
     """
     with create_pkg_raw(pypi, svn, name=name, metadata=metadata, dev=dev,

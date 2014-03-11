@@ -4,8 +4,8 @@ import pytest
 
 from PyQt4 import QtGui
 
-from ahl.testing.util import set_env
-from ahl.testing.xvfb_server import XvfbServer
+from pkglib_testing.util import set_env
+from pkglib_testing.xvfb_server import XvfbServer
 
 
 class _TestQtApp(object):

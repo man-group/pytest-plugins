@@ -1,11 +1,10 @@
-import os
 import sys
 
 from mock import Mock, patch
 from setuptools.dist import Distribution
 
 from pkglib.setuptools.command import jenkins_
-from pkglib import config
+from pkglib.config import org
 
 
 def get_cmd(**kwargs):
@@ -23,7 +22,7 @@ def get_cmd(**kwargs):
 def test_get_active_python_versions__returns_system_python_by_default():
     cmd = get_cmd()
     with patch('pkglib.setuptools.command.jenkins_.CONFIG',
-               config.OrganisationConfig(jenkins_matrix_job_pyversions=None)):
+               org.OrganisationConfig(jenkins_matrix_job_pyversions=None)):
         actual = cmd._get_active_python_versions()
     expected = (".".join(str(s) for s in sys.version_info[0:3]),)
     assert list(actual) == list(expected)
@@ -32,7 +31,7 @@ def test_get_active_python_versions__returns_system_python_by_default():
 def test_get_active_python_versions__with_config():
     cmd = get_cmd()
     with patch('pkglib.setuptools.command.jenkins_.CONFIG',
-               config.OrganisationConfig(jenkins_matrix_job_pyversions=['1.2', '2.3'])):
+               org.OrganisationConfig(jenkins_matrix_job_pyversions=['1.2', '2.3'])):
         actual = cmd._get_active_python_versions()
     expected = ("1.2", "2.3")
     assert list(actual) == list(expected)

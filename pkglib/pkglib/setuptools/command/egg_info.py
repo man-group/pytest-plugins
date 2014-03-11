@@ -6,7 +6,8 @@ import pkg_resources
 from pip.vcs import vcs
 
 from base import CommandMixin
-from pkglib import CONFIG, pypi, util, config
+from pkglib import CONFIG, pypi, util
+from pkglib.config import parse
 from pkglib.setuptools import dependency
 
 
@@ -29,13 +30,12 @@ class egg_info(_egg_info, CommandMixin):
         self.include_test_options = False
         self.new_build = False
         self.index_url = None
-        self.pypi_client = None
+        self._pypi_client = None
         _egg_info.initialize_options(self)
 
     def finalize_options(self):
         self.index_url = self.index_url or \
                          self.maybe_add_simple_index(CONFIG.pypi_url)
-        self.pypi_client = self.pypi_client or pypi.PyPi(self.index_url)
 
         if self.new_build:
             self.setup_new_build()
@@ -45,6 +45,12 @@ class egg_info(_egg_info, CommandMixin):
         self.revision_file = os.path.join(self.egg_info, 'revision.txt')
         self.test_option_file = os.path.join(self.egg_info, 'test_options.txt')
         self.all_revisions_file = os.path.join(self.egg_info, 'allrevisions.txt')
+
+    @property
+    def pypi_client(self):
+        if self._pypi_client is None:
+            self._pypi_client = pypi.PyPi(self.index_url)
+        return self._pypi_client
 
     def write_test_options(self):
         """ Convert raw test options into the lines to be written to
@@ -92,7 +98,7 @@ class egg_info(_egg_info, CommandMixin):
             if dist == my_dist or not util.is_inhouse_package(dist.project_name):
                 continue
             try:
-                revisions = config.read_allrevisions(dist.location, dist.project_name)
+                revisions = parse.read_allrevisions(dist.location, dist.project_name)
             except IOError as ex:
                 log.warn("Can't read allrevisions for %s: %s", dist, ex)
             for name, version, url, rev in revisions:

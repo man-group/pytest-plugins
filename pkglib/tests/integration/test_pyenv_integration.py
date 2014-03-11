@@ -19,7 +19,7 @@ def _check_permissions(root):
             assert os.stat(os.path.join(path, dirname)).st_mode & 0o555 == 0o555
         for filename in filenames:
             # easy_install.unpack_and_compile,
-            # ahl.pkgutils.setuptools.buildout.fix_permissions
+            # pkglib.setuptools.buildout.fix_permissions
             exe = os.path.splitext(filename)[1] in ('py', 'dll', 'so')
             expected = 0o555 if (exe and 'EGG_INFO' not in path) else 0o444
             mode = os.stat(os.path.join(path, filename)).st_mode

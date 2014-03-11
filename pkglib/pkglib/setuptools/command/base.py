@@ -10,7 +10,8 @@ from setuptools.dist import Distribution
 
 from pkglib.setuptools.patches import patch_http
 from pkglib_util import cmdline
-from pkglib import config, CONFIG, util
+from pkglib import CONFIG, util
+from pkglib.config import parse
 
 
 def get_resource_file(name, path=None):
@@ -266,4 +267,4 @@ class CommandMixin(object):
         """
         if not val:
             return []
-        return config.parse_multi_line_value(val)
+        return parse.parse_multi_line_value(val)

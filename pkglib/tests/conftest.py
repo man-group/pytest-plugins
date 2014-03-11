@@ -6,11 +6,11 @@ Created on 10 Mar 2014
 # We should always start with an empty testing package config
 import os
 import pkglib
-from pkglib import config
+from pkglib.config import org
 
 os.unsetenv('PKGLIB_CONFIG')
 
-pkglib.CONFIG = config.OrganisationConfig(
+pkglib.CONFIG = org.OrganisationConfig(
     pypi_url='http://acmepypi.example.com',
     pypi_variant=None,
     pypi_default_username=None,

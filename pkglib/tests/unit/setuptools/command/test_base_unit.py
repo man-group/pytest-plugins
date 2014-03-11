@@ -2,10 +2,10 @@ from setuptools.dist import Distribution
 from setuptools import Command
 from mock import patch
 
-from pkglib import config
+from pkglib.config import org
 from pkglib.setuptools.command import base, develop, pyinstall, upload, register
 
-TEST_CONFIG = config.OrganisationConfig(pypi_variant=None)
+TEST_CONFIG = org.OrganisationConfig(pypi_variant=None)
 
 
 class _TestCmd(Command, base.CommandMixin):

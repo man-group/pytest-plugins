@@ -5,12 +5,13 @@ import os
 import mock
 
 from pkglib import util, config
+from pkglib.config import org
 
 pytest_plugins = ['pkglib_testing.pytest.util']
 
 
-TEST_CONFIG = config.OrganisationConfig(namespaces=['acme'],
-                                      namespace_separator='.')
+TEST_CONFIG = org.OrganisationConfig(namespaces=['acme'],
+                                     namespace_separator='.')
 
 
 def test_is_inhouse_package():

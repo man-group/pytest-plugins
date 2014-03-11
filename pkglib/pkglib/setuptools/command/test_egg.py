@@ -4,7 +4,8 @@ import shutil
 from setuptools.command.bdist_egg import bdist_egg as _bdist_egg
 from setuptools import find_packages
 
-from pkglib import CONFIG, config
+from pkglib import CONFIG
+from pkglib.config import parse
 
 
 from .base import CommandMixin, write_text
@@ -100,7 +101,7 @@ class test_egg(_bdist_egg, CommandMixin):
         Extracts the pytest specific sections from setup.cfg and puts them
         into a separate config file in the build dir
         """
-        parser = config.get_pkg_cfg_parser()
+        parser = parse.get_pkg_cfg_parser()
         [parser.remove_section(s) for s in parser.sections() if s != 'pytest']
         if parser.has_section('pytest'):
             with open(filename, 'wt') as f:

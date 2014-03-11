@@ -8,8 +8,8 @@ from .command.runner import TestCmd
 def test_setup_parses_setup_cfg():
     with patch("pkglib.setuptools._setup.check_multiple_call"):
         with patch("pkglib.setuptools._setup.set_working_dir"):
-            with patch("pkglib.config.get_pkg_cfg_parser") as get_cfg_parser:
-                with patch("pkglib.config.parse_pkg_metadata") as parse_metadata:
+            with patch("pkglib.config.parse.get_pkg_cfg_parser") as get_cfg_parser:
+                with patch("pkglib.config.parse.parse_pkg_metadata") as parse_metadata:
                     parse_metadata.return_value = {'name': sentinel.name}
                     run = Mock()
                     with patch('sys.argv', ['setup.py', 'xx']):
@@ -23,8 +23,8 @@ def test_setup_parses_setup_cfg():
 
 def test_setup_detects_double_call():
     with patch("pkglib.setuptools._setup.set_working_dir"):
-        with patch("pkglib.config.get_pkg_cfg_parser"):
-            with patch("pkglib.config.parse_pkg_metadata") as parse_metadata:
+        with patch("pkglib.config.parse.get_pkg_cfg_parser"):
+            with patch("pkglib.config.parse.parse_pkg_metadata") as parse_metadata:
                 parse_metadata.return_value = {'name': sentinel.name}
                 with patch('sys.argv', ['setup.py', '--name']):
                     with patch('distutils.log.info'):

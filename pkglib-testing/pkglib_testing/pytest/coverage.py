@@ -30,7 +30,7 @@ def run_with_coverage(cmd, pytestconfig, coverage=None, cd=None, **kwargs):
         If not None, will change to this directory before running the cmd.
         This is the directory that the coverage files will be created in.
     kwargs: keyword arguments
-        Any extra arguments to pass to `ahl.pkgutils.cmdline.run`
+        Any extra arguments to pass to `pkglib.cmdline.run`
 
     Returns
     -------

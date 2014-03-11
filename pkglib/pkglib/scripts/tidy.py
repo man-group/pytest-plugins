@@ -1,6 +1,5 @@
-from pkglib import config
 from pkglib.scripts import run_setup_command
-from pkglib.setuptools.command.tidy import tidy
+from pkglib.setuptools.command.clean import clean
 
 USAGE = """\
 usage: %(script)s [options]
@@ -9,12 +8,11 @@ usage: %(script)s [options]
 
 
 def main(argv=None, **kw):
-    config.setup_global_org_config()
-    run_setup_command(tidy,
+    run_setup_command(clean,
                       usage=USAGE,
-                      argv=argv,
+                      argv=argv + '--tidy',
                       cmdclass={
-                          'tidy': tidy,
+                          'tidy': clean,
                       },
                       **kw)
 

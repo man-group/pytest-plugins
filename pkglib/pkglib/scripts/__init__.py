@@ -6,7 +6,7 @@ import distutils.core
 from setuptools import setup
 
 from pkglib.setuptools.dist import Distribution
-from pkglib import config
+from pkglib.config import org
 
 
 DEFAULT_USAGE = """\
@@ -46,7 +46,7 @@ def run_setup_command(command, cmdclass=None, usage=DEFAULT_USAGE, argv=None,
     """ Cribbed from distribute.setuptools.command.easy_install. Runs a
         setup command via an entry point.
     """
-    config.setup_global_org_config()
+    org.setup_global_org_config()
 
     class DistributionWithoutHelpCommands(Distribution):
         common_usage = command.description

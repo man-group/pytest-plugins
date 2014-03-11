@@ -7,7 +7,7 @@ import pytest
 
 from mock import Mock, sentinel
 
-from pkglib import config
+from pkglib.config import org
 from pkglib.setuptools.command import test
 
 from .runner import (SavedBytesIO, _add_mock, _add_module_mock, _get_mock_dict,
@@ -51,7 +51,7 @@ def _prepare_test_cmd_mocks(cwd=_make_root_dir_from("<test_pylint_cwd>"),
     if mocks is None:
         mocks = {}
 
-    mocks['pkglib.setuptools.command.test.CONFIG'] = config.OrganisationConfig(
+    mocks['pkglib.setuptools.command.test.CONFIG'] = org.OrganisationConfig(
                     test_linter=sentinel.linter,
                     test_linter_package=sentinel.linter_pkg,)
 

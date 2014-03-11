@@ -24,7 +24,7 @@ class PageObject(object):
         --------
         With page elements::
 
-            from ahl.testing.page_objects import PageObject, page_element
+            from pkglib_testing.page_objects import PageObject, page_element
 
             class LoginPage(PageObject):
                 username = page_element(id_='username')
@@ -123,7 +123,7 @@ def page_element(klass=PageElement, **kwargs):
         --------
         Page Elements can be used like this::
 
-            from ahl.testing.page_objects import PageObject, page_element
+            from pkglib_testing.page_objects import PageObject, page_element
             class MyPage(PageObject)
                 elem1 = page_element(css='div.myclass')
                 elem2 = page_element(id_='foo')

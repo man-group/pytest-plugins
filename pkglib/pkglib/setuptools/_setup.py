@@ -5,7 +5,8 @@ import sys
 
 from setuptools import setup as setuptools_setup, find_packages
 
-from pkglib import config, util
+from pkglib import util
+from pkglib.config import org, parse
 from pkglib.setuptools.command import (develop, test, jenkins_, egg_info, easy_install,
                                        pyinstall, update, pyuninstall, build_sphinx,
                                        build_ext, upload, register, upload_docs,
@@ -92,10 +93,11 @@ def setup(**kwargs):
         Override any of the default `setuptools.setup` keyword arguments.
 
     """
-    config.setup_global_org_config()
+    org.setup_global_org_config()
     check_multiple_call()
     original_cwd = os.getcwd()
     set_working_dir()
+    test.gather_trailing_args()
     # Base set of defaults
     call_args = dict(
         distclass=Distribution,
@@ -126,7 +128,7 @@ def setup(**kwargs):
         ))
 
     # Get the package metadata from the setup.cfg file
-    call_args.update(config.parse_pkg_metadata(config.get_pkg_cfg_parser()))
+    call_args.update(parse.parse_pkg_metadata(parse.get_pkg_cfg_parser()))
 
     # Overrides/updates attributes from call arguments.
     # Override for scalar, update for dictionaries.
