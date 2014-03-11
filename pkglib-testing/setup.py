@@ -75,6 +75,7 @@ def main():
                         'SQLAlchemy',
                         'path.py',
                         'python-jenkins',
+                        'pkglib_util',
                         ]
     setup(
         name='pkglib-testing',
