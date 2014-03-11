@@ -162,6 +162,7 @@ class Distribution(_Distribution):
             easy_install_opts = self._fix_issue_227_parse_fetcher_opts()
             with self._patch_fetch_build_eggs(easy_install_opts):
                 fetch_build_eggs(requires, dist=self)
+            fetch_build_eggs(requires, dist=self)
 
 
 def egg_distribution(egg_path):

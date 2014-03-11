@@ -71,7 +71,11 @@ class easy_install(_easy_install, CommandMixin):
     create_index = egg_cache.EggCacheAwarePackageIndex
 
     def __init__(self, dist, **kw):
-        if type(self).pkglib_bootstrap:
+        # This is what stops things being installed in the local directory,
+        # and instead _always_ dropped into site-packages.
+        # Vanilla easy_install takes offence to this with a sandbox violation,
+        # so we need to detect when we're being setup by easy_install and not do this.
+        if type(self).pkglib_bootstrap and 'easy_install' not in sys.argv[0]:
             kw.pop('install_dir', None)
         _easy_install.__init__(self, dist, **kw)
 

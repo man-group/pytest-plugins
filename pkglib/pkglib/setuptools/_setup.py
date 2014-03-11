@@ -53,6 +53,11 @@ def set_working_dir():
     """ Make sure we're working in the right directory, and ensure this is
         actually a setup.py file.
     """
+    if 'pip-egg-info' in sys.argv:
+        # We're being installed by pip, do nothing here as pip will be in the
+        # correct directory
+        return
+
     setup_py = sys.argv[0]
     if os.path.basename(setup_py) != 'setup.py':
         sys.stderr.write("You should only only be running this as "

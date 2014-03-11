@@ -1,0 +1,2 @@
+recursive-include tests *.py *.cpp *.hpp *.c *.h *.pyx
+recursive-include pkglib_testing *.py *.cpp *.hpp *.c *.h *.pyx

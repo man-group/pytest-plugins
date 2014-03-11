@@ -22,7 +22,7 @@ def _parse_version_parts(s):
         if not part or part == '.':
             continue
         if part[:1] in '0123456789':
-            yield part.zfill(8)    # pad for numeric comparison
+            yield part.zfill(8)  # pad for numeric comparison
         elif part == CONFIG.third_party_build_prefix:
             yield '*final'
             yield '!%s' % CONFIG.third_party_build_prefix
