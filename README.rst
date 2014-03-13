@@ -1,9 +1,9 @@
 PkgLib: Company-centric Python packaging and testing library
 ============================================================
 
-Kindly open-sourced by AHL, this library has the goal of providing a 
-one-stop-shop for Python development houses to get up and running using Python 
-with the minimum of fuss in a Linux development environment.
+This library has the goal of providing a one-stop-shop for Python
+development houses to get up and running using Python with the minimum
+of fuss in a Linux development environment.
 
 This repository has two packages: 
 

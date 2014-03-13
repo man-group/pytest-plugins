@@ -1,9 +1,9 @@
 PkgLib-Testing: Testing Tools for a Company-centric packaging library
 =====================================================================
 
-Kindly open-sourced by AHL, this library provides a suite of testing utilities 
-to assist with handling services, databases, web drivers and coverage amongst 
-other things, as well as a number of useful ``py.test`` plugins.
+This library provides a suite of testing utilities to assist with
+handling services, databases, web drivers and coverage amongst other
+things, as well as a number of useful ``py.test`` plugins.
                       
 Documentation
 =============
