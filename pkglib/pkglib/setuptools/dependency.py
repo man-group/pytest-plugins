@@ -544,7 +544,7 @@ def get_graph_from_ws(ws):
     for dist in ws:
         req = merge_matching_reqs(ws, dist)
         if req is None:
-            log.warn("Trimming dist from baseline ws as it's inconsistent: %r",
+            log.warn("Trimming dist from baseline working set as it's inconsistent: %r",
                      dist)
             remove_from_ws(ws, dist)
         else:
