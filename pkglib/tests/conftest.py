@@ -20,7 +20,6 @@ pkglib.CONFIG = org.OrganisationConfig(
     third_party_build_prefix='acme',
     email_suffix='acme.example',
     dev_build_number='0.0',
-    third_party_build_prexix='acme',
     platform_packages=[],
     installer_search_path=[],
     installer_dev_search_path=[],
