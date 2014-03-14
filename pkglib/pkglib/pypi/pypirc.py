@@ -4,11 +4,10 @@ import logging
 import time
 
 from six.moves import (configparser,
-                       HTTPError,  # @UnresolvedImport
-                       HTTPBasicAuthHandler,  # @UnresolvedImport
-                       HTTPPasswordMgrWithDefaultRealm,  # @UnresolvedImport # NOQA
-                       Request, build_opener, install_opener, urlopen,  # @UnresolvedImport # NOQA
-                       urlencode)  # @UnresolvedImport
+                       HTTPError,
+                       HTTPBasicAuthHandler,
+                       Request, build_opener,
+                       urlencode)
 
 from pkglib import errors
 
