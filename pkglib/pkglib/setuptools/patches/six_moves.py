@@ -1,4 +1,3 @@
-import sys
 import six.moves
 
 
@@ -26,5 +25,3 @@ move_attr('urlencode', 'urllib', 'urllib.parse')
 move_attr('ServerProxy', 'xmlrpclib', 'xmlrpc.client')
 
 move_attr('ExitStack', 'contextlib2', 'contextlib')
-
-sys.modules[__name__] = six.moves
