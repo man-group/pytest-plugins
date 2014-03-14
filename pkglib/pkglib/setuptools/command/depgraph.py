@@ -142,7 +142,7 @@ class depgraph(Command, CommandMixin):
         else:
             import networkx
             g = networkx.DiGraph()
-            dependency.get_requirements_from_ws(working_set, g)
+            dependency.get_graph_from_ws(working_set, g)
 
             if self.what_requires is not None:
                 g = self._filter_nodes_leading_to(g, self.what_requires)
