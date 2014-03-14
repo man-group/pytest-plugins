@@ -17,7 +17,7 @@ import errors
 
 
 def get_log():
-    return logging.getLogger(__name___)
+    return logging.getLogger(__name__)
 
 
 # Common options arg must support:
