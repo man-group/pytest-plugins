@@ -4,7 +4,7 @@ import os
 import io
 import distutils
 
-from six.moves import configparser
+import ConfigParser as configparser
 
 from . import Config
 from .. import errors
