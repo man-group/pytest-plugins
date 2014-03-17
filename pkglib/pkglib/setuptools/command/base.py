@@ -8,7 +8,7 @@ from distutils import log
 from pkg_resources import resource_filename
 from setuptools.dist import Distribution
 
-from pkglib.setuptools.patches import patch_http
+from pkglib.setuptools.patches.http import patch_http
 from pkglib_util import cmdline
 from pkglib import CONFIG, util
 from pkglib.config import parse
