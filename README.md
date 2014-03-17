@@ -98,6 +98,13 @@ PkgLib.Testing
 - Page Objects pattern implementation for better structured Selenium tests.
 - Mocking implementations for databases and other common types.
 
+Changelog
+=========
+
+## 0.10.1
+
+Initial public release.
+
 
 Roadmap
 =======
