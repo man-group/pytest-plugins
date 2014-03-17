@@ -101,6 +101,18 @@ PkgLib.Testing
 Changelog
 =========
 
+## 0.10.2
+
+Fixed a crash in manage.py:get_log and depgraph due to incorrect
+variable names.
+
+Fixed an issue where install failed if six wasn't installed (see
+[#26](https://github.com/ahlmss/pkglib/pull/26)).
+
+Fixed some inconsistent package requirements in setup.cfg.
+
+Simplified the monkey patching in six_moves.py.
+
 ## 0.10.1
 
 Initial public release.
