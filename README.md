@@ -14,7 +14,7 @@ This repository has two packages:
   services, databases, web drivers and coverage amongst other things, as well 
   as a number of useful ``py.test`` plugins.
 
-.. image:: https://travis-ci.org/ahlmss/pkglib.png?branch=master   :target: https://travis-ci.org/ahlmss/pkglib
+[![Build Status](https://travis-ci.org/ahlmss/pkglib.png?branch=master)](https://travis-ci.org/ahlmss/pkglib)
                       
 Documentation
 =============
