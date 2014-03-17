@@ -78,7 +78,7 @@ def parse_version(version):
     """ Safely parses string, iterable or `distutils.version.Version` and
         returns as `distutils.version.LooseVersion`"""
     # We don't import this at the top level, because util.py is
-    # imported by setup.py before we've installed our dependencies (.e.g )
+    # imported by setup.py before we've installed our dependencies.
     from six import string_types
 
     if not isinstance(version, Version):
