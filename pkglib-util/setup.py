@@ -61,7 +61,7 @@ def main():
         name='pkglib-util',
         description='PkgLib Utility Library',
         long_description=long_description,
-        version='0.10.1',
+        version='0.10.2',
         # url='',
         license='MIT license',
         platforms=['unix', 'linux'],
