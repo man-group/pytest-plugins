@@ -8,7 +8,8 @@ import os
 import pkglib
 from pkglib.config import org
 
-os.unsetenv('PKGLIB_CONFIG')
+del os.environ['PKGLIB_CONFIG']
+
 
 pkglib.CONFIG = org.OrganisationConfig(
     pypi_url='http://acmepypi.example.com',
