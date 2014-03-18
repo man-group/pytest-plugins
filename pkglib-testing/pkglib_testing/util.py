@@ -19,7 +19,6 @@ from subprocess import Popen, PIPE
 from distutils import sysconfig
 import execnet
 
-import six_moves  # @UnusedImport
 from six import string_types
 from six.moves import builtins, configparser, cPickle  # @UnresolvedImport
 from six.moves import input as raw_input

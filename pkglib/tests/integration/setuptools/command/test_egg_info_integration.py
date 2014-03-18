@@ -8,7 +8,8 @@ from pkglib_testing.util import PkgTemplate
 from pkglib_testing.pytest.util import svn_repo, workspace  # @UnusedImport # NOQA
 from pkglib_testing.pytest.pypi import pypi_chishop  # @UnusedImport # NOQA
 from pkglib.manage import read_allrevisions
-from pkglib.patches.six_moves import ExitStack    # @UnresolvedImport
+
+from six.moves import ExitStack
 
 from pkglib_testing.pypi import create_pkg
 

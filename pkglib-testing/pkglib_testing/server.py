@@ -12,8 +12,7 @@ import traceback
 from datetime import datetime
 
 from six import string_types
-from six.moves import http_client
-from six_moves import urlopen, URLError  # @UnresolvedImport
+from six.moves import http_client, urlopen, URLError
 from .util import Workspace
 
 
