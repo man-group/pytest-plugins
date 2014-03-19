@@ -10,7 +10,8 @@ from distutils.command.upload import upload as _upload
 from distutils.spawn import spawn
 from distutils import log
 
-from six.moves import urlparse, urlopen, Request, HTTPError  # @UnresolvedImport
+from urlparse import urlparse
+from urllib2 import urlopen, Request, HTTPError
 
 from .base import CommandMixin
 

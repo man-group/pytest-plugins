@@ -1,7 +1,8 @@
 from setuptools.command.register import register as _register
 from distutils import log
 
-from six.moves import urlparse, HTTPPasswordMgr  # @UnresolvedImport
+from urlparse import urlparse
+from urllib2 import HTTPPasswordMgr
 
 from .base import CommandMixin
 
