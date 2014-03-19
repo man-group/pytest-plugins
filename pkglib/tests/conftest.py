@@ -8,7 +8,7 @@ import os
 import pkglib
 from pkglib.config import org
 
-del os.environ['PKGLIB_CONFIG']
+os.environ.pop('PKGLIB_CONFIG', None)
 
 
 pkglib.CONFIG = org.OrganisationConfig(
