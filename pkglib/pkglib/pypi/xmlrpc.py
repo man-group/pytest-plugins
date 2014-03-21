@@ -70,9 +70,13 @@ class XMLRPCPyPIAPI(PyPiAPI):
         Returns: version strings, sorted with highest version first
         """
         fn = util.is_strict_dev_version if strict else util.is_dev_version
-        versions = set(release for hidden in (False, True) for release
-                       in self.proxy.package_releases(package, hidden)
-                       if dev is None or dev == fn(release))
+
+        versions = set()
+        for hidden in (False, True):
+            for release in self.proxy.package_releases(package, hidden):
+                if dev is None or dev == fn(release):
+                    versions.add(release)
+        
         return sorted(versions, key=util.parse_version, reverse=True)
 
     def get_vcs_uri(self, pkg):
