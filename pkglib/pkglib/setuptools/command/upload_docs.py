@@ -6,8 +6,8 @@ import sys
 from setuptools.command.upload_docs import upload_docs as _upload_docs
 from distutils import log
 from urlparse import urlparse
-from six import binary_type
-from six.moves import http_client
+from pkglib.six import binary_type
+from pkglib.six.moves import http_client
 
 from pkglib import CONFIG
 from .base import CommandMixin

@@ -19,10 +19,15 @@ from subprocess import Popen, PIPE
 from distutils import sysconfig
 import execnet
 
-from six import string_types
-from six.moves import builtins, configparser, cPickle  # @UnresolvedImport
-from six.moves import input as raw_input
-from six.moves import ExitStack  # @UnresolvedImport
+from pkglib.six import string_types
+from pkglib.six.moves import builtins, configparser, cPickle  # @UnresolvedImport
+from pkglib.six.moves import input as raw_input
+
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 from pkg_resources import working_set
 
@@ -771,7 +776,7 @@ def _run_in_subprocess_redirect_stdout(fd):
 
 
 def _run_in_subprocess_remote_fn(channel):
-    from six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
+    from pkglib.six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
     fn, args, kwargs = cPickle.loads(channel.receive(-1))
     channel.send(cPickle.dumps(fn(*args, **kwargs), protocol=0))
 

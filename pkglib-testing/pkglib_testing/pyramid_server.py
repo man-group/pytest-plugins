@@ -14,7 +14,7 @@ import time
 import requests
 from path import path
 
-from six.moves import http_client
+from pkglib.six.moves import http_client
 from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
 

@@ -11,8 +11,11 @@ import time
 import traceback
 from datetime import datetime
 
-from six import string_types
-from six.moves import http_client, urlopen, URLError
+from pkglib.six import string_types
+from pkglib.six.moves import http_client
+from pkglib.six.moves.urllib.request import urlopen
+from pkglib.six.moves.urllib.error import URLError
+
 from .util import Workspace
 
 

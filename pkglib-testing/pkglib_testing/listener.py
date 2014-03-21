@@ -6,8 +6,8 @@ import time
 from threading import Thread, Event
 from time import sleep
 
-from six import string_types
-from six.moves import cPickle
+from pkglib.six import string_types
+from pkglib.six.moves import cPickle
 
 TERMINATOR = json.dumps(['STOP']).encode('utf-8')
 CLEAR = json.dumps(['CLEAR']).encode('utf-8')
