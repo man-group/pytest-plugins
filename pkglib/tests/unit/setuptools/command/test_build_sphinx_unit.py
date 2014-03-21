@@ -12,7 +12,11 @@ from setuptools import Distribution
 
 import pkglib  # @UnusedImport
 
-from pkglib.six.moves import ExitStack
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 from pkglib.setuptools.command import build_sphinx
 

@@ -28,7 +28,11 @@ from setuptools import Command
 
 import pkglib  # @UnusedImport  sets up patches
 
-from pkglib.six.moves import ExitStack  # @UnresolvedImport
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 from pkglib.scripts import run_setup_command
 from pkglib.setuptools.buildout import Installer

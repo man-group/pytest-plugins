@@ -22,7 +22,12 @@ import execnet
 from pkglib.six import string_types
 from pkglib.six.moves import builtins, configparser, cPickle  # @UnresolvedImport
 from pkglib.six.moves import input as raw_input
-from pkglib.six.moves import ExitStack  # @UnresolvedImport
+
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 from pkg_resources import working_set
 

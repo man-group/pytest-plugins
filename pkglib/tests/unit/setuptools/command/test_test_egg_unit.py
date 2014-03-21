@@ -7,7 +7,13 @@ from mock import patch, Mock
 
 import pkglib  # @UnusedImport
 
-from pkglib.six.moves import configparser, ExitStack
+from pkglib.six.moves import configparser
+
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 from pkglib.config import parse
 from pkglib.setuptools.command import test_egg

@@ -5,7 +5,7 @@
 # Please don't apply fixes to this file. Just update to later versions
 # of six if it's missing anything.
 
-# (end pklib header)
+# (end pkglib header)
 
 """Utilities for writing code that runs on Python 2 and 3"""
 
