@@ -5,11 +5,6 @@ import pkglib  # @UnusedImport setup moves
 
 from six.moves import (cStringIO,  # @UnresolvedImport
                        HTTPError, HTTPBasicAuthHandler, addinfourl, ExitStack)  # @UnresolvedImport # NOQA
-#
-# try:
-#     from contextlib import ExitStack
-# except ImportError:
-#     from contextlib2 import ExitStack
 
 _open_director = HTTPBasicAuthHandler.__module__ + '.OpenerDirector'
 _open_director_open = _open_director + '.open'

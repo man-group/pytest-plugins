@@ -121,13 +121,6 @@ def pytest_funcarg__webdriver(request):
     )
 
 
-# Can't use this, it's run too late.
-#def pytest_addoption(parser):
-#    parser.addoption("--screenshot", action="store_true", default=False,
-#        help="Save a screenshot for each failing Selenium test.")
-
-
-
 @pytest.mark.tryfirst
 def pytest_runtest_makereport(item, call, __multicall__):
     if not 'webdriver' in item.funcargs:

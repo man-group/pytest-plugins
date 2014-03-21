@@ -33,20 +33,12 @@ class JenkinsTestServer(HTTPTestServer):
             raise ValueError("jenkins_war missing from org config")
 
         return [CONFIG.java_executable,
-                # '-Dcom.sun.akuma.Daemon=daemonized',
-                # '-Xmx1G',
-                # '-DJENKINS_HOME=%s' % self.workspace,
                 '-jar', CONFIG.jenkins_war,
-                # '--logfile=%s/jenkins.log' % self.workspace,
                 '--httpPort=%s' % self.port,
                 '--httpListenAddress=%s' % self.hostname,
                 '--ajp13Port=-1',
-                # '--httpsPort=-1',
                 '--preferredClassLoader=java.net.URLClassLoader',
                 '--webroot={}'.format(self.workspace / 'run' / 'war')
-                # '--debug=5',
-                # '--handlerCountMax=10',
-                # '--handlerCountMaxIdle=2',
                 ]
 
     def load_plugins(self, plugins_repo, plugins=None):

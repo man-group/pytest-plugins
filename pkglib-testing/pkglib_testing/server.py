@@ -219,14 +219,6 @@ class TestServer(Workspace):
         while True:
             print("Waiting for server to die..")
 
-            # Uncomment these to debug the pid tracing
-#                self.run("netstat -anp 2>/dev/null", check_rc=False)
-#                self.run("netstat -anp 2>/dev/null | grep %s:%s" % (self.hostname, self.port), check_rc=False)
-#                self.run("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN" % (self.hostname, self.port),
-#                         check_rc=False)
-#                self.run("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | awk '{ print $7 }'" %
-#                         (self.hostname, self.port), check_rc=False)
-
             netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
                            "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
             ps = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]

@@ -176,18 +176,6 @@ def get_pkg_description(metadata):
         else:
             mod = importlib.import_module(metadata['name'])
             readme = mod.__doc__
-            # Some ambiguity here whether or not the module is yet importable.
-            # Do a relative import based on the package name
-            # parts = metadata['name'].rsplit('.', 1)
-            # if len(parts) == 1:
-            #    readme = importlib.import_module(parts[0]).__doc__
-            # else:
-                # ns, modname = parts
-                # ns_dir = ns.replace('.', os.sep)
-                # with chdir(ns_dir):
-                #    sys.path.insert(0, ns_dir)
-                #    import pdb; pdb.set_trace()
-                #    readme = importlib.import_module(modname).__doc__
     try:
         changes = open('CHANGES.txt').read()
     except IOError:

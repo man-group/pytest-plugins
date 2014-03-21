@@ -637,11 +637,6 @@ def get_backtrack_targets(graph, req):
     """
     log.debug("******   resolving backtrack targets")
 
-    # Uncomment to debug graphically
-    # import graph as graphing
-    # graphing.draw_networkx_with_pydot(graph, include_third_party=True,
-    #                                  show_reqs=True)
-
     # First take a copy of the graph and remove direct downstream deps to
     # cater for the second case in the docstring.
     graph = graph.copy()
@@ -652,8 +647,6 @@ def get_backtrack_targets(graph, req):
         [log.debug("******     {0}".format(i)) for i in direct_predecessors]
 
         graph.remove_edges_from([(i, req) for i in direct_predecessors])
-        # graphing.draw_networkx_with_pydot(graph, include_third_party=True,
-        #                                  show_reqs=True)
 
     def resolved_set(iterable):
         """ Filter out reqs that havent yet been resolved """

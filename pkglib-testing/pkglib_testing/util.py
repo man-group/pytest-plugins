@@ -399,7 +399,6 @@ class Workspace(object):
         if not cd:
             cd = self.workspace
         with cmdline.chdir(cd):
-            # import sys; sys.stderr.write("chdir: %s run %s\n" % (cd, cmd))
             print("run: %s" % str(cmd))
             if capture:
                 p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
@@ -495,7 +494,6 @@ class TmpVirtualEnv(Workspace):
                                                python or get_real_python_executable(),
                                                self.virtualenv))
         self.install_package('six', installer='easy_install')
-        # self.install_package('yolk', installer='easy_install')
 
     def run(self, *args, **kwargs):
         """

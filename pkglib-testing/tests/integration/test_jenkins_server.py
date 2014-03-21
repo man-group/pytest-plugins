@@ -5,22 +5,12 @@ from mock import patch
 
 pytest_plugins = ['pkglib_testing.pytest.jenkins_server']
 
-# import pkglib_testing.pytest.jenkins_server as pj
-
 # patch out any changes you want to the Jenkins server here:
 # These are once-for-all changes!
 
 this_dir = os.path.dirname(__file__)
 PLUGIN_REPO = os.path.join(this_dir, 'jenkins_plugins')
 
-# def pre_setup(jenkins_server):
-#    pass
-
-# this builds the session server, so you have to have deone any pre_setup and post_setup
-# before this line
-# pj.JenkinsTestServer.pre_setup = pre_setup
-
-# from pkglib_testing.pytest.jenkins_server import pytest_funcarg__jenkins_server
 
 def test_load_plugins_fails_with_invalid_repo(jenkins_server):
     with raises(ValueError) as e:
