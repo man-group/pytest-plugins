@@ -3,7 +3,7 @@ import subprocess
 
 import pkglib  # @UnusedImport setup moves
 
-from six.moves import (cStringIO,  # @UnresolvedImport
+from pkglib.six.moves import (cStringIO,  # @UnresolvedImport
                        HTTPError, HTTPBasicAuthHandler, addinfourl, ExitStack)  # @UnresolvedImport # NOQA
 
 _open_director = HTTPBasicAuthHandler.__module__ + '.OpenerDirector'

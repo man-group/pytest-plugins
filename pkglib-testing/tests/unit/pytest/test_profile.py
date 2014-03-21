@@ -2,7 +2,7 @@
 # the top-level code in pkglib_testing.pytest.profile will be omitted from
 # coverage, so force it to be reloaded within this test unit under coverage
 
-from six.moves import reload_module  # @UnresolvedImport
+from pkglib.six.moves import reload_module  # @UnresolvedImport
 
 import pkglib_testing.pytest.profile
 reload_module(pkglib_testing.pytest.profile)

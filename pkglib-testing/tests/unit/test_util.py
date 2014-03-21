@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 from mock import Mock, patch, sentinel, DEFAULT, call
-from six.moves import cPickle  # @UnresolvedImport
+from pkglib.six.moves import cPickle  # @UnresolvedImport
 
 from pkglib_testing import util
 

@@ -5,7 +5,7 @@ non-zero exit codes, something that isn't currently supported in
 distutils/setuptools/distribute etc.
 """
 from contextlib import contextmanager
-from six.moves import http_client as _httplib   # @UnresolvedImport
+from pkglib.six.moves import http_client as _httplib   # @UnresolvedImport
 
 
 @contextmanager

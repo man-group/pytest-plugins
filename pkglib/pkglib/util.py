@@ -79,7 +79,7 @@ def parse_version(version):
         returns as `distutils.version.LooseVersion`"""
     # We don't import this at the top level, because util.py is
     # imported by setup.py before we've installed our dependencies.
-    from six import string_types
+    from pkglib.six import string_types
 
     if not isinstance(version, Version):
         version = LooseVersion(version if isinstance(version, string_types)

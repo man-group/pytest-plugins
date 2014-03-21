@@ -1,5 +1,5 @@
 from collections import Iterable
-from six import string_types
+from pkglib.six import string_types
 
 
 def _strize_arg(arg):

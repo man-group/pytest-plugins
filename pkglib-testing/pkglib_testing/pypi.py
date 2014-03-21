@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from pkg_resources import Requirement
 from setuptools.package_index import PackageIndex
 
-from six.moves import configparser  # @UnresolvedImport
+from pkglib.six.moves import configparser  # @UnresolvedImport
 
 from pkglib_util.cmdline import set_env
 from plglib_testing.util import create_package_from_template

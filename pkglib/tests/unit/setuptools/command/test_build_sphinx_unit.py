@@ -12,7 +12,7 @@ from setuptools import Distribution
 
 import pkglib  # @UnusedImport
 
-from six.moves import ExitStack
+from pkglib.six.moves import ExitStack
 
 from pkglib.setuptools.command import build_sphinx
 

@@ -3,7 +3,7 @@ import stat
 import logging
 import time
 
-from six.moves import (configparser,
+from pkglib.six.moves import (configparser,
                        HTTPError,
                        HTTPBasicAuthHandler,
                        Request, build_opener,

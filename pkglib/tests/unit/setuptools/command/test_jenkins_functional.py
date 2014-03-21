@@ -10,7 +10,7 @@ from setuptools.dist import Distribution
 
 import pkglib  # @UnusedImport
 
-from six.moves import ExitStack  # @UnresolvedImport
+from pkglib.six.moves import ExitStack  # @UnresolvedImport
 
 from pkglib.config import org
 from pkglib.setuptools.command import jenkins_

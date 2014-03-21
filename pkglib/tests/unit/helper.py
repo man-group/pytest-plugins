@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 from mock import Mock, patch
 
-from six.moves import builtins, cStringIO  # @UnresolvedImport
+from pkglib.six.moves import builtins, cStringIO  # @UnresolvedImport
 
 
 class Req(object):

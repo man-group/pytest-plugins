@@ -7,7 +7,7 @@ from mock import patch, Mock
 
 import pkglib  # @UnusedImport
 
-from six.moves import configparser, ExitStack
+from pkglib.six.moves import configparser, ExitStack
 
 from pkglib.config import parse
 from pkglib.setuptools.command import test_egg

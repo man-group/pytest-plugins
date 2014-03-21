@@ -6,7 +6,7 @@ import argparse
 import termcolor
 import os.path
 
-from six.moves import configparser
+from pkglib.six.moves import configparser
 
 from pkglib import platypus
 from pkglib import CONFIG, errors, util

@@ -28,7 +28,7 @@ from setuptools import Command
 
 import pkglib  # @UnusedImport  sets up patches
 
-from six.moves import ExitStack  # @UnresolvedImport
+from pkglib.six.moves import ExitStack  # @UnresolvedImport
 
 from pkglib.scripts import run_setup_command
 from pkglib.setuptools.buildout import Installer
