@@ -10,7 +10,11 @@ from setuptools.dist import Distribution
 
 import pkglib  # @UnusedImport
 
-from pkglib.six.moves import ExitStack  # @UnresolvedImport
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 from pkglib.config import org
 from pkglib.setuptools.command import jenkins_

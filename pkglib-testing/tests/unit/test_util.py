@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 from mock import Mock, patch, sentinel, DEFAULT, call
-from pkglib.six.moves import cPickle  # @UnresolvedImport
+from pkglib.six.moves import cPickle
 
 from pkglib_testing import util
 
@@ -161,7 +161,7 @@ def test_run_in_subprocess():
         chan.close.assert_has_calls([call() for _i in range(gw.remote_exec.call_count)])
         gw.exit.assert_called_once_with()
 
-    with patch('six.moves.cPickle') as cPickle:  # NOQA
+    with patch('pkglib.six.moves.cPickle') as cPickle:
         channel, fn = Mock(), Mock()
         cPickle.loads.return_value = (fn, (sentinel.arg,), {'kw': sentinel.kw})
         remote_fn(channel)

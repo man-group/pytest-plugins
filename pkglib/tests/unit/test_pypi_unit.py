@@ -1,10 +1,17 @@
 import os
 import subprocess
 
-import pkglib  # @UnusedImport setup moves
+from urllib2 import addinfourl
 
-from pkglib.six.moves import (cStringIO,  # @UnresolvedImport
-                       HTTPError, HTTPBasicAuthHandler, addinfourl, ExitStack)  # @UnresolvedImport # NOQA
+from pkglib.six.moves import cStringIO
+from pkglib.six.moves.urllib.request import HTTPBasicAuthHandler
+from pkglib.six.moves.urllib.error import HTTPError
+
+try:
+    # Python 3
+    from contextlib import ExitStack
+except ImportError:
+    from contextlib2 import ExitStack
 
 _open_director = HTTPBasicAuthHandler.__module__ + '.OpenerDirector'
 _open_director_open = _open_director + '.open'
