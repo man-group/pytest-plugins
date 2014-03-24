@@ -1,10 +1,8 @@
 """ Unit tests for pkglib.manage
 """
-import os
-
 import mock
 
-from pkglib import util, config
+from pkglib import util
 from pkglib.config import org
 
 pytest_plugins = ['pkglib_testing.pytest.util']
@@ -21,18 +19,18 @@ def test_is_inhouse_package():
 
 
 def test_is_dev_version():
-    assert util.is_dev_version('1.2.3.dev1')
-    assert util.is_dev_version('1.2.3.dev4')
-    assert not util.is_dev_version('1.2.3')
-    assert not util.is_dev_version('1.2.3dev4')
+    assert util.is_dev_version('1.2.3.dev1') is True
+    assert util.is_dev_version('1.2.3.dev4') is True
+    assert util.is_dev_version('1.2.3') is False
+    assert util.is_dev_version('1.2.3dev4') is False
 
 
 def test_is_strict_dev_version():
-    assert util.is_strict_dev_version('0.0.dev1')
-    assert util.is_strict_dev_version('0.0.dev4')
-    assert not util.is_strict_dev_version('1.2.3')
-    assert not util.is_strict_dev_version('1.2.3dev4')
-    assert not util.is_strict_dev_version('1.0.0.dev4')
+    assert util.is_strict_dev_version('0.0.dev1') is True
+    assert util.is_strict_dev_version('0.0.dev4') is True
+    assert util.is_strict_dev_version('1.2.3') is False
+    assert util.is_strict_dev_version('1.2.3dev4') is False
+    assert util.is_strict_dev_version('1.0.0.dev4') is False
 
 
 def test_get_namespace_packages():
