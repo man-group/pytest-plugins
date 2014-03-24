@@ -5,7 +5,6 @@ from distutils.version import LooseVersion, Version
 from pkglib import CONFIG
 
 
-RE_DEV_VERSION = re.compile('\.dev\d*$')
 DEFAULT_VERSION_SEP = "."
 
 
@@ -19,22 +18,33 @@ def is_inhouse_package(name):
     return False
 
 
-def is_dev_version(version):
+def is_dev_version(version_string):
     """
-    True if this version is a dev version
+
+    >>> is_dev_version("1.0.0.dev")
+    True
+    >>> is_dev_version("1.0.0")
+    False
+    
     """
-    return RE_DEV_VERSION.search(version)
+    dev_version_pattern = r"\.dev\d*$"
+    return bool(re.search(dev_version_pattern, version_string))
 
 
-def is_strict_dev_version(version):
+def is_strict_dev_version(version_string):
+    """True if this version is a dev version, and the numeric component
+    matches our static build number.
+
+    If our dev version is 2.0:
+
+    >>> is_strict_dev_version("1.0.dev1")
+    False
+    >>> is_strict_dev_version("2.0.dev1")
+    False
+
     """
-    True if this version is a dev version, and the numeric component matches
-    our static build number.
-    """
-    # This one matches only versions that also match our dev build version
-    strict_re = re.compile('^{0}\.dev\d*$'
-                           .format(CONFIG.dev_build_number.replace('.', '\.')))
-    return strict_re.search(version)
+    strict_version_pattern = r"^%s\.dev\d*$" % re.escape(CONFIG.dev_build_number)
+    return bool(re.search(strict_version_pattern, version_string))
 
 
 def get_build_egg_dir():
