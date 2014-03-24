@@ -81,7 +81,7 @@ def main():
         name='pkglib-testing',
         description='PkgLib testing library',
         long_description=long_description,
-        version='0.10.3',
+        version='0.10.4',
         # url='',
         license='MIT license',
         platforms=['unix', 'linux'],
