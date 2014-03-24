@@ -63,8 +63,7 @@ def main():
                 break
 
     # TODO: split these up into optional deps
-    install_requires = ['six',
-                        'pytest',
+    install_requires = ['pytest',
                         'pytest-cov',
                         'mock',
                         'contextlib2',
