@@ -101,6 +101,11 @@ PkgLib.Testing
 Changelog
 =========
 
+## 0.10.4
+
+Fixed another six dependency and updated tests to ensure we test
+without globally installed six.
+
 ## 0.10.3
 
 Six is now included in the pkglib source, to avoid bootstrapping
