@@ -101,6 +101,14 @@ PkgLib.Testing
 Changelog
 =========
 
+## 0.10.3
+
+Six is now included in the pkglib source, to avoid bootstrapping
+issues (#27).
+
+Fixed an issue with dev version parsing that prevented plat listing
+all the available versions of packages (#29).
+
 ## 0.10.2
 
 Fixed a crash in manage.py:get_log and depgraph due to incorrect
