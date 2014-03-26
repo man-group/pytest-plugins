@@ -710,17 +710,18 @@ class Resolver(object):
         # want to override.
         remapping = {}
         for target in shadowed_targets:
-            dist, prev_req = self.best[target.key]
-            if dist is not None and prev_req.key in prev_req_children:
-                log.debug(' --- clearing previous link to %s', dist)
-                # Create a new 'blank' requirement
-                new_req = pkg_resources.Requirement.parse(prev_req.key)
-                new_req._chosen_dist = prev_req._chosen_dist
-                self.best[target.key] = dist, new_req
-                if not (new_req == prev_req):
-                    remapping[prev_req] = new_req
+            if target.key in self.best:
+                dist, prev_req = self.best[target.key]
+                if dist is not None and prev_req.key in prev_req_children:
+                    log.debug(' --- clearing previous link to %s', dist)
+                    # Create a new 'blank' requirement
+                    new_req = pkg_resources.Requirement.parse(prev_req.key)
+                    new_req._chosen_dist = prev_req._chosen_dist
+                    self.best[target.key] = dist, new_req
+                    if not (new_req == prev_req):
+                        remapping[prev_req] = new_req
 
-        # Re-labe the nodes in-place in our DiGraph. Needs networkx>=1.7
+        # Re-label the nodes in-place in our DiGraph. Needs networkx>=1.7
         networkx.relabel_nodes(self.req_graph, remapping, False)
 
     def add_resolved_requirement(self, req, dist):
