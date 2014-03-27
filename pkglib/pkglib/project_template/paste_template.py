@@ -8,7 +8,7 @@ from paste.script.templates import Template, var
 from paste.script.create_distro import CreateDistroCommand
 
 from pkglib import CONFIG
-from pkglib.manage import is_inhouse_package
+from pkglib.util import is_inhouse_package
 
 
 setattr(CreateDistroCommand, '_bad_chars_re', re.compile('[^a-zA-Z0-9_\.]'))
