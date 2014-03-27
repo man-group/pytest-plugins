@@ -101,6 +101,16 @@ PkgLib.Testing
 Changelog
 =========
 
+## 0.10.5
+
+Fixed a pyinstall crash when dealing with certain dependency
+combinations (#30).
+
+Pyinstall now respects the -i flag, allowing it to override the
+configuration provided (#36).
+
+Fixed a pymkproject crash (#38).
+
 ## 0.10.4
 
 Fixed another six dependency and updated tests to ensure we test
