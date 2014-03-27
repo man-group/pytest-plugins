@@ -176,7 +176,7 @@ class SandboxedEasyInstall(object):
         for d in self.virtualenv_dists:
             self.local_index.add(d)
 
-        _sandobx_package_index(self.package_index, self.available_dists)
+        _sandbox_package_index(self.package_index, self.available_dists)
         self.sitepy_installed = True  # do not fiddle with file system
         for k, v in self.attrs.items():
             setattr(self, k, v)
@@ -560,7 +560,7 @@ def _prepare_cmd(cmd, dist, tmpdir):
     return patched_cmd
 
 
-def _sandobx_package_index(index, dists):
+def _sandbox_package_index(index, dists):
     index.fetch_distribution = _get_patched_fetch_distribution(dists)
 
 
