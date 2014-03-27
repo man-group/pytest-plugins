@@ -208,8 +208,11 @@ class TestServer(Workspace):
         self.dead = False
 
     def kill(self, retries=5):
-        """ Kill all running versions of this server.
-            Just killing the thread.server pid isn't good enough, it might spawn children
+        """Kill all running versions of this server.
+
+        Just killing the thread.server pid isn't good enough, it may
+        have spawned children.
+
         """
         # Prevent traceback printed when the server goes away as we kill it
         if self.server:
@@ -218,30 +221,28 @@ class TestServer(Workspace):
         if self.dead:
             return
 
-        cycles = 0
-        while True:
-            print("Waiting for server to die..")
-
+        # Wait for server to die.
+        for attempt in range(retries):
             netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
                            "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
-            ps = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
-            print("process IDs: %s" % ps)
+            pids = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
 
-            if ps:
-                for p in ps:
-                    try:
-                        p = int(p)
-                    except ValueError:
-                        print("Can't determine port, process shutting down or owned by someone else")
-                    else:
-                        os.kill(p, self.kill_signal)
-            else:
-                print("No PIDs, server is dead")
+            if not pids:
+                # No PIDs remaining, server has died.
                 break
-            cycles += 1
-            if cycles >= retries:
-                raise ValueError("Server not dead after %d retries" % retries)
+
+            for pid in pids:
+                try:
+                    pid = int(pid)
+                except ValueError:
+                    # Can't determine process ID, process shutting down or owned by someone else.
+                    pass
+                else:
+                    os.kill(pid, self.kill_signal)
+                
             time.sleep(1)
+        else:
+            raise ValueError("Server not dead after %d retries" % retries)
 
     def teardown(self):
         """ Called when tearing down this instance, eg in a context manager
