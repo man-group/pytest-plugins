@@ -59,7 +59,7 @@ class pyinstall(Command, CommandMixin):
         self.third_party = False
         self.source = False
         self.eggs = False
-        self.index_url = None
+        self.index_url = self.maybe_add_simple_index(CONFIG.pypi_url)
 
     def finalize_options(self):
         # UNKNOWN distro name is set when this is run from pyinstall the
@@ -99,8 +99,6 @@ class pyinstall(Command, CommandMixin):
                      "install.")
             self.update = False
             self.egg_args = None
-
-        self.index_url = self.maybe_add_simple_index(CONFIG.pypi_url)
 
     def run(self):
         # Lazy import here to allow pkgutils to bootstrap itself
