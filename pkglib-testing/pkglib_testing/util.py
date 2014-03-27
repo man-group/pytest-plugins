@@ -485,7 +485,6 @@ class TmpVirtualEnv(Workspace):
         self.run('%s -p %s %s --distribute' % (virtualenv_cmd,
                                                python or get_real_python_executable(),
                                                self.virtualenv))
-        self.install_package('six', installer='easy_install')
 
     def run(self, *args, **kwargs):
         """
