@@ -75,8 +75,6 @@ class ServerThread(threading.Thread):
             ProcessReader(self.p, self.p.stderr, True).start()
 
     def run(self):
-        print("Running server: %s" % ' '.join(self.run_cmd))
-        print("CWD: %s" % self.cwd)
         try:
             if self.run_stdin:
                 self.p.stdin.write(self.run_stdin.encode('utf-8'))
@@ -183,12 +181,9 @@ class TestServer(Workspace):
         start_time = datetime.now()
         while retry_count > 0:
             for _ in range(retries_per_interval):
-                print('sleeping for %s before retrying (%d of %d)'
-                      % (interval, ((retry_limit + 1) - retry_count), retry_limit))
                 if self.check_server_up():
-                    print('waited %s for server to start successfully'
-                          % str(datetime.now() - start_time))
                     return
+
                 time.sleep(interval)
                 retry_count -= 1
             interval *= base
@@ -199,17 +194,18 @@ class TestServer(Workspace):
     def start_server(self, env=None):
         """ Start the server instance.
         """
-        print("Starting Server on host %s port %s" % (self.hostname, self.port))
         self.server = self.serverclass(self.hostname, self.port, self.run_cmd, self.run_stdin,
                                        env=getattr(self, "env", env), cwd=self.cwd)
         self.server.start()
         self.wait_for_go()
-        print("Server now awake")
         self.dead = False
 
     def kill(self, retries=5):
-        """ Kill all running versions of this server.
-            Just killing the thread.server pid isn't good enough, it might spawn children
+        """Kill all running versions of this server.
+
+        Just killing the thread.server pid isn't good enough, it may
+        have spawned children.
+
         """
         # Prevent traceback printed when the server goes away as we kill it
         if self.server:
@@ -218,30 +214,28 @@ class TestServer(Workspace):
         if self.dead:
             return
 
-        cycles = 0
-        while True:
-            print("Waiting for server to die..")
-
+        # Wait for server to die.
+        for attempt in range(retries):
             netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
                            "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
-            ps = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
-            print("process IDs: %s" % ps)
+            pids = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
 
-            if ps:
-                for p in ps:
-                    try:
-                        p = int(p)
-                    except ValueError:
-                        print("Can't determine port, process shutting down or owned by someone else")
-                    else:
-                        os.kill(p, self.kill_signal)
-            else:
-                print("No PIDs, server is dead")
+            if not pids:
+                # No PIDs remaining, server has died.
                 break
-            cycles += 1
-            if cycles >= retries:
-                raise ValueError("Server not dead after %d retries" % retries)
+
+            for pid in pids:
+                try:
+                    pid = int(pid)
+                except ValueError:
+                    # Can't determine process ID, process shutting down or owned by someone else.
+                    pass
+                else:
+                    os.kill(pid, self.kill_signal)
+                
             time.sleep(1)
+        else:
+            raise ValueError("Server not dead after %d retries" % retries)
 
     def teardown(self):
         """ Called when tearing down this instance, eg in a context manager
@@ -276,14 +270,13 @@ class HTTPTestServer(TestServer):
         """ Check the server is up by polling self.uri
         """
         try:
-            print('accessing URL:', self.uri)
             url = urlopen(self.uri)
             return url.getcode() == 200
         except (URLError, socket.error, http_client.BadStatusLine) as e:
             if getattr(e, 'code', None) == 403:
                 # This is OK, the server is probably running in secure mode
                 return True
-            print("Server not up yet (%s).." % e)
+
             return False
 
 

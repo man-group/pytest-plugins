@@ -308,9 +308,6 @@ class test(Command, CommandMixin):
         # Default py.test arguments can be passed in from the cmdline
         pytest_args = trailing_args[:]
 
-        if not self.quiet:
-            pytest_args += ['--verbose']
-
         # Set up args for running doctests, this excludes coverage
         doctest_args = list(self.get_package_dirs()) + pytest_args
 
