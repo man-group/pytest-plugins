@@ -755,9 +755,6 @@ def run_setuptools(f, cmd, dist=None, dist_attrs=None, args=None,
     # Set command line arguments
     _add_mock(mocks, "sys.argv", lambda: sys.argv[:1])
 
-    # Preserve system environment
-    _add_mock_dict(mocks, "os.environ")
-
     # Clear internal index cache of `zc.buildout`
     _add_mock_dict(mocks, "zc.buildout.easy_install._indexes",
                    original_dict={})
