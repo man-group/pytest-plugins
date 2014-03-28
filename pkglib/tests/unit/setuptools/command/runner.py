@@ -778,8 +778,7 @@ def run_setuptools(f, cmd, dist=None, dist_attrs=None, args=None,
         for name, mock_alternative in mocks.items():
             if name.startswith("____"):
                 continue
-            should_create = getattr(mock_alternative, "__create__", False)
-            stack.enter_context(patch(name, create=should_create, new=mock_alternative))
+            stack.enter_context(patch(name, mock_alternative))
 
         try:
             f(**attrs)
