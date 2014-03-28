@@ -62,9 +62,6 @@ _update_pth_spy = "updated_pth"
 _test_site_dir = "test_site_dir"
 
 
-patch_obj = patch.object  # @UndefinedVariable
-patch_dict = patch.dict  # @UndefinedVariable
-
 
 # TODO: majority of supporting infrastructure defined here needs to be moved
 # to pkglib_testing
@@ -426,7 +423,7 @@ def _add_module_mock(mocks, module_path, attrs={}):
 
 @contextmanager
 def patch_env(env_dict):
-    with patch_dict(os.environ, env_dict):
+    with patch.dict(os.environ, env_dict):
         yield
 
 
