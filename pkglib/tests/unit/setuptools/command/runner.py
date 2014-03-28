@@ -770,11 +770,17 @@ def run_setuptools(f, cmd, dist=None, dist_attrs=None, args=None,
 
     saved_set = pkg_resources.working_set
     with ExitStack() as stack:
-        for n, m in mocks.items():
-            if n.startswith("____"):
+
+        # mocks is a dict of the form: {'some_library.func_name': mock_value, ....}
+        # This for loop is equivalent to writing:
+        # with mock.patch(name1, mocked_value1):
+        #     with mock.patch(name2, mocked_value2): # etc
+        for name, mock_alternative in mocks.items():
+            if name.startswith("____"):
                 continue
-            should_create = getattr(m, "__create__", False)
-            stack.enter_context(patch(n, create=should_create, new=m))
+            should_create = getattr(mock_alternative, "__create__", False)
+            stack.enter_context(patch(name, create=should_create, new=mock_alternative))
+
         try:
             f(**attrs)
         finally:
