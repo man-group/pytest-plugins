@@ -6,7 +6,7 @@ from mock import patch
 from pkglib.setuptools.command import clean
 from pkglib_testing.mocking.subprocess import patch_subprocess, get_subprocess_mock
 
-from .runner import Pkg, patch_obj
+from .runner import Pkg
 
 
 def test_is_ignored_directory_ok():
@@ -80,8 +80,8 @@ def test_find_victims():
                 'site-packages/acme.qux.egg',
                 'site-packages/acme.spam.pth']
 
-    with patch_obj(clean, 'working_set', my_working_set):
-        with patch_obj(sys, 'exec_prefix', 'site-packages'):
+    with patch.object(clean, 'working_set', my_working_set):
+        with patch.object(sys, 'exec_prefix', 'site-packages'):
             dist = Distribution()
             cmd = clean.clean(dist)
             cmd.get_site_packages = lambda: ""

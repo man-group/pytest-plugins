@@ -10,7 +10,7 @@ from mock import Mock, sentinel
 from pkglib.config import org
 from pkglib.setuptools.command import test
 
-from .runner import (SavedBytesIO, _add_mock, _add_module_mock, _get_mock_dict,
+from .runner import (SavedBytesIO, _add_mock, _get_mock_dict,
                      _make_root_dir_from, _open_func_path, run_setuptools_cmd)
 
 

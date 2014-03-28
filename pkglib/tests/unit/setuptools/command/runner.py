@@ -59,11 +59,8 @@ _chmod_spy = "chmod"
 _written_scripts = "written_scripts"
 _written_pth_files = "written_pth"
 _update_pth_spy = "updated_pth"
-_test_site_dir = "test_site_dir"
 
-
-patch_obj = patch.object  # @UndefinedVariable
-patch_dict = patch.dict  # @UndefinedVariable
+TEST_SITE_DIR = "/<test_site_dir>"
 
 
 # TODO: majority of supporting infrastructure defined here needs to be moved
@@ -164,7 +161,6 @@ class SandboxedEasyInstall(object):
             self._eim[_written_scripts] = defaultdict(SavedBytesIO)
             self._eim[_written_pth_files] = defaultdict(SavedBytesIO)
             self._eim[_update_pth_spy] = Mock()
-            self._eim[_test_site_dir] = "/<test_site_dir>"
 
             mocks[_easy_install_mocks] = self._eim
 
@@ -176,7 +172,7 @@ class SandboxedEasyInstall(object):
         for d in self.virtualenv_dists:
             self.local_index.add(d)
 
-        _sandobx_package_index(self.package_index, self.available_dists)
+        _sandbox_package_index(self.package_index, self.available_dists)
         self.sitepy_installed = True  # do not fiddle with file system
         for k, v in self.attrs.items():
             setattr(self, k, v)
@@ -201,7 +197,7 @@ class SandboxedEasyInstall(object):
                                                                download, tmpdir)
 
     def check_site_dir(self):
-        self.install_dir = self._eim[_test_site_dir]
+        self.install_dir = TEST_SITE_DIR
 
         # In order for ".pth" write test to succeed
         with ExitStack() as stack:
@@ -426,7 +422,7 @@ def _add_module_mock(mocks, module_path, attrs={}):
 
 @contextmanager
 def patch_env(env_dict):
-    with patch_dict(os.environ, env_dict):
+    with patch.dict(os.environ, env_dict):
         yield
 
 
@@ -560,7 +556,7 @@ def _prepare_cmd(cmd, dist, tmpdir):
     return patched_cmd
 
 
-def _sandobx_package_index(index, dists):
+def _sandbox_package_index(index, dists):
     index.fetch_distribution = _get_patched_fetch_distribution(dists)
 
 
@@ -605,11 +601,8 @@ def _prepare_easy_install_cmd(mocks, cmd, virtualenv_dists, available_dists,
                                     available_dists, attrs)
     _add_mock(mocks, _easy_install_cmd, lambda: easy_install_cmd)
 
-    def get_test_site_dirs():
-        return [mocks[_easy_install_mocks][_test_site_dir]]
-
     _add_mock(mocks, _easy_install_get_site_dirs,
-              lambda: Mock(side_effect=get_test_site_dirs))
+              lambda: Mock(return_value=[TEST_SITE_DIR]))
 
     return cmd
 
@@ -762,9 +755,6 @@ def run_setuptools(f, cmd, dist=None, dist_attrs=None, args=None,
     # Set command line arguments
     _add_mock(mocks, "sys.argv", lambda: sys.argv[:1])
 
-    # Preserve system environment
-    _add_mock_dict(mocks, "os.environ")
-
     # Clear internal index cache of `zc.buildout`
     _add_mock_dict(mocks, "zc.buildout.easy_install._indexes",
                    original_dict={})
@@ -780,11 +770,16 @@ def run_setuptools(f, cmd, dist=None, dist_attrs=None, args=None,
 
     saved_set = pkg_resources.working_set
     with ExitStack() as stack:
-        for n, m in mocks.items():
-            if n.startswith("____"):
+
+        # mocks is a dict of the form: {'some_library.func_name': mock_value, ....}
+        # This for loop is equivalent to writing:
+        # with mock.patch(name1, mocked_value1):
+        #     with mock.patch(name2, mocked_value2): # etc
+        for name, mock_alternative in mocks.items():
+            if name.startswith("____"):
                 continue
-            should_create = getattr(m, "__create__", False)
-            stack.enter_context(patch(n, create=should_create, new=m))
+            stack.enter_context(patch(name, mock_alternative))
+
         try:
             f(**attrs)
         finally:

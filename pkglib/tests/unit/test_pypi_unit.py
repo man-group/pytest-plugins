@@ -26,7 +26,8 @@ from pkglib.pypi.clue import CluePyPIAPI
 from pkglib.pypi.pypirc import PyPIRC
 from pkglib.errors import UserError
 
-from .helper import mock_clue, _patch_open
+from .helper import mock_clue
+from .setuptools.command.runner import _patch_open
 
 
 def test_homepage():

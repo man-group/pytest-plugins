@@ -19,7 +19,7 @@ from pkglib.config import parse
 from pkglib.setuptools.command import test_egg
 from pkglib.setuptools.command.test_egg import NAMESPACE_PACKAGE_INIT
 
-from .runner import _patch_open, patch_obj
+from .runner import _patch_open
 
 
 CWD = Mock(return_value="/foo")
@@ -128,7 +128,7 @@ def test_create_pytest_config():
     parser_mock = Mock(return_value=parser)
 
     with ExitStack() as stack:
-        stack.enter_context(patch_obj(parse, 'get_pkg_cfg_parser', parser_mock))
+        stack.enter_context(patch.object(parse, 'get_pkg_cfg_parser', parser_mock))
         stack.enter_context(_patch_open())
 
         cmd = get_cmd()
@@ -166,10 +166,10 @@ def test_ns_pkg_files():
 def test_run():
     with ExitStack() as stack:
         stack.enter_context(patched_cwd())
-        stack.enter_context(patch_obj(test_egg._bdist_egg, 'run'))
-        stack.enter_context(patch_obj(test_egg, 'find_packages',
-                                      Mock(return_value=['integration',
-                                                         'unit'])))
+        stack.enter_context(patch.object(test_egg._bdist_egg, 'run'))
+        stack.enter_context(patch.object(test_egg, 'find_packages',
+                                         Mock(return_value=['integration',
+                                                            'unit'])))
 
         cmd = get_cmd()
         cmd.finalize_options()
