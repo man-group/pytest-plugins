@@ -1,4 +1,4 @@
-from pkglib.six.moves import configparser, cStringIO  # @UnresolvedImport
+from pkglib_util.six.moves import configparser, cStringIO  # @UnresolvedImport
 
 import pytest
 

@@ -75,6 +75,7 @@ def main():
                         'path.py',
                         'python-jenkins',
                         'pkglib_util',
+                        'six',
                         ]
     setup(
         name='pkglib-testing',

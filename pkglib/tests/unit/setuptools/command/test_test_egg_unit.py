@@ -7,7 +7,7 @@ from mock import patch, Mock
 
 import pkglib  # @UnusedImport
 
-from pkglib.six.moves import configparser
+from pkglib_util.six.moves import configparser
 
 try:
     # Python 3

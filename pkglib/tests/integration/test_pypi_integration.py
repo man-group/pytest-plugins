@@ -14,7 +14,7 @@ from subprocess import CalledProcessError
 
 import pytest
 
-from pkglib.six.moves import urlopen  # @UnresolvedImport
+from pkglib_util.six.moves import urlopen  # @UnresolvedImport
 
 from pkglib.pypi.pypirc import PyPiRc
 from pkglib.pypi.xmlrpc import XMLRPCPyPIAPI

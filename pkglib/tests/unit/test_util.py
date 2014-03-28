@@ -5,9 +5,6 @@ import mock
 from pkglib import util
 from pkglib.config import org
 
-pytest_plugins = ['pkglib_testing.pytest.util']
-
-
 TEST_CONFIG = org.OrganisationConfig(namespaces=['acme'],
                                      namespace_separator='.')
 

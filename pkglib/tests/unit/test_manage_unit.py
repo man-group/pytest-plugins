@@ -7,7 +7,7 @@ import mock
 from pkglib import manage
 from pkglib.config import org
 
-pytest_plugins = ['pkglib_testing.pytest.util']
+pytest_plugins = ['pkglib_testing.fixtures.workspace']
 
 
 TEST_CONFIG = org.OrganisationConfig(namespaces=['acme'],

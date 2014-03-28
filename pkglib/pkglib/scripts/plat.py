@@ -6,7 +6,7 @@ import argparse
 import termcolor
 import os.path
 
-from pkglib.six.moves import configparser
+from pkglib_util.six.moves import configparser
 
 from pkglib import platypus
 from pkglib import CONFIG, errors, util
@@ -335,8 +335,8 @@ def info_command(plat, _ns):
     info, source_checkouts = plat.get_packages_information()
     for pkg, pkg_info in info:
         statusmsg(": ".join((pkg, pkg_info["version"])))
-        #dependencies = pkg_info.get("dependencies")
-        #if dependencies:
+        # dependencies = pkg_info.get("dependencies")
+        # if dependencies:
     if source_checkouts:
         statusmsg("Other source checkouts:")
         sorted_source_checkouts = sorted((dep.name, dep)

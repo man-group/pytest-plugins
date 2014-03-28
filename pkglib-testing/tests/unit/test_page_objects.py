@@ -11,8 +11,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 
-from pkglib_testing.page_objects import (PageObject, PageElement, MultiPageElement, page_element,
-                                      multi_page_element)
+from pkglib_testing.web.page_objects import (PageObject, PageElement, MultiPageElement, page_element,
+                                             multi_page_element)
 
 
 def test_page_element():
