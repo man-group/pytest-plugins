@@ -59,8 +59,8 @@ _chmod_spy = "chmod"
 _written_scripts = "written_scripts"
 _written_pth_files = "written_pth"
 _update_pth_spy = "updated_pth"
-_test_site_dir = "test_site_dir"
 
+TEST_SITE_DIR = "/<test_site_dir>"
 
 
 # TODO: majority of supporting infrastructure defined here needs to be moved
@@ -161,7 +161,6 @@ class SandboxedEasyInstall(object):
             self._eim[_written_scripts] = defaultdict(SavedBytesIO)
             self._eim[_written_pth_files] = defaultdict(SavedBytesIO)
             self._eim[_update_pth_spy] = Mock()
-            self._eim[_test_site_dir] = "/<test_site_dir>"
 
             mocks[_easy_install_mocks] = self._eim
 
@@ -198,7 +197,7 @@ class SandboxedEasyInstall(object):
                                                                download, tmpdir)
 
     def check_site_dir(self):
-        self.install_dir = self._eim[_test_site_dir]
+        self.install_dir = TEST_SITE_DIR
 
         # In order for ".pth" write test to succeed
         with ExitStack() as stack:
@@ -602,11 +601,8 @@ def _prepare_easy_install_cmd(mocks, cmd, virtualenv_dists, available_dists,
                                     available_dists, attrs)
     _add_mock(mocks, _easy_install_cmd, lambda: easy_install_cmd)
 
-    def get_test_site_dirs():
-        return [mocks[_easy_install_mocks][_test_site_dir]]
-
     _add_mock(mocks, _easy_install_get_site_dirs,
-              lambda: Mock(side_effect=get_test_site_dirs))
+              lambda: Mock(return_value=[TEST_SITE_DIR]))
 
     return cmd
 
