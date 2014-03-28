@@ -1,5 +1,5 @@
 import pytest
-pytest_plugins = ['pkglib_testing.pytest.mongo_server']
+pytest_plugins = ['pkglib_testing.fixtures.server.mongo']
 
 
 def test_mongo_server(mongo_server, mongo_host):

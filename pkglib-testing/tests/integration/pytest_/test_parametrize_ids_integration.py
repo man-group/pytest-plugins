@@ -1,5 +1,5 @@
 from pkg_resources import resource_filename  # @UnresolvedImport
-from pkglib_testing.util import PkgTemplate
+from pkglib_testing.fixtures.package import PkgTemplate
 from distutils.dir_util import copy_tree
 
 

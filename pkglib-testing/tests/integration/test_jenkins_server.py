@@ -3,7 +3,7 @@ from pytest import raises
 
 from mock import patch
 
-pytest_plugins = ['pkglib_testing.pytest.jenkins_server']
+pytest_plugins = ['pkglib_testing.fixtures.server.jenkins']
 
 # patch out any changes you want to the Jenkins server here:
 # These are once-for-all changes!

@@ -4,7 +4,7 @@ from pkg_resources import resource_filename, get_distribution  # @UnresolvedImpo
 
 import pytest
 
-from pkglib_testing.util import PkgTemplate
+from pkglib_testing.fixtures.package import PkgTemplate
 
 
 def test_profile_profiles_tests(pytestconfig):

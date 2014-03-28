@@ -8,11 +8,12 @@ import inspect
 import textwrap
 from uuid import uuid4
 
-from pkglib_testing import util
+from pkglib_testing import cmdline
+from pkglib_testing.fixtures import workspace
 
 
 def test_workspace_run_displays_output_on_failure():
-    p = subprocess.Popen([sys.executable, '-c', """from pkglib_testing.util import Workspace
+    p = subprocess.Popen([sys.executable, '-c', """from pkglib_testing.fixtures.workspace import Workspace
 from subprocess import CalledProcessError
 try:
     Workspace().run('echo stdout; echo stderr >&2; false', capture=True)
@@ -30,32 +31,32 @@ else:
 def test_run_in_subprocess():
     def fn():
         return None
-    res = util.run_in_subprocess(fn)()
+    res = cmdline.run_in_subprocess(fn)()
     assert res is None
 
 
 def test_run_in_subprocess_is_a_subprocess():
-    pid = util.run_in_subprocess(os.getpid)()
+    pid = cmdline.run_in_subprocess(os.getpid)()
     assert pid != os.getpid()
 
 
 def test_run_in_subprocess_uses_passed_python():
     def fn():
-        import sys   # @Reimport
+        import sys  # @Reimport
         return sys.executable
-    python = util.run_in_subprocess(fn, python=sys.executable)()
+    python = cmdline.run_in_subprocess(fn, python=sys.executable)()
     assert python == sys.executable
 
 
 def test_run_in_subprocess_cd():
-    with util.Workspace() as ws:
-        cwd = util.run_in_subprocess(os.getcwd, cd=ws.workspace)()
+    with workspace.Workspace() as ws:
+        cwd = cmdline.run_in_subprocess(os.getcwd, cd=ws.workspace)()
     assert cwd == ws.workspace
 
 
 def test_run_in_subprocess_timeout():
-    with pytest.raises(execnet.TimeoutError) as exc:    # @UndefinedVariable
-        util.run_in_subprocess(time.sleep, timeout=0)(1)
+    with pytest.raises(execnet.TimeoutError) as exc:  # @UndefinedVariable
+        cmdline.run_in_subprocess(time.sleep, timeout=0)(1)
     assert 'no item after 0 seconds' in str(exc.value)
 
 
@@ -63,8 +64,8 @@ def test_run_in_subprocess_exception():
     def fn(v):
         raise v
     v = ValueError(uuid4())
-    with pytest.raises(execnet.RemoteError) as exc:    # @UndefinedVariable
-        util.run_in_subprocess(fn)(v)
+    with pytest.raises(execnet.RemoteError) as exc:  # @UndefinedVariable
+        cmdline.run_in_subprocess(fn)(v)
     assert str(v) in str(exc.value)
 
 
@@ -74,7 +75,7 @@ def test_run_in_subprocess_passes_stdout():
         import sys  # @Reimport
         sys.stdout.write(x)
     guid = str(uuid4())
-    cmd = """from pkglib_testing.util import run_in_subprocess
+    cmd = """from pkglib_testing.cmdline import run_in_subprocess
 run_in_subprocess(%r)(%r)
 """ % (textwrap.dedent(inspect.getsource(fn)), guid)
     p = subprocess.Popen([sys.executable, '-c', cmd], stdout=subprocess.PIPE)
@@ -87,7 +88,7 @@ def test_run_in_subprocess_passes_stderr():
         import sys  # @Reimport
         sys.stderr.write(x)
     guid = str(uuid4())
-    cmd = """from pkglib_testing.util import run_in_subprocess
+    cmd = """from pkglib_testing.cmdline import run_in_subprocess
 run_in_subprocess(%r)(%r)
 """ % (textwrap.dedent(inspect.getsource(fn)), guid)
     p = subprocess.Popen([sys.executable, '-c', cmd], stderr=subprocess.PIPE)
