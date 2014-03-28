@@ -19,8 +19,6 @@ except ImportError:
 from pkglib.config import org
 from pkglib.setuptools.command import jenkins_
 
-from .runner import patch_dict
-
 from . import get_resource
 
 with open(get_resource("jenkins_build_step.txt")) as f:
@@ -45,7 +43,7 @@ def create_oss_jenkins_mock_module(**kwargs):
 @contextmanager
 def patch_oss_jenkins(**kwargs):
     jenkins_mock = create_oss_jenkins_mock_module(**kwargs)
-    with patch_dict(sys.modules, {'jenkins': jenkins_mock}):
+    with patch.dict(sys.modules, {'jenkins': jenkins_mock}):
         yield
 
 
