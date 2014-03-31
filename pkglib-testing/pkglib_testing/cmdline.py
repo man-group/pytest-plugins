@@ -3,13 +3,12 @@
 """
 import sys
 import os
-import getpass
 import imp
 import tempfile
 from functools import update_wrapper
 import inspect
 import textwrap
-from contextlib import contextmanager, closing
+from contextlib import closing
 from subprocess import Popen, PIPE
 
 from mock import patch
@@ -182,11 +181,11 @@ def _run_in_subprocess_redirect_stdout(fd):
 
 def _run_in_subprocess_remote_fn(channel):
     from pkglib_util.six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
-    fn, args, kwargs = cPickle.loads(channel.receive(-1))
+    fn, args, kwargs = cPickle.loads(channel.receive(None))
     channel.send(cPickle.dumps(fn(*args, **kwargs), protocol=0))
 
 
-def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=(-1)):
+def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=None):
     """ Wrap a function to run in a subprocess.  The function must be
         pickleable or otherwise must be totally self-contained; it must not
         reference a closure or any globals.  It can also be the source of a
@@ -210,7 +209,7 @@ def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=(-1)):
             if fix_stdout:
                 with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
                     chan.send(cPickle.dumps((_run_in_subprocess_redirect_stdout, (fd,), {}), protocol=0))
-                    chan.receive(-1)
+                    chan.receive()
             with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
                 payload = (pkl_fn, tuple(i for t in (preargs, args) for i in t), kwargs)
                 chan.send(cPickle.dumps(payload, protocol=0))
