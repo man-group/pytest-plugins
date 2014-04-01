@@ -2,19 +2,20 @@ import os
 import socket
 import string
 
-from .server import HTTPTestServer
+from pkglib_testing import CONFIG
+from .http import HTTPTestServer
 
 
 SERVER_CFG = string.Template("""
-  LoadModule headers_module modules/mod_headers.so
-  LoadModule proxy_module modules/mod_proxy.so
-  LoadModule proxy_http_module modules/mod_proxy_http.so
-  LoadModule proxy_connect_module modules/mod_proxy_connect.so
-  LoadModule alias_module modules/mod_alias.so
-  LoadModule dir_module modules/mod_dir.so
-  LoadModule autoindex_module modules/mod_autoindex.so
-  LoadModule log_config_module modules/mod_log_config.so
-  LoadModule mime_module modules/mod_mime.so
+  LoadModule headers_module $modules/mod_headers.so
+  LoadModule proxy_module $modules/mod_proxy.so
+  LoadModule proxy_http_module $modules/mod_proxy_http.so
+  LoadModule proxy_connect_module $modules/mod_proxy_connect.so
+  LoadModule alias_module $modules/mod_alias.so
+  LoadModule dir_module $modules/mod_dir.so
+  LoadModule autoindex_module $modules/mod_autoindex.so
+  LoadModule log_config_module $modules/mod_log_config.so
+  LoadModule mime_module $modules/mod_mime.so
 
   StartServers 1
   ServerLimit 8
@@ -82,7 +83,8 @@ class HTTPDProxyServer(HTTPTestServer):
             document_root=self.document_root if self.document_root else self.workspace,
             listen_addr="{host}:{port}".format(host=self.hostname, port=self.port),
             proxy_rules='\n'.join(rules),
-            extra_cfg=self.extra_cfg
+            extra_cfg=self.extra_cfg,
+            modules=CONFIG.httpd_modules,
         )
         self.config.write_text(cfg)
 
@@ -92,4 +94,4 @@ class HTTPDProxyServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return ['/usr/sbin/httpd', '-f', self.config]
+        return [CONFIG.httpd_executable, '-f', self.config]

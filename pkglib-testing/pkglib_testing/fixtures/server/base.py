@@ -16,6 +16,7 @@ from six.moves import http_client
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
 
+from pkglib_testing import CONFIG
 from ..workspace import Workspace
 
 
@@ -75,6 +76,8 @@ class ServerThread(threading.Thread):
             ProcessReader(self.p, self.p.stderr, True).start()
 
     def run(self):
+        print("Running server: %s" % ' '.join(self.run_cmd))
+        print("CWD: %s" % self.cwd)
         try:
             if self.run_stdin:
                 self.p.stdin.write(self.run_stdin.encode('utf-8'))
@@ -92,17 +95,18 @@ class TestServer(Workspace):
     """
     server = None
     serverclass = ServerThread  # Child classes can set this to a different serverthread class
-    hostname = socket.gethostname()  # Not using localhost in case this is used in a cluster-type job
 
     random_port = True  # Use a random or fixed port number
     port_seed = 65535  # Used to seed port numbers if not random_port
-
     kill_signal = signal.SIGTERM
+
+    # Number of seconds to wait between kill retries. Increase if the service takes a while to die
+    kill_retry_delay = 1
 
     def __init__(self, workspace=None, delete=None, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
         self.port = kwargs.get('port', self.get_port())
-        self.hostname = kwargs.get('hostname', self.hostname)
+        self.hostname = kwargs.get('hostname', CONFIG.fixture_hostname)
         # We don't know if the server is alive or dead at this point, assume alive
         self.dead = False
         self.env = kwargs.get('env')
@@ -181,7 +185,11 @@ class TestServer(Workspace):
         start_time = datetime.now()
         while retry_count > 0:
             for _ in range(retries_per_interval):
+                print('sleeping for %s before retrying (%d of %d)'
+                      % (interval, ((retry_limit + 1) - retry_count), retry_limit))
                 if self.check_server_up():
+                    print('waited %s for server to start successfully'
+                          % str(datetime.now() - start_time))
                     return
 
                 time.sleep(interval)
@@ -194,10 +202,12 @@ class TestServer(Workspace):
     def start_server(self, env=None):
         """ Start the server instance.
         """
+        print("Starting Server on host %s port %s" % (self.hostname, self.port))
         self.server = self.serverclass(self.hostname, self.port, self.run_cmd, self.run_stdin,
                                        env=getattr(self, "env", env), cwd=self.cwd)
         self.server.start()
         self.wait_for_go()
+        print("Server now awake")
         self.dead = False
 
     def kill(self, retries=5):
@@ -233,7 +243,7 @@ class TestServer(Workspace):
                 else:
                     os.kill(pid, self.kill_signal)
 
-            time.sleep(1)
+            time.sleep(self.kill_retry_delay)
         else:
             raise ValueError("Server not dead after %d retries" % retries)
 

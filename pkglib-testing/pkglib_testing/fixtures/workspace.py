@@ -47,12 +47,21 @@ class Workspace(object):
     def __init__(self, workspace=None, delete=None):
         self.delete = delete
 
+        print("")
+        print("=======================================================")
         if workspace is None:
             self.workspace = path(tempfile.mkdtemp(dir=util.get_base_tempdir()))
+            print("pkglib_testing created workspace %s" % self.workspace)
+
         else:
             self.workspace = workspace
+            print("pkglib_testing using workspace %s" % self.workspace)
         if 'DEBUG' in os.environ:
             self.debug = True
+        if self.delete is not False:
+            print("This workspace will delete itself on teardown")
+        print("=======================================================")
+        print("")
 
     def __enter__(self):
         return self
@@ -114,6 +123,11 @@ class Workspace(object):
         if not self.delete:
             return
         if os.path.isdir(self.workspace):
+            print("")
+            print("=======================================================")
+            print("pkglib_testing deleting workspace %s" % self.workspace)
+            print("=======================================================")
+            print("")
             shutil.rmtree(self.workspace)
 
     def create_pypirc(self, config):

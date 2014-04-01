@@ -35,6 +35,7 @@ class HTTPTestServer(TestServer):
         """ Check the server is up by polling self.uri
         """
         try:
+            print('accessing URL:', self.uri)
             url = urlopen(self.uri)
             return url.getcode() == 200
         except (URLError, socket.error, http_client.BadStatusLine) as e:
@@ -42,6 +43,7 @@ class HTTPTestServer(TestServer):
                 # This is OK, the server is probably running in secure mode
                 return True
 
+            print("Server not up yet (%s).." % e)
             return False
 
 
