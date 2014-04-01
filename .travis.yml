@@ -4,6 +4,6 @@ python:
   - 2.7
 install:
   - python setup.py develop
-  - pip freeze
+  - pip list
 script:
   - python setup.py test --unit

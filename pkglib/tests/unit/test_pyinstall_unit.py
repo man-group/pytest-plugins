@@ -1,9 +1,13 @@
+import os
 import sys
 from mock import patch
+import pytest
 
 from pkglib.scripts import pyinstall
 
 
+@pytest.mark.skipif('TRAVIS' in os.environ,
+                    reason="Our monkey patch doesn't work with the version of setuptools on Travis. FIXME.")
 def test_pyinstall_respects_i_flag():
     """Ensure that pyinstall allows us to override the PyPI URL with -i,
     even if it's already set in the config.
@@ -22,7 +26,7 @@ def test_pyinstall_respects_i_flag():
         # raise an exception so we terminate here.
         raise OpenedCorrectUrl()
     
-    with patch('urllib2.urlopen', fake_urlopen):
+    with patch('setuptools.package_index.urllib2.urlopen', fake_urlopen):
 
         # Call pyinstall with the -i flag.
         args = ['pyinstall', '-i', pypi_url, package_name]
