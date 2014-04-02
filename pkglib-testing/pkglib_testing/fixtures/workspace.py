@@ -4,6 +4,7 @@ import os
 import tempfile
 import shutil
 import subprocess
+import logging
 
 from path import path
 
@@ -11,6 +12,8 @@ from pkglib_util.six import string_types
 from pkglib_util import cmdline
 
 from .. import util
+
+log = logging.getLogger(__name__)
 
 
 def pytest_funcarg__workspace(request):
@@ -47,12 +50,21 @@ class Workspace(object):
     def __init__(self, workspace=None, delete=None):
         self.delete = delete
 
+        log.debug("")
+        log.debug("=======================================================")
         if workspace is None:
             self.workspace = path(tempfile.mkdtemp(dir=util.get_base_tempdir()))
+            log.debug("pkglib_testing created workspace %s" % self.workspace)
+
         else:
             self.workspace = workspace
+            log.debug("pkglib_testing using workspace %s" % self.workspace)
         if 'DEBUG' in os.environ:
             self.debug = True
+        if self.delete is not False:
+            log.debug("This workspace will delete itself on teardown")
+        log.debug("=======================================================")
+        log.debug("")
 
     def __enter__(self):
         return self
@@ -86,7 +98,7 @@ class Workspace(object):
         if not cd:
             cd = self.workspace
         with cmdline.chdir(cd):
-            print("run: %s" % str(cmd))
+            log.debug("run: %s" % str(cmd))
             if capture:
                 p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
             else:
@@ -97,15 +109,15 @@ class Workspace(object):
                 out = out.decode('utf-8')
 
             if self.debug and capture:
-                print("Stdout/stderr:")
-                print(out)
+                log.debug("Stdout/stderr:")
+                log.debug(out)
 
             if check_rc and p.returncode != 0:
                 err = subprocess.CalledProcessError(p.returncode, cmd)
                 err.output = out
                 if capture and not self.debug:
-                    print("Stdout/stderr:")
-                    print(out)
+                    log.debug("Stdout/stderr:")
+                    log.debug(out)
                 raise err
 
         return out
@@ -114,6 +126,11 @@ class Workspace(object):
         if not self.delete:
             return
         if os.path.isdir(self.workspace):
+            log.debug("")
+            log.debug("=======================================================")
+            log.debug("pkglib_testing deleting workspace %s" % self.workspace)
+            log.debug("=======================================================")
+            log.debug("")
             shutil.rmtree(self.workspace)
 
     def create_pypirc(self, config):

@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import socket
+import logging
 
 import pytest
 
@@ -10,6 +11,8 @@ from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
 
 from .base import TestServer
+
+log = logging.getLogger(__name__)
 
 
 @pytest.yield_fixture
@@ -35,6 +38,7 @@ class HTTPTestServer(TestServer):
         """ Check the server is up by polling self.uri
         """
         try:
+            log.debug('accessing URL:', self.uri)
             url = urlopen(self.uri)
             return url.getcode() == 200
         except (URLError, socket.error, http_client.BadStatusLine) as e:
@@ -42,6 +46,7 @@ class HTTPTestServer(TestServer):
                 # This is OK, the server is probably running in secure mode
                 return True
 
+            log.debug("Server not up yet (%s).." % e)
             return False
 
 

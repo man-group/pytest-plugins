@@ -10,13 +10,17 @@ import threading
 import time
 import traceback
 from datetime import datetime
+import logging
 
 from six import string_types
 from six.moves import http_client
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
 
+from pkglib_testing import CONFIG
 from ..workspace import Workspace
+
+log = logging.getLogger(__name__)
 
 
 def get_ephemeral_port():
@@ -46,7 +50,7 @@ class ProcessReader(threading.Thread):
             if self.stderr:
                 sys.stderr.writelines(l.strip() + "\n")
             else:
-                print(l.strip())
+                log.debug(l.strip())
 
 
 class ServerThread(threading.Thread):
@@ -75,6 +79,8 @@ class ServerThread(threading.Thread):
             ProcessReader(self.p, self.p.stderr, True).start()
 
     def run(self):
+        log.debug("Running server: %s" % ' '.join(self.run_cmd))
+        log.debug("CWD: %s" % self.cwd)
         try:
             if self.run_stdin:
                 self.p.stdin.write(self.run_stdin.encode('utf-8'))
@@ -181,7 +187,11 @@ class TestServer(Workspace):
         start_time = datetime.now()
         while retry_count > 0:
             for _ in range(retries_per_interval):
+                log.debug('sleeping for %s before retrying (%d of %d)'
+                      % (interval, ((retry_limit + 1) - retry_count), retry_limit))
                 if self.check_server_up():
+                    log.debug('waited %s for server to start successfully'
+                          % str(datetime.now() - start_time))
                     return
 
                 time.sleep(interval)
@@ -194,10 +204,12 @@ class TestServer(Workspace):
     def start_server(self, env=None):
         """ Start the server instance.
         """
+        log.debug("Starting Server on host %s port %s" % (self.hostname, self.port))
         self.server = self.serverclass(self.hostname, self.port, self.run_cmd, self.run_stdin,
                                        env=getattr(self, "env", env), cwd=self.cwd)
         self.server.start()
         self.wait_for_go()
+        log.debug("Server now awake")
         self.dead = False
 
     def kill(self, retries=5):
