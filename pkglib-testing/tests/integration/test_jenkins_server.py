@@ -38,7 +38,7 @@ def test_load_plugins_fails_with_invalid_plugin_names_as_list(jenkins_server):
     assert str(e.value) == "Plugins ['junk', 'zjunk'] are not present in the repository"
 
 def test_load_plugins_loads_only_nominated_plugins(jenkins_server):
-    with patch('pkglib_testing.jenkins_server.shutil.copy') as mock_copy:
+    with patch('pkglib_testing.fixtures.server.jenkins.shutil.copy') as mock_copy:
         jenkins_server.load_plugins(PLUGIN_REPO, 'notification')
         assert mock_copy.call_count == 1
         tup = mock_copy.call_args_list[0][0]
@@ -46,7 +46,7 @@ def test_load_plugins_loads_only_nominated_plugins(jenkins_server):
         assert str(tup[1]) == os.path.join(jenkins_server.workspace, 'plugins/notification.hpi')
 
 def test_load_plugins_loads_all_plugins(jenkins_server):
-    with patch('pkglib_testing.jenkins_server.shutil.copy') as mock_copy:
+    with patch('pkglib_testing.fixtures.server.jenkins.shutil.copy') as mock_copy:
         jenkins_server.load_plugins(PLUGIN_REPO)
         assert mock_copy.call_count == len([x for x in os.listdir(PLUGIN_REPO)
                                             if x.endswith('.hpi')])
