@@ -209,7 +209,7 @@ def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=None):
             if fix_stdout:
                 with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
                     chan.send(cPickle.dumps((_run_in_subprocess_redirect_stdout, (fd,), {}), protocol=0))
-                    chan.receive()
+                    chan.receive(None)
             with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
                 payload = (pkl_fn, tuple(i for t in (preargs, args) for i in t), kwargs)
                 chan.send(cPickle.dumps(payload, protocol=0))

@@ -117,7 +117,7 @@ def test_run_in_subprocess():
         chan = gw.remote_exec.return_value
         mocks['cPickle'].dumps.assert_called_with((fn, (sentinel.arg,), {'kw': sentinel.kw}), protocol=0)
         chan.send.assert_called_with(mocks['cPickle'].dumps.return_value)
-        chan.receive.assert_has_calls([call(-1) for _i in range(gw.remote_exec.call_count)])
+        chan.receive.assert_has_calls([call(None) for _i in range(gw.remote_exec.call_count)])
         mocks['cPickle'].loads.assert_called_once_with(chan.receive.return_value)
         assert res is mocks['cPickle'].loads.return_value
         chan.close.assert_has_calls([call() for _i in range(gw.remote_exec.call_count)])
@@ -127,7 +127,7 @@ def test_run_in_subprocess():
         channel, fn = Mock(), Mock()
         cPickle.loads.return_value = (fn, (sentinel.arg,), {'kw': sentinel.kw})
         remote_fn(channel)
-        channel.receive.assert_called_once_with(-1)
+        channel.receive.assert_called_once_with(None)
         cPickle.loads.assert_called_once_with(channel.receive.return_value)
         fn.assert_called_once_with(sentinel.arg, kw=sentinel.kw)
         cPickle.dumps.assert_called_once_with(fn.return_value, protocol=0)
