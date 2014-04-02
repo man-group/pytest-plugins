@@ -20,6 +20,7 @@ CONFIG = config.TestingConfig(
     jenkins_war=os.getenv('PKGLIB_TESTING_JENKINS_WAR', '/usr/share/jenkins/jenkins.war'),
     mongo_bin=os.getenv('PKGLIB_TESTING_MONGO_BIN', '/usr/bin'),
     redis_executable=os.getenv('PKGLIB_TESTING_REDIS', "/usr/sbin/redis-server"),
+    rethink_executable=os.getenv('PKGLIB_TESTING_RETHINK', "/usr/bin/rethinkdb"),
     virtualenv_executable=os.getenv('PKGLIB_TESTING_VIRTUALENV', "virtualenv"),
     httpd_executable=os.getenv('PKGLIB_TESTING_HTTPD', "/usr/sbin/apache2"),
     httpd_modules=os.getenv('PKGLIB_TESTING_HTTPD_MODULES', "/usr/lib/apache2/modules"),

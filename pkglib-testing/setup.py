@@ -71,6 +71,7 @@ def main():
                         'redis',
                         'selenium',
                         'pymongo',
+                        'rethinkdb',
                         'SQLAlchemy',
                         'path.py',
                         'python-jenkins',
