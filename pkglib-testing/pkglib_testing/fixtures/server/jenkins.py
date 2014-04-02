@@ -30,6 +30,7 @@ def jenkins_server():
 
 class JenkinsTestServer(HTTPTestServer):
     port_seed = 65533
+    kill_retry_delay = 2
 
     def __init__(self, **kwargs):
         super(JenkinsTestServer, self).__init__(**kwargs)

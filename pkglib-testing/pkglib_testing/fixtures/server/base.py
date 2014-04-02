@@ -98,17 +98,18 @@ class TestServer(Workspace):
     """
     server = None
     serverclass = ServerThread  # Child classes can set this to a different serverthread class
-    hostname = socket.gethostname()  # Not using localhost in case this is used in a cluster-type job
 
     random_port = True  # Use a random or fixed port number
     port_seed = 65535  # Used to seed port numbers if not random_port
-
     kill_signal = signal.SIGTERM
+
+    # Number of seconds to wait between kill retries. Increase if the service takes a while to die
+    kill_retry_delay = 1
 
     def __init__(self, workspace=None, delete=None, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
         self.port = kwargs.get('port', self.get_port())
-        self.hostname = kwargs.get('hostname', self.hostname)
+        self.hostname = kwargs.get('hostname', CONFIG.fixture_hostname)
         # We don't know if the server is alive or dead at this point, assume alive
         self.dead = False
         self.env = kwargs.get('env')
@@ -245,7 +246,7 @@ class TestServer(Workspace):
                 else:
                     os.kill(pid, self.kill_signal)
 
-            time.sleep(1)
+            time.sleep(self.kill_retry_delay)
         else:
             raise ValueError("Server not dead after %d retries" % retries)
 
