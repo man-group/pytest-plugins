@@ -61,19 +61,3 @@ def requires_config(vars_):
             return f(request, *args, **kwargs)
         return wrapper
     return decorator
-
-
-def yield_requires_config(vars_):
-    """ As above but for yield_fixtures
-    """
-    def decorator(f):
-        # We need to specify 'request' in the args here to satisfy pytest's fixture logic
-        @functools.wraps(f)
-        def wrapper(request, *args, **kwargs):
-            for var in vars_:
-                if not getattr(CONFIG, var):
-                    pytest.skip('pkglib_testing config variable {} missing, skipping test'.format(var))
-            gen = f(*args, **kwargs)
-            yield gen.next()
-        return wrapper
-    return decorator

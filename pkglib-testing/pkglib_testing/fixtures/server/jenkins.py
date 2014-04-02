@@ -3,8 +3,6 @@ Created on 25 Apr 2012
 
 @author: eeaston
 '''
-from __future__ import absolute_import
-
 import os.path
 import shutil
 
@@ -13,11 +11,11 @@ import pytest
 
 from pkglib_testing import CONFIG
 
-from ..util import yield_requires_config
+from ..util import requires_config
 from .http import HTTPTestServer
 
 
-@yield_requires_config(['jenkins_war', 'java_executable'])
+@requires_config(['jenkins_war', 'java_executable'])
 @pytest.yield_fixture(scope='session')
 def jenkins_server():
     """ Boot up Jenkins in a local thread.
@@ -30,7 +28,6 @@ def jenkins_server():
 
 class JenkinsTestServer(HTTPTestServer):
     port_seed = 65533
-    kill_retry_delay = 2
 
     def __init__(self, **kwargs):
         super(JenkinsTestServer, self).__init__(**kwargs)

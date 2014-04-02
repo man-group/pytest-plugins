@@ -4,8 +4,7 @@
 
 class TestingConfig(object):
     __slots__ = ('java_executable', 'jenkins_url', 'jenkins_war', 'mongo_bin', 'redis_executable',
-                 'virtualenv_executable', 'rethink_executable', 'httpd_executable', 'httpd_modules',
-                 'fixture_hostname')
+                 'virtualenv_executable')
 
     def __init__(self, **kwargs):
         [setattr(self, k, v) for (k, v) in kwargs.items()]
