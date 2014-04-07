@@ -1,3 +1,5 @@
+import socket
+
 import pytest
 import rethinkdb
 
@@ -46,7 +48,7 @@ class RethinkDBServer(TestServer):
     def run_cmd(self):
         return [CONFIG.rethink_executable,
                 '--directory', self.workspace / 'db',
-                '--bind', 'all',
+                '--bind', socket.gethostbyname(self.hostname),
                 '--driver-port', str(self.port),
                 '--http-port', str(self.http_port),
                 '--cluster-port', str(self.cluster_port),
