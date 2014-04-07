@@ -2,6 +2,7 @@ import socket
 
 import pytest
 import rethinkdb
+import uuid
 
 from pkglib_testing import CONFIG
 
@@ -33,6 +34,19 @@ def rethink_server_sess(request):
     """ Same as rethink_server fixture, scoped as session instead.
     """
     return _rethink_server(request)
+
+
+@pytest.yield_fixture(scope="function")
+def rethink_unique_db(rethink_server_sess):
+    """ Starts up a session-scoped server, and returns a connection to
+        a unique database for the life of a single test, and drops it after
+    """
+    dbid = uuid.uuid4().hex
+    conn = rethink_server_sess.conn
+    rethinkdb.db_create(dbid).run(conn)
+    conn.use(dbid)
+    yield conn
+    rethinkdb.db_drop(dbid).run(conn)
 
 
 class RethinkDBServer(TestServer):
