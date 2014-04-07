@@ -47,10 +47,11 @@ class ProcessReader(threading.Thread):
             if not isinstance(l, string_types):
                 l = l.decode('utf-8')
 
-            if self.stderr:
-                sys.stderr.writelines(l.strip() + "\n")
-            else:
-                log.debug(l.strip())
+            if l.strip():
+                if self.stderr:
+                    sys.stderr.writelines(l.strip() + "\n")
+                else:
+                    log.debug(l.strip())
 
 
 class ServerThread(threading.Thread):
