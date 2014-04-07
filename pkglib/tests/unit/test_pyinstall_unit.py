@@ -1,5 +1,7 @@
 import os
 import sys
+
+import pytest
 from mock import patch
 import pytest
 
@@ -25,9 +27,8 @@ def test_pyinstall_respects_i_flag():
         # We don't actually want pyinstall to install anything, so we
         # raise an exception so we terminate here.
         raise OpenedCorrectUrl()
-    
-    with patch('setuptools.package_index.urllib2.urlopen', fake_urlopen):
 
+    with patch('setuptools.package_index.urllib2.urlopen', fake_urlopen):
         # Call pyinstall with the -i flag.
         args = ['pyinstall', '-i', pypi_url, package_name]
         with patch.object(sys, 'argv', args):

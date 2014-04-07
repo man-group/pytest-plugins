@@ -1,4 +1,4 @@
-pytest_plugins = ['pkglib_testing.pytest.redis_server_session']
+pytest_plugins = ['pkglib_testing.fixtures.server.redis']
 
 
 def test_server_runner(redis_server):

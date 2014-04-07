@@ -1,6 +1,5 @@
 from mock import Mock
-
-from pkglib.six.moves import cStringIO
+from pkglib_util.six.moves import cStringIO  # @UnresolvedImport
 
 
 class Req(object):

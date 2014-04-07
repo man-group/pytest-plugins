@@ -4,13 +4,13 @@ import pkg_resources
 from zc.buildout.easy_install import _final_version
 from pkglib.setuptools.buildout import Installer
 
-pytest_plugins = ['pkglib_testing.pytest.parametrize_ids']
+pytest_plugins = ['pkglib_testing.pytest']
 
 
 class Dist(object):
     def __init__(self, version, identifier=None):
         self.version = version
-        self.identifier = identifier    # used to differentiate dists with the
+        self.identifier = identifier  # used to differentiate dists with the
                                         # same version
         self.parsed_version = pkg_resources.parse_version(version)
 

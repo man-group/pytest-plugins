@@ -3,10 +3,10 @@ import stat
 import logging
 import time
 
-from pkglib.six.moves import configparser
-from pkglib.six.moves.urllib.error import HTTPError
-from pkglib.six.moves.urllib.request import HTTPBasicAuthHandler, Request, build_opener
-from pkglib.six.moves.urllib.parse import urlencode
+from pkglib_util.six.moves import configparser
+from pkglib_util.six.moves.urllib.error import HTTPError
+from pkglib_util.six.moves.urllib.request import HTTPBasicAuthHandler, Request, build_opener
+from pkglib_util.six.moves.urllib.parse import urlencode
 
 from pkglib import errors
 

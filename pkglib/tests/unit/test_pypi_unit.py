@@ -3,9 +3,9 @@ import subprocess
 
 from urllib2 import addinfourl
 
-from pkglib.six.moves import cStringIO
-from pkglib.six.moves.urllib.request import HTTPBasicAuthHandler
-from pkglib.six.moves.urllib.error import HTTPError
+from pkglib_util.six.moves import cStringIO
+from pkglib_util.six.moves.urllib.request import HTTPBasicAuthHandler
+from pkglib_util.six.moves.urllib.error import HTTPError
 
 try:
     # Python 3

@@ -9,7 +9,7 @@ from pkglib_testing.pytest.util import svn_repo, workspace  # @UnusedImport # NO
 from pkglib_testing.pytest.pypi import pypi_chishop  # @UnusedImport # NOQA
 from pkglib.manage import read_allrevisions
 
-from pkglib.six.moves import ExitStack
+from pkglib_util.six.moves import ExitStack
 
 from pkglib_testing.pypi import create_pkg
 
@@ -116,7 +116,7 @@ def test_new_build(pypi_chishop, svn_repo, pytestconfig):
 
 @pytest.mark.chishop
 def test_egg_revisions(pypi_chishop, svn_repo, workspace, pytestconfig):  # @UnusedVariable # NOQA
-    #pypi_chishop.restore()
+    # pypi_chishop.restore()
     package1_metadata = dict(version='1.2.3',)
     package2_metadata = dict(version='4.5.6',
                              install_requires='acme.er.package1==1.2.3')

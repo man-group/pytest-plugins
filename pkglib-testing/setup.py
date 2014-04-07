@@ -71,10 +71,12 @@ def main():
                         'redis',
                         'selenium',
                         'pymongo',
+                        'rethinkdb',
                         'SQLAlchemy',
                         'path.py',
                         'python-jenkins',
                         'pkglib_util',
+                        'six',
                         ]
     setup(
         name='pkglib-testing',

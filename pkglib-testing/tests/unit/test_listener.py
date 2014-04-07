@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-import pkglib_testing.listener as li
+import pkglib_testing.listener.server as li
 
 RECEIVE_TIMEOUT = 10
 
@@ -58,7 +58,7 @@ def test_send_halfway_data(listener):
         obj3 = 'third'
         listener.send(obj3)
         d = listener.receive(RECEIVE_TIMEOUT)
-        assert d == obj3 # demonstrating that obj2 has been "removed"
+        assert d == obj3  # demonstrating that obj2 has been "removed"
 
     finally:
         li.DEBUG = False

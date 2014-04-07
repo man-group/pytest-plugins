@@ -1,7 +1,7 @@
 import getpass
 import os
 import textwrap
-from pkglib.six.moves import configparser, input  # @UnresolvedImport
+from pkglib_util.six.moves import configparser, input  # @UnresolvedImport
 
 from distutils.config import PyPIRCCommand as _PyPIRCCommand
 from distutils import log

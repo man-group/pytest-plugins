@@ -6,14 +6,14 @@ from collections import namedtuple
 from mock import patch, Mock
 from setuptools.dist import Distribution
 import pytest
-from pkglib.six.moves import configparser, cStringIO   # @UnresolvedImport
+from pkglib_util.six.moves import configparser, cStringIO  # @UnresolvedImport
 ConfigParser = configparser.ConfigParser
 
 from pkglib.setuptools import setup as pkgutils_setup
 from pkglib.setuptools.command.develop import develop as _develop
 from pkglib_testing.util import PkgTemplate
 
-from pkglib.six.moves import ExitStack
+from pkglib_util.six.moves import ExitStack
 
 HERE = os.getcwd()
 
