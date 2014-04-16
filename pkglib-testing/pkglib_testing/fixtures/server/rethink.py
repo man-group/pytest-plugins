@@ -2,11 +2,20 @@ import socket
 
 import pytest
 import rethinkdb
+import uuid
+import logging
+import time
 
 from pkglib_testing import CONFIG
 
 from .base import TestServer
 from ..util import requires_config
+
+log_format = ("%(levelname)-5s %(asctime)s.%(msecs)03d " +
+              "module:%(module)s %(message)s")
+logging.basicConfig(format=log_format, datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 def _rethink_server(request):
@@ -35,6 +44,71 @@ def rethink_server_sess(request):
     return _rethink_server(request)
 
 
+@pytest.yield_fixture(scope="function")
+def rethink_unique_db(rethink_server_sess):
+    """ Starts up a session-scoped server, and returns a connection to
+        a unique database for the life of a single test, and drops it after
+    """
+    dbid = uuid.uuid4().hex
+    conn = rethink_server_sess.conn
+    rethinkdb.db_create(dbid).run(conn)
+    conn.use(dbid)
+    yield conn
+    rethinkdb.db_drop(dbid).run(conn)
+
+
+@pytest.yield_fixture(scope="module")
+def rethink_module_db(rethink_server_sess):
+    """ Starts up a session-scoped server, and returns a connection to
+        a unique database for all the tests in one module.
+        Drops the database after module tests are complete.
+    """
+    dbid = uuid.uuid4().hex
+    conn = rethink_server_sess.conn
+    log.info("Making database")
+    rethinkdb.db_create(dbid).run(conn)
+    conn.use(dbid)
+    yield conn
+    log.info("Dropping database")
+    rethinkdb.db_drop(dbid).run(conn)
+
+
+@pytest.fixture(scope="module")
+def rethink_make_tables(request, rethink_module_db):
+    reqd_table_list = getattr(request.module, 'FIXTURE_TABLES')
+    log.debug("Do stuff before all module tests with {}"
+             .format(reqd_table_list))
+    conn = rethink_module_db
+    for table_name, primary_key in reqd_table_list:
+        try:
+            rethinkdb.db(conn.db).table_create(table_name,
+                                               primary_key=primary_key,
+                                               ).run(conn)
+            log.info('Made table "{}" with key "{}"'
+                     .format(table_name, primary_key))
+        except RqlRuntimeError, err:
+            log.debug('Table "{}" not made: {}'.format(table_name,
+                                                      err.message))
+
+
+@pytest.yield_fixture(scope="function")
+def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
+    """ Given a module scoped database, we need to empty all the tables
+        for each test to ensure no interaction between test table content.
+
+        This is a useful approach, because of the long time taken to
+        create a new RethinkDB table, compared to the time to empty one.
+    """
+    tables_to_emptied = (table[0] for table
+                         in getattr(request.module, 'FIXTURE_TABLES'))
+    conn = rethink_module_db
+
+    for table_name in tables_to_emptied:
+        rethinkdb.db(conn.db).table(table_name).delete().run(conn)
+        log.debug('Emptied "{}" before test'.format(table_name))
+    yield conn
+
+
 class RethinkDBServer(TestServer):
     random_port = True
 
@@ -56,10 +130,12 @@ class RethinkDBServer(TestServer):
 
     def check_server_up(self):
         """Test connection to the server."""
-        print("Connecting to RethinkDB at %s:%s" % (self.hostname, self.port))
+        log.info("Connecting to RethinkDB at {}:{}".format(
+            self.hostname, self.port))
         try:
-            self.conn = rethinkdb.connect(host=self.hostname, port=self.port, db='test')
+            self.conn = rethinkdb.connect(host=self.hostname,
+                                          port=self.port, db='test')
             return True
-        except rethinkdb.RqlDriverError as e:
-            print(e)
+        except rethinkdb.RqlDriverError as err:
+            log.warn(err)
         return False
