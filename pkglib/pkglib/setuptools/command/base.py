@@ -206,7 +206,7 @@ class CommandMixin(object):
 
             # DevPI. TODO: use pip.conf / pydistutils.cfg for all of this
             elif CONFIG.pypi_variant == 'devpi':
-                url += '/root/pypi/+simple/'
+                url += '/+simple/'
         return url
 
     def get_site_packages(self):
