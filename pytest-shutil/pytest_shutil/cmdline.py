@@ -60,76 +60,6 @@ def set_home(dirname):
             os.environ['HOME'] = old_home
 
 
-@contextmanager
-def set_env(**kwargs):
-    """
-    Context Mgr to set HOME
-    """
-    old_env = dict(os.environ)
-    try:
-        for k, v in kwargs.items():
-            if v is None:
-                if k in os.environ:
-                    del os.environ[k]
-            else:
-                os.environ[k] = v
-        yield
-    finally:
-        if old_env:
-            os.environ.clear()
-            os.environ.update(old_env)
-
-
-# TODO: add option to return results as a pipe to avoid buffering
-#       large amounts of output
-def run(cmd, stdin=None, capture_stdout=True, capture_stderr=False,
-        check_rc=True, background=False, **kwargs):
-    """
-    Run a command; raises `subprocess.CalledProcessError` on failure.
-
-    Parameters
-    ----------
-    stdin : file object
-        text piped to standard input
-    capture_stdout : `bool` or `stream`
-        If set, stdout will be captured and returned
-    capture_stderr : `bool`
-        If set, stderr will be piped to stdout and returned
-    **kwargs : optional arguments
-        Other arguments are passed to Popen()
-    """
-    get_log().debug('exec: %s' % str(cmd))
-    # Log to distutils here as well so we see it during setuptools stuff
-    log.debug('exec: %s' % str(cmd))
-
-    stdout = subprocess.PIPE if capture_stdout is True else capture_stdout if capture_stdout else None
-    stderr = subprocess.STDOUT if capture_stderr else None
-    stdin_arg = None if stdin is None else subprocess.PIPE
-
-    p = subprocess.Popen(cmd, stdin=stdin_arg, stdout=stdout, stderr=stderr, **kwargs)
-
-    if background:
-        return p
-
-    (out, _) = p.communicate(stdin)
-
-    if out is not None and not isinstance(out, str_type):
-        try:
-            out = out.decode('utf-8')
-        except:
-            get_log().warn("Unable to decode command output to UTF-8")
-
-    if check_rc and p.returncode != 0:
-        err_msg = ((out if out else 'No output') if capture_stdout is True
-                   else '<not captured>')
-        cmd = cmd if isinstance(cmd, str) else ' '.join(cmd)
-        get_log().error("Command failed: \"%s\"\n%s" % (cmd, err_msg.strip()))
-        ex = subprocess.CalledProcessError(p.returncode, cmd)
-        ex.output = err_msg
-        raise ex
-
-    return out
-
 
 class PrettyFormatter(object):
     def __init__(self, color=True):
@@ -311,3 +241,35 @@ def which(name, flags=os.X_OK):
             if os.access(pext, flags):
                 result.append(pext)
     return result
+
+
+def get_real_python_executable():
+    real_prefix = getattr(sys, "real_prefix", None)
+    if not real_prefix:
+        return sys.executable
+
+    executable_name = os.path.basename(sys.executable)
+    bindir = os.path.join(real_prefix, "bin")
+    if not os.path.isdir(bindir):
+        print("Unable to access bin directory of original Python "
+              "installation at: %s" % bindir)
+        return sys.executable
+
+    executable = os.path.join(bindir, executable_name)
+    if not os.path.exists(executable):
+        executable = None
+        for f in os.listdir(bindir):
+            if not f.endswith("ython"):
+                continue
+
+            f = os.path.join(bindir, f)
+            if os.path.isfile(f):
+                executable = f
+                break
+
+        if not executable:
+            print("Unable to locate a valid Python executable of original "
+                  "Python installation at: %s" % bindir)
+            executable = sys.executable
+
+    return executable

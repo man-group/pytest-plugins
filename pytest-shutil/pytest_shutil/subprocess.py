@@ -24,6 +24,57 @@ except ImportError:
     from contextlib2 import ExitStack
 
 
+# TODO: add option to return results as a pipe to avoid buffering
+#       large amounts of output
+def run(cmd, stdin=None, capture_stdout=True, capture_stderr=False,
+        check_rc=True, background=False, **kwargs):
+    """
+    Run a command; raises `subprocess.CalledProcessError` on failure.
+
+    Parameters
+    ----------
+    stdin : file object
+        text piped to standard input
+    capture_stdout : `bool` or `stream`
+        If set, stdout will be captured and returned
+    capture_stderr : `bool`
+        If set, stderr will be piped to stdout and returned
+    **kwargs : optional arguments
+        Other arguments are passed to Popen()
+    """
+    get_log().debug('exec: %s' % str(cmd))
+    # Log to distutils here as well so we see it during setuptools stuff
+    log.debug('exec: %s' % str(cmd))
+
+    stdout = subprocess.PIPE if capture_stdout is True else capture_stdout if capture_stdout else None
+    stderr = subprocess.STDOUT if capture_stderr else None
+    stdin_arg = None if stdin is None else subprocess.PIPE
+
+    p = subprocess.Popen(cmd, stdin=stdin_arg, stdout=stdout, stderr=stderr, **kwargs)
+
+    if background:
+        return p
+
+    (out, _) = p.communicate(stdin)
+
+    if out is not None and not isinstance(out, str_type):
+        try:
+            out = out.decode('utf-8')
+        except:
+            get_log().warn("Unable to decode command output to UTF-8")
+
+    if check_rc and p.returncode != 0:
+        err_msg = ((out if out else 'No output') if capture_stdout is True
+                   else '<not captured>')
+        cmd = cmd if isinstance(cmd, str) else ' '.join(cmd)
+        get_log().error("Command failed: \"%s\"\n%s" % (cmd, err_msg.strip()))
+        ex = subprocess.CalledProcessError(p.returncode, cmd)
+        ex.output = err_msg
+        raise ex
+
+    return out
+
+
 def run_as_main(fn, *argv):
     """ Run a given function as if it was the system entry point,
         eg for testing scripts.
@@ -51,75 +102,6 @@ def run_module_as_main(module, argv=[]):
 
     with patch("sys.argv", new=argv):
         imp.load_source('__main__', os.path.join(where, filename))
-
-
-def launch(cmd, **kwds):
-    """Runs the command in a separate process and returns the lines of stdout and stderr
-    as lists
-    """
-    if isinstance(cmd, string_types):
-        cmd = [cmd]
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, **kwds)
-    out, err = p.communicate()
-
-    # FIXME: can decoding below break on some unorthodox output?
-    if out is not None and not isinstance(out, string_types):
-        out = out.decode('utf-8')
-
-    if err is not None and not isinstance(err, string_types):
-        err = err.decode('utf-8')
-
-    return (out, err)
-
-
-class Shell(object):
-    """Create a shell script which runs the command and optionally runs
-    another program which returns to stdout/err retults to confirm success or failure
-    """
-    fname = None
-
-    def __init__(self, func_commands, print_info=True, **kwds):
-        if isinstance(func_commands, string_types):
-            self.func_commands = [func_commands]
-        else:
-            self.func_commands = func_commands
-        self.print_info = print_info
-        self.kwds = kwds
-
-    def __enter__(self):
-        with closing(tempfile.NamedTemporaryFile('w', delete=False)) as f:
-            self.cmd = f.name
-            os.chmod(self.cmd, 0o777)
-            f.write('#!/bin/sh\n')
-
-            for line in self.func_commands:
-                f.write('%s\n' % line)
-
-        self.out, self.err = launch(self.cmd, **self.kwds)
-
-        return self
-
-    def __exit__(self, ee, ei, tb):  # @UnusedVariable
-        if os.path.isfile(self.cmd):
-            os.remove(self.cmd)
-
-    def print_io(self):
-        def print_out_err(name, data):
-            print(name)
-            if data.strip() == '':
-                print(' <no data>')
-            else:
-                print()
-                for line in data.split('\n')[:-1]:
-                    print(line)
-
-        print('+++ Shell +++')
-        print('--cmd:')
-        for line in self.func_commands:
-            print('* %s' % line)
-        print_out_err('--out', self.out)
-        print_out_err('--err', self.err)
-        print('=== Shell ===')
 
 
 def _evaluate_fn_source(src, *args, **kwargs):

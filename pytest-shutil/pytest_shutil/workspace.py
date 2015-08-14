@@ -27,6 +27,8 @@ def pytest_funcarg__workspace(request):
     )
 
 
+
+
 class Workspace(object):
     """
     Creates a temp workspace, cleans up on teardown.
@@ -76,6 +78,12 @@ class Workspace(object):
 
     def __del__(self):
         self.teardown()
+
+    def get_base_tempdir():
+        """ Returns an appropriate dir to pass into
+            tempfile.mkdtemp(dir=xxx) or similar.
+        """
+        return os.getenv('WORKSPACE')
 
     def run(self, cmd, capture=False, check_rc=True, cd=None, shell=True, **kwargs):
         """
