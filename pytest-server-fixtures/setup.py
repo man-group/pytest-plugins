@@ -54,7 +54,8 @@ def main():
         if pytest_args:
             sys.argv = sys.argv[:-len(pytest_args)]
 
-    install_requires = ['pytest-shutil',
+    install_requires = ['pytest',
+                        'pytest-shutil',
                         'six',
                         ]
 
@@ -65,8 +66,7 @@ def main():
         'redis':  ["redis"],
     }
 
-    tests_require = ['pytest',
-                     'pytest-cov',
+    tests_require = ['pytest-cov',
                      'mock'
                      ]
 

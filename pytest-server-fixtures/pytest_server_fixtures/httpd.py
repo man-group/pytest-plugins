@@ -2,50 +2,63 @@ import os
 import socket
 import string
 
-from pkglib_testing import CONFIG
+import pytest
+
+from pytest_fixture_config import yield_requires_config
+from pytest_server_fixtures import CONFIG
+
 from .http import HTTPTestServer
 
 
-SERVER_CFG = string.Template("""
-  LoadModule headers_module $modules/mod_headers.so
-  LoadModule proxy_module $modules/mod_proxy.so
-  LoadModule proxy_http_module $modules/mod_proxy_http.so
-  LoadModule proxy_connect_module $modules/mod_proxy_connect.so
-  LoadModule alias_module $modules/mod_alias.so
-  LoadModule dir_module $modules/mod_dir.so
-  LoadModule autoindex_module $modules/mod_autoindex.so
-  LoadModule log_config_module $modules/mod_log_config.so
-  LoadModule mime_module $modules/mod_mime.so
-
-  StartServers 1
-  ServerLimit 8
-
-  TypesConfig /etc/mime.types
-  DefaultType text/plain
+@yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
+@pytest.yield_fixture(scope='function')
+def httpd_server():
+    """ Function-scoped httpd server in a local thread.
+    """
+    test_server = HTTPDServer()
+    test_server.start()
+    yield test_server
+    test_server.teardown()
 
 
-  ServerRoot $server_root
-  Listen $listen_addr
-
-  ErrorLog $server_root/logs/error.log
-  LogFormat "%h %l %u %t \\"%r\\" %>s %b" common
-  CustomLog logs/access_log common
-  LogLevel info
-
-  $proxy_rules
-
-  Alias / $document_root
-
-  <Directory $server_root>
-      Options +Indexes
-  </Directory>
-
-  $extra_cfg
-""")
-
-
-class HTTPDProxyServer(HTTPTestServer):
+class HTTPDServer(HTTPTestServer):
     port_seed = 65531
+    cfg_template = string.Template("""
+      LoadModule headers_module $modules/mod_headers.so
+      LoadModule proxy_module $modules/mod_proxy.so
+      LoadModule proxy_http_module $modules/mod_proxy_http.so
+      LoadModule proxy_connect_module $modules/mod_proxy_connect.so
+      LoadModule alias_module $modules/mod_alias.so
+      LoadModule dir_module $modules/mod_dir.so
+      LoadModule autoindex_module $modules/mod_autoindex.so
+      LoadModule log_config_module $modules/mod_log_config.so
+      LoadModule mime_module $modules/mod_mime.so
+
+      StartServers 1
+      ServerLimit 8
+
+      TypesConfig /etc/mime.types
+      DefaultType text/plain
+
+
+      ServerRoot $server_root
+      Listen $listen_addr
+
+      ErrorLog $server_root/logs/error.log
+      LogFormat "%h %l %u %t \\"%r\\" %>s %b" common
+      CustomLog logs/access_log common
+      LogLevel info
+
+      $proxy_rules
+
+      Alias / $document_root
+
+      <Directory $server_root>
+          Options +Indexes
+      </Directory>
+
+      $extra_cfg
+    """)
 
     def __init__(self, proxy_rules=None, extra_cfg='', **kwargs):
         """ httpd Proxy Server
@@ -68,7 +81,7 @@ class HTTPDProxyServer(HTTPTestServer):
         # Discover externally accessable hostname so selenium can get to it
         kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
 
-        super(HTTPDProxyServer, self).__init__(**kwargs)
+        super(HTTPDServer, self).__init__(**kwargs)
 
     def pre_setup(self):
         """ Write out the config file
@@ -78,7 +91,7 @@ class HTTPDProxyServer(HTTPTestServer):
         for source in self.proxy_rules:
             rules.append("ProxyPass {} {}".format(source, self.proxy_rules[source]))
             rules.append("ProxyPassReverse {} {} \n".format(source, self.proxy_rules[source]))
-        cfg = SERVER_CFG.substitute(
+        cfg = self.cfg_template.substitute(
             server_root=self.workspace,
             document_root=self.document_root if self.document_root else self.workspace,
             listen_addr="{host}:{port}".format(host=self.hostname, port=self.port),

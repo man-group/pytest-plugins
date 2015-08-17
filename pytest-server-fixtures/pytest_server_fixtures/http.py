@@ -17,6 +17,8 @@ log = logging.getLogger(__name__)
 
 @pytest.yield_fixture
 def simple_http_test_server():
+    """ Function-scoped py.test fixture to serve up a directory via HTTP.
+    """
     with SimpleHTTPTestServer() as s:
         s.start()
         yield s
@@ -38,7 +40,7 @@ class HTTPTestServer(TestServer):
         """ Check the server is up by polling self.uri
         """
         try:
-            log.debug('accessing URL:', self.uri)
+            log.debug('accessing URL: {}'.format(self.uri))
             url = urlopen(self.uri)
             return url.getcode() == 200
         except (URLError, socket.error, http_client.BadStatusLine) as e:
