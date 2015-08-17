@@ -1,16 +1,10 @@
 import os
-from uuid import uuid4
 
 import pytest
-from pkglib_util.six.moves import cPickle
 
-from pkglib_testing import env, cmdline
+from pytest_shutil import env
 
 TEMP_NAME = 'JUNK123_456_789'
-ARG = str(uuid4())
-KW = str(uuid4())
-
-Shell = cmdline.Shell
 
 
 def test_set_env_ok_if_exists():
@@ -66,63 +60,6 @@ def test_no_env_ok_if_not_exists():
     assert TEMP_NAME not in os.environ
 
 
-def test_subprocess_set_env_ok_if_exists():
-    ev = os.environ[TEMP_NAME] = 'junk_name'
-    try:
-        with env.set_env(TEMP_NAME, 'anything'):
-            out = cmdline.launch('env')[0]
-            for o in out.split('\n'):
-                if o.startswith(TEMP_NAME):
-                    assert o == '%s=anything' % TEMP_NAME
-                    break
-            else:
-                assert False, '%s not found in os.environ' % TEMP_NAME
-        assert os.environ[TEMP_NAME] == ev
-
-    finally:
-        if TEMP_NAME in os.environ:
-            del os.environ[TEMP_NAME]
-
-
-def test_subprocess_set_env_ok_if_not_exists():
-    if TEMP_NAME in os.environ:
-        del os.environ[TEMP_NAME]
-    with env.set_env(TEMP_NAME, 'anything'):
-        out = cmdline.launch('env')[0]
-        for o in out.split('\n'):
-            if o.startswith(TEMP_NAME):
-                assert o == '%s=anything' % TEMP_NAME
-                break
-        else:
-            assert False, '%s not found in os.environ' % TEMP_NAME
-
-
-def test_subprocecmdline():
-    ev = os.environ[TEMP_NAME] = 'junk_name'
-    try:
-        with env.no_env(TEMP_NAME):
-            out = cmdline.launch('env')[0]
-            for o in out.split('\n'):
-                if o.startswith(TEMP_NAME):
-                    assert False, '%s found in os.environ' % TEMP_NAME
-
-        assert os.environ[TEMP_NAME] == ev
-    finally:
-        if TEMP_NAME in os.environ:
-            del os.environ[TEMP_NAME]
-
-
-def test_subprocess_no_env_ok_if_not_exists():
-    if TEMP_NAME in os.environ:
-        del os.environ[TEMP_NAME]
-    with env.no_env(TEMP_NAME):
-        out = cmdline.launch('env')[0]
-        for o in out.split('\n'):
-            if o.startswith(TEMP_NAME):
-                assert False, '%s found in os.environ' % TEMP_NAME
-
-    assert TEMP_NAME not in os.environ
-
 
 def test_set_env_with_kwargs_updates():
     test_env = {"TEST_ACME_TESTING_A": "a",
@@ -139,4 +76,8 @@ def test_set_env_with_kwargs_updates():
     assert os.environ["TEST_ACME_TESTING_C"] == "c"
 
 
-
+def test_set_home():
+    home = os.environ['HOME']
+    with env.set_home('/tmp'):
+        assert os.environ['HOME'] == '/tmp'
+    assert os.environ['HOME'] == home

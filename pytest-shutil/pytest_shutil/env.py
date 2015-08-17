@@ -1,6 +1,8 @@
 """ Environment management utilities
 """
 import os
+import sys
+import functools
 from contextlib import contextmanager
 
 
@@ -33,6 +35,9 @@ def set_env(*args, **kwargs):
     finally:
         # Restore original environment
         update_environment(saved_values)
+
+
+set_home = functools.partial(set_env, 'HOME')
 
 
 @contextmanager
@@ -78,10 +83,29 @@ def no_env(key):
             pass
 
 
+@contextmanager
+def no_cov():
+    """ Context manager to disable coverage in subprocesses. 
+    """
+    cov_keys = [i for i in os.environ.keys() if i.startswith('COV')]
+    with unset_env(cov_keys):
+        yield
+
+
 def get_clean_python_env():
     """ Returns the shell environ stripped of its PYTHONPATH
     """
     env = dict(os.environ)
     if 'PYTHONPATH' in env:
         del(env['PYTHONPATH'])
+    return env
+
+
+def get_env_with_pythonpath():
+    """ Returns the shell environ with PYTHONPATH set to the current sys.path.
+        This is useful for scripts run under 'python setup.py test', which adds
+        a bunch of test dependencies to sys.path at run-time.
+    """
+    env = get_clean_python_env()
+    env['PYTHONPATH'] = ';'.join(sys.path)
     return env

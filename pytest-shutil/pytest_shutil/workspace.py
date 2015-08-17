@@ -3,21 +3,19 @@
 import os
 import tempfile
 import shutil
-import subprocess
 import logging
+import subprocess
 
 from path import path
+from six import string_types
 
-from pkglib_util.six import string_types
-from pkglib_util import cmdline
-
-from .. import util
+import cmdline
 
 log = logging.getLogger(__name__)
 
 
 def pytest_funcarg__workspace(request):
-    """ Function-scoped temporary workspace.
+    """ Py.test fixture for a function-scoped temporary workspace.
         Cleans up on exit.
     """
     return request.cached_setup(
@@ -27,20 +25,17 @@ def pytest_funcarg__workspace(request):
     )
 
 
-
-
 class Workspace(object):
     """
-    Creates a temp workspace, cleans up on teardown.
-    See pkglib_testing.pytest.util for an example usage.
-    Can also be used as a context manager.
+    Creates a temp workspace, cleans up on teardown. Can also be used as a context manager.
+    Has a 'run' method to execute commands relative to this directory.
 
     Attributes
     ----------
     workspace : `path.path`
         Path to the workspace directory.
     debug: `bool`
-        If set to True, will print more debug when running subprocess commands.
+        If set to True, will log more debug when running commands.
     delete: `bool`
         If True, will always delete the workspace on teardown; if None, delete
         the workspace unless teardown occurs via an exception; if False, never
@@ -55,12 +50,12 @@ class Workspace(object):
         log.debug("")
         log.debug("=======================================================")
         if workspace is None:
-            self.workspace = path(tempfile.mkdtemp(dir=util.get_base_tempdir()))
-            log.debug("pkglib_testing created workspace %s" % self.workspace)
+            self.workspace = path(tempfile.mkdtemp(dir=self.get_base_tempdir()))
+            log.debug("pytest_shutil created workspace %s" % self.workspace)
 
         else:
             self.workspace = workspace
-            log.debug("pkglib_testing using workspace %s" % self.workspace)
+            log.debug("pytest_shutil using workspace %s" % self.workspace)
         if 'DEBUG' in os.environ:
             self.debug = True
         if self.delete is not False:
@@ -79,10 +74,12 @@ class Workspace(object):
     def __del__(self):
         self.teardown()
 
+    @staticmethod
     def get_base_tempdir():
         """ Returns an appropriate dir to pass into
             tempfile.mkdtemp(dir=xxx) or similar.
         """
+        # Prefer CI server workspaces. TODO: look for env vars for other CI servers
         return os.getenv('WORKSPACE')
 
     def run(self, cmd, capture=False, check_rc=True, cd=None, shell=True, **kwargs):
@@ -91,8 +88,8 @@ class Workspace(object):
 
         Parameters
         ----------
-        cmd : `str`
-            Command string.
+        cmd : `str` or `list`
+            Command string or list. Commands given as a string will be run in a subshell.
         capture : `bool`
             Capture and return output
         check_rc : `bool`
@@ -133,26 +130,10 @@ class Workspace(object):
     def teardown(self):
         if not self.delete:
             return
-        if os.path.isdir(self.workspace):
+        if self.workspace.isdir():
             log.debug("")
             log.debug("=======================================================")
-            log.debug("pkglib_testing deleting workspace %s" % self.workspace)
+            log.debug("pytest_shutil deleting workspace %s" % self.workspace)
             log.debug("=======================================================")
             log.debug("")
             shutil.rmtree(self.workspace)
-
-    def create_pypirc(self, config):
-        """
-        Create a .pypirc file in the workspace
-
-        Parameters
-        ----------
-        config : `ConfigParser.ConfigParser`
-            config instance
-        """
-        f = os.path.join(self.workspace, '.pypirc')
-        mode = os.O_WRONLY | os.O_CREAT
-        perm = 0o600
-
-        with os.fdopen(os.open(f, mode, perm), 'wt') as rc_file:
-            config.write(rc_file)

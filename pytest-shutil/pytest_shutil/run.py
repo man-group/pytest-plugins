@@ -4,24 +4,30 @@
 import sys
 import os
 import imp
-import tempfile
+import logging
 from functools import update_wrapper
 import inspect
 import textwrap
 from contextlib import closing
-from subprocess import Popen, PIPE
+import subprocess
 
 from mock import patch
 import execnet
-
-from pkglib_util.six import string_types
-from pkglib_util.six.moves import cPickle  # @UnresolvedImport
+from six.moves import cPickle  # @UnresolvedImport
 
 try:
     # Python 3
     from contextlib import ExitStack
 except ImportError:
     from contextlib2 import ExitStack
+
+try:  # Python 2
+    str_type = basestring
+except NameError:  # Python 3
+    str_type = str
+
+
+log = logging.getLogger(__name__)
 
 
 # TODO: add option to return results as a pipe to avoid buffering
@@ -42,8 +48,6 @@ def run(cmd, stdin=None, capture_stdout=True, capture_stderr=False,
     **kwargs : optional arguments
         Other arguments are passed to Popen()
     """
-    get_log().debug('exec: %s' % str(cmd))
-    # Log to distutils here as well so we see it during setuptools stuff
     log.debug('exec: %s' % str(cmd))
 
     stdout = subprocess.PIPE if capture_stdout is True else capture_stdout if capture_stdout else None
@@ -61,13 +65,13 @@ def run(cmd, stdin=None, capture_stdout=True, capture_stderr=False,
         try:
             out = out.decode('utf-8')
         except:
-            get_log().warn("Unable to decode command output to UTF-8")
+            log.warn("Unable to decode command output to UTF-8")
 
     if check_rc and p.returncode != 0:
         err_msg = ((out if out else 'No output') if capture_stdout is True
                    else '<not captured>')
         cmd = cmd if isinstance(cmd, str) else ' '.join(cmd)
-        get_log().error("Command failed: \"%s\"\n%s" % (cmd, err_msg.strip()))
+        log.error("Command failed: \"%s\"\n%s" % (cmd, err_msg.strip()))
         ex = subprocess.CalledProcessError(p.returncode, cmd)
         ex.output = err_msg
         raise ex
@@ -89,7 +93,7 @@ def run_as_main(fn, *argv):
     ``scripts.Foo.main`` is registered as an entry point.
     """
     with patch("sys.argv", new=['progname'] + list(argv)):
-        print("run_as_main: %s" % str(argv))
+        log.info("run_as_main: %s" % str(argv))
         fn()
 
 
@@ -162,7 +166,7 @@ def _run_in_subprocess_redirect_stdout(fd):
 
 
 def _run_in_subprocess_remote_fn(channel):
-    from pkglib_util.six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
+    from six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
     fn, args, kwargs = cPickle.loads(channel.receive(None))
     channel.send(cPickle.dumps(fn(*args, **kwargs), protocol=0))
 

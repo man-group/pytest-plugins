@@ -4,12 +4,11 @@ import logging
 import getpass
 import os
 import shutil
-import subprocess
+import sys
 
 from contextlib import contextmanager
 from tempfile import mkdtemp
 
-from distutils import log
 
 try:  # Python 2
     str_type = basestring
@@ -44,20 +43,6 @@ def chdir(dirname):
         yield
     finally:
         os.chdir(here)
-
-
-@contextmanager
-def set_home(dirname):
-    """
-    Context Mgr to set HOME
-    """
-    old_home = os.environ.get('HOME')
-    try:
-        os.environ['HOME'] = dirname
-        yield
-    finally:
-        if old_home:
-            os.environ['HOME'] = old_home
 
 
 

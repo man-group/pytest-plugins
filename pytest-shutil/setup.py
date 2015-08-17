@@ -1,7 +1,8 @@
 import sys
-import os
-from setuptools import setup, Command, find_packages
+import logging
 
+from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
 
 classifiers = [
     'License :: OSI Approved :: MIT License',
@@ -18,52 +19,50 @@ classifiers = [
 
 long_description = open("README.rst").read()
 
-trailing_args = []
+pytest_args = []
 
-
-class Test(Command):
-    user_options = [('unit', None, 'Just run unit tests'),
-                    ('integration', None, 'Just run integration tests'),
-                    ]
-    boolean_options = ['unit', 'integration']
+class PyTest(TestCommand):
 
     def initialize_options(self):
-        self.unit = False
-        self.integration = False
+        TestCommand.initialize_options(self)
 
     def finalize_options(self):
-        pass
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
 
-    def run(self):
-        import subprocess
+    def run_tests(self):
+        logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s', level='DEBUG')
+
+        # import here, cause outside the eggs aren't loaded
         import pytest
 
-        tests = []
-        if not (self.unit or self.integration):
-            tests = ['tests']
-        if self.unit:
-            tests.append(os.path.join('tests', 'unit'))
-        if self.integration:
-            tests.append(os.path.join('tests', 'integration'))
-        errno = subprocess.call([sys.executable, pytest.__file__] + tests + trailing_args)
-        raise SystemExit(errno)
+        pytest_args.extend(['--cov', 'pytest_shutil',
+                     '--cov-report', 'xml',
+                     '--cov-report', 'html',
+                     '--junitxml', 'junit.xml',
+                     ])
+        errno = pytest.main(pytest_args)
+        sys.exit(errno)
 
 
 def main():
     # Gather trailing arguments for pytest, this can't be done using setuptools' api
-    global trailing_args
+    global pytest_args
     if 'test' in sys.argv:
-        test_args = sys.argv[sys.argv.index('test') + 1:]
-        for idx, arg in enumerate(test_args):
-            if arg not in ('--unit', '--integration'):
-                trailing_args = test_args[idx:]
-                sys.argv = sys.argv[:-len(trailing_args)]
-                break
+        pytest_args = sys.argv[sys.argv.index('test') + 1:]
+        if pytest_args:
+            sys.argv = sys.argv[:-len(pytest_args)]
 
-    install_requires = ['pytest',
-                        'six',
+    install_requires = ['six',
                         'execnet',
+                        'contextlib2',
                         ]
+
+    tests_require = ['pytest',
+                     'pytest-cov',
+                     'mock'
+                     ]
     setup(
         name='pytest-shutil',
         description='A goodie-bag of unix shell and environment tools for py.test',
@@ -76,7 +75,8 @@ def main():
         author_email='eeaston@gmail.com',
         classifiers=classifiers,
         install_requires=install_requires,
-        cmdclass={'test': Test},
+        tests_require=tests_require,
+        cmdclass={'test': PyTest},
         packages=find_packages(),
     )
 
