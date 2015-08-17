@@ -1,10 +1,10 @@
 from mock import create_autospec, sentinel, call, patch
 
-from pkglib_testing.fixtures.server.base import TestServer
+from pytest_server_fixtures.base import TestServer
 
 
 def test_init():
-    with patch('pkglib_testing.fixtures.workspace.Workspace.__init__', autospec=True) as init:
+    with patch('pytest_shutil.workspace.Workspace.__init__', autospec=True) as init:
         ts = TestServer(workspace=sentinel.ws, delete=sentinel.delete,
                         port=sentinel.port, hostname=sentinel.hostname)
     assert init.call_args_list == [call(ts, workspace=sentinel.ws, delete=sentinel.delete)]

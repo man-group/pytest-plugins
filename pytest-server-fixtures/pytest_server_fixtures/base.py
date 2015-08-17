@@ -17,8 +17,8 @@ from six.moves import http_client
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
 
-from pkglib_testing import CONFIG
-from ..workspace import Workspace
+from pytest_server_fixtures import CONFIG
+from pytest_shutil.workspace import Workspace
 
 log = logging.getLogger(__name__)
 
