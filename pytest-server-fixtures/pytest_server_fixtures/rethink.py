@@ -1,20 +1,17 @@
 import socket
-
-import pytest
-import rethinkdb
 import uuid
 import logging
 import time
 
-from pkglib_testing import CONFIG
+import pytest
+import rethinkdb
+
+from pytest_server_fixtures import CONFIG
+from pytest_fixture_config import requires_config
 
 from .base import TestServer
-from ..util import requires_config
 
-log_format = ("%(levelname)-5s %(asctime)s.%(msecs)03d " +
-              "module:%(module)s %(message)s")
-logging.basicConfig(format=log_format, datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.INFO)
+
 log = logging.getLogger(__name__)
 
 
@@ -28,15 +25,21 @@ def _rethink_server(request):
     return test_server
 
 
-@requires_config(['rethink_executable'])
+@requires_config(CONFIG, ['rethink_executable'])
 @pytest.fixture(scope='function')
 def rethink_server(request):
     """ Function-scoped RethinkDB server in a local thread.
+    
+        Attributes
+        ----------
+        conn: (``rethinkdb.Connection``)  Connection to this server instance
+        .. also inherits all attributes from the `workspace` fixture 
+    
     """
     return _rethink_server(request)
 
 
-@requires_config(['rethink_executable'])
+@requires_config(CONFIG, ['rethink_executable'])
 @pytest.fixture(scope='session')
 def rethink_server_sess(request):
     """ Same as rethink_server fixture, scoped as session instead.
@@ -75,6 +78,10 @@ def rethink_module_db(rethink_server_sess):
 
 @pytest.fixture(scope="module")
 def rethink_make_tables(request, rethink_module_db):
+    """ Module-scoped fixture that creates all tables specified in the test 
+        module attribute FIXTURE_TABLES.
+        
+    """
     reqd_table_list = getattr(request.module, 'FIXTURE_TABLES')
     log.debug("Do stuff before all module tests with {}"
              .format(reqd_table_list))
@@ -93,8 +100,8 @@ def rethink_make_tables(request, rethink_module_db):
 
 @pytest.yield_fixture(scope="function")
 def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
-    """ Given a module scoped database, we need to empty all the tables
-        for each test to ensure no interaction between test table content.
+    """ Function-scoped fixture that will empty all the tables defined 
+        for the `rethink_make_tables` fixture.
 
         This is a useful approach, because of the long time taken to
         create a new RethinkDB table, compared to the time to empty one.

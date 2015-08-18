@@ -76,7 +76,7 @@ def main():
             'jenkins_server = pytest_server_fixtures.jenkins',
             'mongodb_server = pytest_server_fixtures.mongo',
             'redis_server = pytest_server_fixtures.redis',
-            # 'rethinkdb_server = pytest_server_fixtures.mongo',
+            'rethinkdb_server = pytest_server_fixtures.rethink',
         ]
     }
 
