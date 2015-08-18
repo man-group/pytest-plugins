@@ -63,6 +63,13 @@ def main():
                      'pytest-cov',
                      'mock'
                      ]
+
+    entry_points = {
+        'pytest11': [
+            'workspace = pytest_shutil.workspace',
+        ]
+    }
+
     setup(
         name='pytest-shutil',
         description='A goodie-bag of unix shell and environment tools for py.test',
@@ -78,6 +85,7 @@ def main():
         tests_require=tests_require,
         cmdclass={'test': PyTest},
         packages=find_packages(),
+        entry_points=entry_points,
     )
 
 if __name__ == '__main__':

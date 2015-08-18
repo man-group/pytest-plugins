@@ -70,6 +70,15 @@ def main():
                      'mock'
                      ]
 
+    entry_points = {
+        'pytest11': [
+            'httpd_server = pytest_server_fixtures.httpd',
+            'jenkins_server = pytest_server_fixtures.jenkins',
+            # 'mongodb_server = pytest_server_fixtures.mongo',
+            # 'rethinkdb_server = pytest_server_fixtures.mongo',
+        ]
+    }
+
     setup(
         name='pytest-server-fixtures',
         description='Extensible server fixures for py.test',
@@ -86,6 +95,7 @@ def main():
         tests_require=tests_require,
         cmdclass={'test': PyTest},
         packages=find_packages(),
+        entry_points=entry_points,
     )
 
 if __name__ == '__main__':
