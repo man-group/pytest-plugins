@@ -7,10 +7,10 @@ import pytest
 import pymongo
 from pymongo.errors import AutoReconnect, ConnectionFailure
 
-from pkglib_testing import CONFIG
+from pytest_server_fixtures import CONFIG
+from pytest_fixture_config import requires_config
 
 from .base import TestServer
-from ..util import requires_config
 
 
 def _mongo_server(request):
@@ -23,14 +23,11 @@ def _mongo_server(request):
     return test_server
 
 
-@requires_config(['mongo_bin'])
+@requires_config(CONFIG, ['mongo_bin'])
 @pytest.fixture(scope='function')
 def mongo_server(request):
-    """ Function-scoped MongoDB in a local thread.
-        This also provides a temp workspace, under
-            - $WORKSPACE/mongo
-            - $SCRATCH/mongo
-        We start a mongo per function under test.
+    """ Function-scoped MongoDB server started in a local thread.
+        This also provides a temp workspace.
         We tear down, and cleanup mongos at the end of the test.
 
         For completeness, we tidy up any outstanding mongo temp directories
@@ -39,7 +36,7 @@ def mongo_server(request):
     return _mongo_server(request)
 
 
-@requires_config(['mongo_bin'])
+@requires_config(CONFIG, ['mongo_bin'])
 @pytest.fixture(scope='session')
 def mongo_server_sess(request):
     """ Same as mongo_server fixture, scoped as session instead.
@@ -47,11 +44,10 @@ def mongo_server_sess(request):
     return _mongo_server(request)
 
 
-@requires_config(['mongo_bin'])
+@requires_config(CONFIG, ['mongo_bin'])
 @pytest.fixture(scope='class')
 def mongo_server_cls(request):
     """ Same as mongo_server fixture, scoped for test classes.
-        This is in its own file here so we can keep the fixture name the same.
     """
     svr = _mongo_server(request)
     request.cls.mongo_server = svr
