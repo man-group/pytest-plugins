@@ -20,8 +20,12 @@ from .http import HTTPTestServer
 @yield_requires_config(CONFIG, ['jenkins_war', 'java_executable'])
 @pytest.yield_fixture(scope='session')
 def jenkins_server():
-    """ Boot up Jenkins in a local thread.
-        This also provides a temp workspace.
+    """ Session-scoped Jenkins server instance 
+    
+        Attributes
+        ----------
+        api (`jenkins.Jenkins`)  : python-jenkins client API connected to this server
+        .. also inherits all attributes from the `workspace` fixture
     """
     with JenkinsTestServer() as p:
         p.start()

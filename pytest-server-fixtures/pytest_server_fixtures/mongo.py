@@ -32,6 +32,11 @@ def mongo_server(request):
 
         For completeness, we tidy up any outstanding mongo temp directories
         at the start and end of each test session
+        
+        Attributes
+        ----------
+        api (`pymongo.MongoClient`)  : PyMongo Client API connected to this server
+        .. also inherits all attributes from the `workspace` fixture 
     """
     return _mongo_server(request)
 

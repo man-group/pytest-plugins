@@ -15,8 +15,16 @@ log = logging.getLogger(__name__)
 
 
 def pytest_funcarg__workspace(request):
-    """ Py.test fixture for a function-scoped temporary workspace.
-        Cleans up on exit.
+    """ Function-scoped temporary workspace that cleans up on exit.
+    
+    Attributes
+    ----------
+    workspace (`path.path`):  Path to the workspace directory.
+    debug (bool):             If set to True, will log more debug when running commands.
+    delete (bool):            If True, will always delete the workspace on teardown; 
+    ..                        If None, delete the workspace unless teardown occurs via an exception; 
+    ..                        If False, never delete the workspace on teardown.
+        
     """
     return request.cached_setup(
         setup=Workspace,
@@ -29,17 +37,6 @@ class Workspace(object):
     """
     Creates a temp workspace, cleans up on teardown. Can also be used as a context manager.
     Has a 'run' method to execute commands relative to this directory.
-
-    Attributes
-    ----------
-    workspace : `path.path`
-        Path to the workspace directory.
-    debug: `bool`
-        If set to True, will log more debug when running commands.
-    delete: `bool`
-        If True, will always delete the workspace on teardown; if None, delete
-        the workspace unless teardown occurs via an exception; if False, never
-        delete the workspace on teardown.
     """
     debug = False
     delete = True
