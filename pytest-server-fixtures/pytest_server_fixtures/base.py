@@ -86,6 +86,7 @@ class ServerThread(threading.Thread):
         log.debug("CWD: %s" % self.cwd)
         try:
             if self.run_stdin:
+                log.debug("STDIN: %s" % self.run_stdin)
                 self.p.stdin.write(self.run_stdin.encode('utf-8'))
             if self.p.stdin:
                 self.p.stdin.close()
