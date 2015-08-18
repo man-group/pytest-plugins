@@ -5,9 +5,25 @@ import subprocess
 import time
 from tempfile import mkdtemp
 
-from pkglib_testing.util import get_base_tempdir
+import pytest
+
+from pytest_shutil.workspace import Workspace
+from pytest_fixture_config import yield_requires_config
+
+from pytest_server_fixtures import CONFIG
 
 
+@yield_requires_config(CONFIG, ['xvfb_executable'])
+@pytest.yield_fixture(scope='function')
+def xvfb_server():
+    """ Function-scoped Xvfb (X-Windows Virtual Frame Buffer) in a local thread.
+    """
+    test_server = XvfbServer()
+    yield test_server
+    test_server.close()
+
+
+# TODO: make this a TestServer, clean up print statements for proper logging
 class XvfbServer(object):
     # see https://github.com/revnode/xvfb-run/blob/master/xvfb-run
     xvfb_command = 'Xvfb'
@@ -15,7 +31,7 @@ class XvfbServer(object):
     display, authfile, process, fbmem = None, None, None, None
 
     def __init__(self):
-        tmpdir = mkdtemp(prefix='XvfbServer.', dir=get_base_tempdir())
+        tmpdir = mkdtemp(prefix='XvfbServer.', dir=Workspace.get_base_tempdir())
         for servernum in range(os.getpid(), 65536):
             if os.path.exists('/tmp/.X{0}-lock'.format(servernum)):
                 continue

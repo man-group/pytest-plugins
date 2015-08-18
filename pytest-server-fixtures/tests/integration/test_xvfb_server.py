@@ -8,14 +8,11 @@ from mock import patch
 import pytest
 from pytest import raises
 
-from pkglib_testing.fixtures.server.xvfb import XvfbServer
+from pytest_server_fixtures.xvfb import XvfbServer
 
 
-# TODO: raise skips if can't find xvfb
-
-def test_construct():
-    with XvfbServer() as server:
-        assert server.display
+def test_construct(xvfb_server):
+        assert xvfb_server.display
 
 
 def test_connect_client():
@@ -63,7 +60,7 @@ def test_handles_unexpected_server_num_collision():
 
 
 def test_handles_unexpected_failure_to_start():
-    with patch('pkglib_testing.fixtures.server.xvfb.XvfbServer.xvfb_command', '/bin/false'):
+    with patch('pytest_server_fixtures.xvfb.XvfbServer.xvfb_command', '/bin/false'):
         with raises(RuntimeError) as ex:
             XvfbServer()
         assert 'Failed to start Xvfb' in str(ex)

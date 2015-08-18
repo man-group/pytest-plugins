@@ -78,6 +78,7 @@ def main():
             'mongodb_server = pytest_server_fixtures.mongo',
             'redis_server = pytest_server_fixtures.redis',
             'rethinkdb_server = pytest_server_fixtures.rethink',
+            'xvfb_server = pytest_server_fixtures.xvfb',
         ]
     }
 
