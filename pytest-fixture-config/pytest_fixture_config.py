@@ -2,6 +2,9 @@
 """
 import functools
 
+import pytest
+
+
 class Config(object):
     __slots__ = ()
 

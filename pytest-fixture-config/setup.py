@@ -54,10 +54,9 @@ def main():
         if pytest_args:
             sys.argv = sys.argv[:-len(pytest_args)]
 
-    install_requires = []
+    install_requires = ['pytest']
 
-    tests_require = ['pytest',
-                     'pytest-cov',
+    tests_require = ['pytest-cov',
                      'mock'
                      ]
 
