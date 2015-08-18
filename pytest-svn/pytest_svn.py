@@ -1,11 +1,16 @@
 """  Repository fixtures
 """
-from .workspace import Workspace
+from pytest_shutil.workspace import Workspace
 
 
 def pytest_funcarg__svn_repo(request):
-    """ Create a new svn repo in a temporary workspace.
-        Cleans up on exit.
+    """ Function-scoped fixture to create a new svn repo in a temporary workspace.
+    
+        Attributes
+        ----------
+        uri (str) :  SVN repo uri.
+        .. also inherits all attributes from the `workspace` fixture 
+        
     """
     return request.cached_setup(
         setup=SVNRepo,
