@@ -11,13 +11,13 @@ import shutil
 import jenkins
 import pytest
 
-from pkglib_testing import CONFIG
+from pytest_server_fixtures import CONFIG
+from pytest_fixture_config import yield_requires_config
 
-from ..util import yield_requires_config
 from .http import HTTPTestServer
 
 
-@yield_requires_config(['jenkins_war', 'java_executable'])
+@yield_requires_config(CONFIG, ['jenkins_war', 'java_executable'])
 @pytest.yield_fixture(scope='session')
 def jenkins_server():
     """ Boot up Jenkins in a local thread.
