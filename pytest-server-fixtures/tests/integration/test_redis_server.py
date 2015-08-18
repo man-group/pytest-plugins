@@ -1,5 +1,3 @@
-pytest_plugins = ['pkglib_testing.fixtures.server.redis']
-
 
 def test_server_runner(redis_server):
     """ Boot up a server, push some keys into it

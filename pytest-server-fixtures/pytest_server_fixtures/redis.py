@@ -4,12 +4,16 @@ Created on 25 Apr 2012
 @author: eeaston
 
 '''
+from __future__ import absolute_import
+import socket
+
 import pytest
 import redis
 
-from pkglib_testing import CONFIG
+from pytest_server_fixtures import CONFIG
+from pytest_fixture_config import requires_config
+
 from .base import TestServer
-from ..util import requires_config
 
 
 def _redis_server(request):
@@ -22,20 +26,23 @@ def _redis_server(request):
     return test_server
 
 
-@requires_config(['redis_executable'])
+@requires_config(CONFIG, ['redis_executable'])
 @pytest.fixture(scope='function')
 def redis_server(request):
     """ Function-scoped Redis server in a local thread.
-        This also provides a temp workspace.
+    
+        Attributes
+        ----------
+        api: (``redis.Redis``)   Redis client API connected to this server 
+        .. also inherits all attributes from the `workspace` fixture 
     """
     return _redis_server(request)
 
 
-@requires_config(['redis_executable'])
+@requires_config(CONFIG, ['redis_executable'])
 @pytest.fixture(scope='session')
 def redis_server_sess(request):
-    """ Session-scoped Redis server in a local thread.
-        This also provides a temp workspace.
+    """ Same as redis_server fixture, scoped for test session 
     """
     return _redis_server(request)
 
@@ -86,7 +93,7 @@ class RedisTestServer(TestServer):
         slowlog-max-len 1024
         """ % {
             'port': self.port,
-            'hostname': self.hostname,
+            'hostname': socket.gethostbyname(self.hostname),
             'workspace': self.workspace,
             'maxmemory': "2G",
         }).strip()

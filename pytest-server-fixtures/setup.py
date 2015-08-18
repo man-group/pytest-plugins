@@ -49,7 +49,6 @@ class PyTest(TestCommand):
 def main():
     # Gather trailing arguments for pytest, this can't be done using setuptools' api
     global pytest_args
-    request.addfinalizer(lambda p=test_server: 
     if 'test' in sys.argv:
         pytest_args = sys.argv[sys.argv.index('test') + 1:]
         if pytest_args:
@@ -76,6 +75,7 @@ def main():
             'httpd_server = pytest_server_fixtures.httpd',
             'jenkins_server = pytest_server_fixtures.jenkins',
             'mongodb_server = pytest_server_fixtures.mongo',
+            'redis_server = pytest_server_fixtures.redis',
             # 'rethinkdb_server = pytest_server_fixtures.mongo',
         ]
     }
