@@ -1,3 +1,5 @@
+""" Base classes for all server fixtures.
+"""
 from __future__ import print_function
 
 import hashlib
@@ -173,11 +175,16 @@ class TestServer(Workspace):
         servers (e.g. in-memory DBs) while remaining useful for the slower
         starting servers (e.g. web servers).
 
-        Arguments
-        ---------
-        start_interval: initial wait interval
-        retries_per_interval: number of retries before increasing waiting time.
-        retry_limit: total number of retries to attempt before giving up.
+        Parameters
+        ----------
+        start_interval: ``float``
+            initial wait interval in seconds
+        retries_per_interval: ``int``
+            number of retries before increasing waiting time
+        retry_limit: ``int``
+            total number of retries to attempt before giving up
+        base: ``float``
+            backoff multiplier
 
         """
         if start_interval <= 0.0:
