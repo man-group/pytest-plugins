@@ -12,6 +12,7 @@ classifiers = [
     'Topic :: Utilities',
     'Intended Audience :: Developers',
     'Operating System :: POSIX',
+    'Framework :: Pyramid'
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
@@ -37,7 +38,7 @@ class PyTest(TestCommand):
         # import here, cause outside the eggs aren't loaded
         import pytest
 
-        pytest_args.extend(['--cov', 'pytest_server_fixtures',
+        pytest_args.extend(['--cov', 'pytest_pyramid',
                      '--cov-report', 'xml',
                      '--cov-report', 'html',
                      '--junitxml', 'junit.xml',
@@ -54,18 +55,10 @@ def main():
         if pytest_args:
             sys.argv = sys.argv[:-len(pytest_args)]
 
-    install_requires = ['pytest',
-                        'pytest-shutil',
-                        'six',
-                        'requests',
+    install_requires = ['pytest-server-fixtures',
+                        'pytest',
+                        'pyramid',
                         ]
-
-    extras_require = {
-        'mongodb':  ["pymongo"],
-        'jenkins':  ["python-jenkins"],
-        'rethinkdb':  ["rethinkdb"],
-        'redis':  ["redis"],
-    }
 
     tests_require = ['pytest-cov',
                      'mock'
@@ -73,17 +66,13 @@ def main():
 
     entry_points = {
         'pytest11': [
-            'httpd_server = pytest_server_fixtures.httpd',
-            'jenkins_server = pytest_server_fixtures.jenkins',
-            'mongodb_server = pytest_server_fixtures.mongo',
-            'redis_server = pytest_server_fixtures.redis',
-            'rethinkdb_server = pytest_server_fixtures.rethink',
+            'pyramid_server = pytest_pyramid',
         ]
     }
 
     setup(
-        name='pytest-server-fixtures',
-        description='Extensible server fixures for py.test',
+        name='pytest-pyramid',
+        description='Pyramid server fixture for py.test',
         long_description=long_description,
         version='1.0.0',
         url='https://github.com/manahl/pytest-plugins',
@@ -93,7 +82,6 @@ def main():
         author_email='eeaston@gmail.com',
         classifiers=classifiers,
         install_requires=install_requires,
-        extras_require=extras_require,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
         packages=find_packages(),

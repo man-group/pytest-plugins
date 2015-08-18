@@ -13,13 +13,12 @@ import threading
 import time
 
 from six.moves import http_client
-import requests
 from path import path
 from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
 from pytest import yield_fixture
 
-from .http import HTTPTestServer
+from pytest_server_fixtures.http import HTTPTestServer
 
 
 class ConfigNotFoundError(Exception):
@@ -28,7 +27,28 @@ class ConfigNotFoundError(Exception):
 
 @yield_fixture(scope='session')
 def pyramid_server(request):
-    """ Boot up a Pyramid server in a local thread.
+    """ Session-scoped Pyramid server run in a subprocess, out of a temp dir. 
+        This is a 'real' server that you can point a Selenium webdriver at.
+    
+        This fixture searches for its configuration in the current working directory
+        called 'testing.ini'. All .ini files in the cwd will be copied to the tempdir
+        so that config chaining still works. 
+        
+        The fixture implementation in `PyramidTestServer` has more flexible configuration
+        options, use it directly to define more fine-grainedf fixtures. 
+        
+        Methods
+        -------
+        get_config()  : Return current configuration as a dict.
+        query_url()   : Query url relative to the server root.
+        ..              Parse as json and retry failures by default.
+        post_to_url() : Post payload to url relative to the server root.
+        ..              Parse as json and retry failures by default.
+        
+        Attributes
+        ----------
+        working_config  (`path.path`): Path to the config file used by the server at runtime
+        .. also inherits all attributes from the `workspace` fixture 
     """
     with PyramidTestServer() as server:
         server.start()
@@ -39,7 +59,7 @@ class PyramidTestServer(HTTPTestServer):
     port_seed = 65532
 
     def __init__(self, config_dir=None, config_filename=None, extra_config_vars=None, **kwargs):
-        """  Test server for a Pyrarmid project
+        """ Test server for a Pyramid project
 
         Parameters
         ----------
@@ -92,32 +112,7 @@ class PyramidTestServer(HTTPTestServer):
     def run_cmd(self):
         return [path(sys.exec_prefix) / 'bin' / 'python', path(sys.exec_prefix) / 'bin' / 'pserve', self.working_config]
 
-    def query_url(self, path, as_json=True, attempts=25):
-        '''Queries url and returns the string returns, cnoverted to python equivalent of json if json=True.
-        Path argument should be whatever comes after 'http://hostname:port/'.
-        '''
-        for i in range(attempts):
-            try:
-                returned = requests.get('http://%s:%d/%s' % (self.hostname, self.port, path))
-                if as_json:
-                    return returned.json()
-                return returned
-            except (http_client.BadStatusLine, requests.ConnectionError) as e:
-                time.sleep(int(i) / 10)
-                pass
-        raise e
 
-    def post_to_url(self, path, data=None, attempts=25, as_json=True):
-        for i in range(attempts):
-            try:
-                returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data)
-                if as_json:
-                    return returned.json()
-                return returned
-            except (http_client.BadStatusLine, requests.ConnectionError) as e:
-                time.sleep(int(i) / 10)
-                pass
-        raise e
 
     def get_config(self):
         """ Convenience method to return our currently running config file as

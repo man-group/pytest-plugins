@@ -14,6 +14,13 @@ from .http import HTTPTestServer
 @pytest.yield_fixture(scope='function')
 def httpd_server():
     """ Function-scoped httpd server in a local thread.
+    
+        Methods
+        -------
+        query_url()   : Query url relative to the server root.
+        ..              Parse as json and retry failures by default.
+        post_to_url() : Post payload to url relative to the server root.
+        ..              Parse as json and retry failures by default.
     """
     test_server = HTTPDServer()
     test_server.start()

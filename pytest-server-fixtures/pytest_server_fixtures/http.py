@@ -5,7 +5,7 @@ import socket
 import logging
 
 import pytest
-
+import requests
 from six.moves import http_client
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
@@ -50,6 +50,33 @@ class HTTPTestServer(TestServer):
 
             log.debug("Server not up yet (%s).." % e)
             return False
+
+    def query_url(self, path, as_json=True, attempts=25):
+        '''Queries url and returns the string returns, cnoverted to python equivalent of json if json=True.
+        Path argument should be whatever comes after 'http://hostname:port/'.
+        '''
+        for i in range(attempts):
+            try:
+                returned = requests.get('http://%s:%d/%s' % (self.hostname, self.port, path))
+                if as_json:
+                    return returned.json()
+                return returned
+            except (http_client.BadStatusLine, requests.ConnectionError) as e:
+                time.sleep(int(i) / 10)
+                pass
+        raise e
+
+    def post_to_url(self, path, data=None, attempts=25, as_json=True):
+        for i in range(attempts):
+            try:
+                returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data)
+                if as_json:
+                    return returned.json()
+                return returned
+            except (http_client.BadStatusLine, requests.ConnectionError) as e:
+                time.sleep(int(i) / 10)
+                pass
+        raise e
 
 
 class SimpleHTTPTestServer(HTTPTestServer):
