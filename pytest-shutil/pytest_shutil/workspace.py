@@ -54,7 +54,7 @@ class Workspace(object):
             log.debug("pytest_shutil created workspace %s" % self.workspace)
 
         else:
-            self.workspace = workspace
+            self.workspace = path(workspace)
             log.debug("pytest_shutil using workspace %s" % self.workspace)
         if 'DEBUG' in os.environ:
             self.debug = True
