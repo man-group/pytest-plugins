@@ -1,4 +1,4 @@
-from pkglib_testing.fixtures.venv import PackageEntry
+from pytest_virtualenv import PackageEntry
 
 
 def test_issrc_dev_in_version_plus_path_to_source_True():

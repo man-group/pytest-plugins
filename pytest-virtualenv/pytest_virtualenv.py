@@ -1,31 +1,37 @@
 """ Python virtual environment fixtures
 """
 import os
-import subprocess
 from distutils import sysconfig
 
 from pytest import yield_fixture
 from pkg_resources import working_set
 from path import path
-from pkglib_testing import CONFIG, coverage as cov
-
-from .workspace import Workspace
-from .. import util
-from .util import requires_config
 
 
-@requires_config(['virtualenv_executable'])
+from pytest_shutil.workspace import Workspace
+from pytest_shutil import run, cmdline
+from pytest_fixture_config import Config, yield_requires_config
+
+
+class FixtureConfig(Config):
+    __slots__ = ('virtualenv_executable')
+
+CONFIG = FixtureConfig(
+    virtualenv_executable=os.getenv('VIRTUALENV_FIXTURE_EXECUTABLE', 'virtualenv'),
+)
+
+
+@yield_requires_config(CONFIG, ['virtualenv_executable'])
 @yield_fixture(scope='function')
 def virtualenv():
     """ Function-scoped virtualenv in a temporary workspace.
-        Cleans up on exit.
     """
-    with TmpVirtualEnv() as venv:
+    with VirtualEnv() as venv:
         yield venv
 
 
 class PackageEntry(object):
-    # TODO: base this off of Distribution or similar
+    # TODO: base this off of setuptools Distribution class or something not home-grown
     PACKAGE_TYPES = (ANY, DEV, SRC, REL) = ('ANY', 'DEV', 'SRC', 'REL')
 
     def __init__(self, name, version, source_path=None):
@@ -62,7 +68,8 @@ class PackageEntry(object):
                 return True
         return False
 
-class TmpVirtualEnv(Workspace):
+
+class VirtualEnv(Workspace):
     """
     Creates a virtualenv in a temporary workspace, cleans up on exit.
 
@@ -76,7 +83,7 @@ class TmpVirtualEnv(Workspace):
         environment variables used in creation of virtualenv
 
     """
-
+    # TODO: update to use pip, remove distribute
     def __init__(self, env=None, workspace=None, name='.env', python=None):
         Workspace.__init__(self, workspace)
         self.virtualenv = self.workspace / name
@@ -94,9 +101,9 @@ class TmpVirtualEnv(Workspace):
         if 'PYTHONPATH' in self.env:
             del(self.env['PYTHONPATH'])
 
-        virtualenv_cmd = CONFIG.virtualenv_executable
-        self.run('%s -p %s %s --distribute' % (virtualenv_cmd,
-                                               python or util.get_real_python_executable(),
+        self.virtualenv_cmd = CONFIG.virtualenv_executable
+        self.run('%s -p %s %s --distribute' % (self.virtualenv_cmd,
+                                               python or cmdline.get_real_python_executable(),
                                                self.virtualenv))
 
     def run(self, *args, **kwargs):
@@ -105,7 +112,7 @@ class TmpVirtualEnv(Workspace):
         """
         if 'env' not in kwargs:
             kwargs['env'] = self.env
-        return super(TmpVirtualEnv, self).run(*args, **kwargs)
+        return super(VirtualEnv, self).run(*args, **kwargs)
 
     def run_with_coverage(self, *args, **kwargs):
         """
@@ -115,22 +122,22 @@ class TmpVirtualEnv(Workspace):
         Parameters
         ----------
         args:
-            Args passed into `pkglib_testing.pytest.coverage.run_with_coverage`
+            Args passed into `pytest_shutil.run.run_with_coverage`
         kwargs:
-            Keyword arguments to pass to `pkglib_testing.pytest.coverage.run_with_coverage`
+            Keyword arguments to pass to `pytest_shutil.run.run_with_coverage`
         """
         if 'env' not in kwargs:
             kwargs['env'] = self.env
         coverage = [self.python, '%s/bin/coverage' % self.virtualenv]
-        return cov.run_with_coverage(*args, coverage=coverage, **kwargs)
+        return run.run_with_coverage(*args, coverage=coverage, **kwargs)
 
-    def install_package(self, pkg_name, installer='pyinstall', build_egg=None):
+    def install_package(self, pkg_name, installer='easy_install', build_egg=None):
         """
         Install a given package name. If it's already setup in the
         test runtime environment, it will use that.
         :param build_egg:  `bool`
             Only used when the package is installed as a source checkout, otherwise it
-            runs the installer to get it from AHLPyPI
+            runs the installer to get it from PyPI.
             True: builds an egg and installs it
             False: Runs 'python setup.py develop'
             None (default): installs the egg if available in dist/, otherwise develops it
@@ -181,42 +188,4 @@ class TmpVirtualEnv(Workspace):
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
             res[name] = PackageEntry(name, version, location)
-        return res
-
-    def popen(self, cmd, **kwds):
-        kwds = dict(kwds)
-        kwds.setdefault("stdout", subprocess.PIPE)
-        return subprocess.Popen(cmd, **kwds).stdout
-
-    def dependencies(self, package_name, package_type=None):  # @UnusedVariable
-        """
-        Find the dependencies of a given package.
-
-        Parameters
-        ----------
-        package_name: `str`
-            Name of package
-        package_type: `str`
-            Filter results on package type
-
-        Returns
-        --------
-        dependencies: `dict`
-            Key is name, value is PackageEntries
-        """
-        if package_type is None:
-            package_type = PackageEntry.ANY
-        elif package_type not in (PackageEntry.DEV, PackageEntry.REL):
-            raise ValueError('invalid package_type parameter for dependencies (%s)' % str(package_type))
-
-        res = {}
-        code = "from pkglib.setuptools.dependency import get_all_requirements; " \
-               "for i in get_all_requirements(['%s']): " \
-               "  print(i.project_name + ' ' + i.version + ' ' + i.location)"
-        lines = self.run('%s -c "%s"' % (self.python, code), capture=True).split('\n')
-        for line in [i.strip() for i in lines if i.strip()]:
-            name, version, location = line.split()
-            entry = PackageEntry(name, version, location)
-            if entry.match(package_type):
-                res[name] = entry
         return res

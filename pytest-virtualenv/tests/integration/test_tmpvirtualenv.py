@@ -1,4 +1,4 @@
-import pkglib_testing.fixtures.venv as venv
+import pytest_virtualenv as venv
 
 
 def check_member(name, ips):
@@ -6,7 +6,7 @@ def check_member(name, ips):
 
 
 def test_installed_packages():
-    with venv.TmpVirtualEnv() as v:
+    with venv.VirtualEnv() as v:
         ips = v.installed_packages()
         assert len(ips) > 0
         check_member('pip', ips)
