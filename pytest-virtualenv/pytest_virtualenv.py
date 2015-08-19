@@ -25,6 +25,20 @@ CONFIG = FixtureConfig(
 @yield_fixture(scope='function')
 def virtualenv():
     """ Function-scoped virtualenv in a temporary workspace.
+    
+        Methods
+        -------
+        run()                : run a command using this virtualenv's shell environment
+        run_with_coverage()  : run a command in this virtualenv, collecting coverage
+        install_package()    : install a package in this virtualenv
+        installed_packages() : return a dict of installed packages
+        
+        Attributes
+        ----------
+        virtualenv (`path.path`)    : Path to this virtualenv's base directory
+        python (`path.path`)        : Path to this virtualenv's Python executable
+        easy_install (`path.path`)  : Path to this virtualenv's easy_install executable
+        .. also inherits all attributes from the `workspace` fixture
     """
     with VirtualEnv() as venv:
         yield venv
