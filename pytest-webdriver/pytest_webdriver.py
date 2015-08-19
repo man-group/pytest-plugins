@@ -1,6 +1,7 @@
 import os
 import traceback
 import logging
+import socket
 
 import pytest
 import py.builtin
@@ -8,8 +9,9 @@ from pytest_fixture_config import Config
 
 log = logging.getLogger(__name__)
 
+
 class FixtureConfig(Config):
-    __slots__ = ('host', 'port', 'uri')
+    __slots__ = ('host', 'port', 'uri', 'browser')
 
 CONFIG = FixtureConfig(
     host=os.getenv('SELENIUM_HOST', socket.gethostname()),

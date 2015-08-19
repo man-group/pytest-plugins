@@ -54,7 +54,8 @@ def main():
         if pytest_args:
             sys.argv = sys.argv[:-len(pytest_args)]
 
-    install_requires = ['pytest',
+    install_requires = ['py',
+                        'pytest',
                         'pytest-fixture-config',
                         'selenium',
                         ]
