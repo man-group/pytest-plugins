@@ -4,8 +4,8 @@ import pytest
 
 from PyQt4 import QtGui
 
-from pkglib_testing.util import set_env
-from pkglib_testing.xvfb_server import XvfbServer
+from pytest_shutil.env import set_env
+from pytest_server_fixtures.xvfb import XvfbServer
 
 
 class _TestQtApp(object):
@@ -15,12 +15,15 @@ class _TestQtApp(object):
 TestQtApp = _TestQtApp()
 
 
-@pytest.yield_fixture(scope="session", autouse=True)
+@pytest.yield_fixture(scope="session")
 def q_application():
+    """ Initialise a QT application with a Xvfb server
+    """
     global TestQtApp
     assert hasattr(TestQtApp, 'app'), "Can only initialize QApplication once per process"
 
     if TestQtApp.app is None:
+        # TODO: investigate if this is still the case, if not just use the regular xvfb_server fixture
         if 'PYDEV_CONSOLE_ENCODING' in os.environ:
             # PyDev destroys session scoped fixtures after each test, so we can't clean up the XvfbServer
             global server

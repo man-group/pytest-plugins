@@ -23,6 +23,17 @@ def xvfb_server():
     test_server.close()
 
 
+@yield_requires_config(CONFIG, ['xvfb_executable'])
+@pytest.yield_fixture(scope='session')
+def xvfb_server_sess():
+    """ Session-scoped Xvfb (X-Windows Virtual Frame Buffer) in a local thread.
+    """
+    test_server = XvfbServer()
+    yield test_server
+    test_server.close()
+
+
+
 # TODO: make this a TestServer, clean up print statements for proper logging
 class XvfbServer(object):
     # see https://github.com/revnode/xvfb-run/blob/master/xvfb-run
