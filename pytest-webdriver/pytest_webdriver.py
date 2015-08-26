@@ -47,6 +47,11 @@ def browser_to_use(webdriver, browser):
 def webdriver(request):
     """ Connects to a remote selenium webdriver and returns the browser handle.
         Scoped on a per-function level so you get one browser window per test.
+        Creates screenshots automatically on test failures.
+        
+        Attributes
+        ----------
+        root_uri:  URI to the pyramid_server fixture if it's detected in the test run
     """
     from selenium import webdriver
 
