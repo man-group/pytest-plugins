@@ -1,20 +1,6 @@
-import time
-
-import pytest
-
-import pkglib_testing.listener.server as li
+import pytest_listener.server as li
 
 RECEIVE_TIMEOUT = 10
-
-
-@pytest.fixture(scope='module')
-def listener(request):
-    res = li.Listener()
-    res.start()
-    # Wait for socket to become available
-    time.sleep(1)
-    request.addfinalizer(lambda p=res: li.stop_listener(p))
-    return res
 
 
 def test_send_method(listener):
@@ -22,7 +8,6 @@ def test_send_method(listener):
     listener.send(obj)
     d = listener.receive(RECEIVE_TIMEOUT)
     assert d == obj
-    assert listener.port >= li.PORT
 
 
 def test_send_method_again(listener):

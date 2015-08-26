@@ -6,13 +6,12 @@ import time
 from threading import Thread, Event
 from time import sleep
 
-from pkglib_util.six import string_types
-from pkglib_util.six.moves import cPickle
+from six import string_types
+from six.moves import cPickle
 
 TERMINATOR = json.dumps(['STOP']).encode('utf-8')
 CLEAR = json.dumps(['CLEAR']).encode('utf-8')
 HOST = 'localhost'
-PORT = 8101
 
 TIMEOUT_DEFAULT = 10
 
@@ -22,12 +21,14 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.root
 
 
-def get_port(port=PORT):
-    while True:
-        yield port
-        port += 1
-
-gen = get_port()
+def get_ephemeral_port():
+    """ Get an ephemeral socket at random from the kernel
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('127.0.0.1', 0))
+    port = s.getsockname()[1]
+    s.close()
+    return port
 
 
 def stop_listener(listener):
@@ -64,13 +65,8 @@ class Listener(Thread):
 
         self.s = socket.socket()
         self.queue = collections.deque()
-        while True:
-            self.port = next(gen)
-            try:
-                self.s.bind((self.host, self.port))
-                break
-            except socket.error:
-                pass
+        self.port = get_ephemeral_port()
+        self.s.bind((self.host, self.port))
 
     def run(self):
         if DEBUG:
