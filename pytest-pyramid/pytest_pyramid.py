@@ -35,7 +35,7 @@ def pyramid_server(request):
         so that config chaining still works. 
         
         The fixture implementation in `PyramidTestServer` has more flexible configuration
-        options, use it directly to define more fine-grainedf fixtures. 
+        options, use it directly to define more fine-grained fixtures. 
         
         Methods
         -------
