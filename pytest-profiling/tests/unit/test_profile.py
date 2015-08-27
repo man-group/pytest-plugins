@@ -1,12 +1,13 @@
 # HACK: if the profile plugin is imported before the coverage plugin then all
-# the top-level code in pkglib_testing.pytest.profile will be omitted from
+# the top-level code in putest_profiling will be omitted from
 # coverage, so force it to be reloaded within this test unit under coverage
 
-from pkglib_util.six.moves import reload_module  # @UnresolvedImport
+from six.moves import reload_module  # @UnresolvedImport
 
-import pkglib_testing.profile
-reload_module(pkglib_testing.profile)
-from pkglib_testing.profile import Profiling, pytest_addoption, pytest_configure
+import pytest_profiling
+reload_module(pytest_profiling)
+
+from pytest_profiling import Profiling, pytest_addoption, pytest_configure
 from mock import Mock, ANY, patch, sentinel
 
 
@@ -21,7 +22,7 @@ def test_hooks_pyfunc_call():
     multicall, pyfuncitem, plugin = Mock(), Mock(), Profiling(False)
     pyfuncitem.name.__add__ = Mock()
     with patch('os.path.join', return_value=sentinel.join):
-        with patch('pkglib_testing.profile.cProfile') as cProfile:
+        with patch('pytest_profiling.cProfile') as cProfile:
             plugin.pytest_pyfunc_call(multicall, pyfuncitem)
     assert cProfile.runctx.called
     args, kwargs = cProfile.runctx.call_args
@@ -85,6 +86,6 @@ def test_adds_options():
 
 def test_configures():
     config = Mock(getvalue=lambda x: x == 'profile')
-    with patch('pkglib_testing.profile.Profiling') as Profiling:
+    with patch('pytest_profiling.Profiling') as Profiling:
         pytest_configure(config)
     config.pluginmanager.register.assert_called_with(Profiling.return_value)
