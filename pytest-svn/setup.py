@@ -37,7 +37,7 @@ class PyTest(TestCommand):
         # import here, cause outside the eggs aren't loaded
         import pytest
 
-        pytest_args.extend(['--cov', 'pytest_shutil',
+        pytest_args.extend(['--cov', 'pytest_svn',
                      '--cov-report', 'xml',
                      '--cov-report', 'html',
                      '--junitxml', 'junit.xml',
