@@ -1,5 +1,6 @@
-from pkglib_testing.pytest import pytest_generate_tests
 from mock import Mock
+
+from pytest_verbose_parametrize import pytest_generate_tests
 
 
 def test_generates_ids_from_tuple():

@@ -1,5 +1,5 @@
 from collections import Iterable
-from pkglib_util.six import string_types
+from six import string_types
 
 
 def _strize_arg(arg):
@@ -13,23 +13,6 @@ def _strize_arg(arg):
 
 
 def pytest_generate_tests(metafunc):
-    """
-    pytest_generate_tests hook to generate ids for parametrized tests that are
-    better than the default (which just outputs id numbers).
-
-    Example::
-
-        from pkglib_testing.pytest.parametrize_ids import pytest_generate_tests
-        import pytest
-
-        @pytest.mark.parametrize(('f', 't'), [(sum, list), (len, int)])
-        def test_foo(f, t):
-            assert isinstance(f([[1], [2]]), t)
-
-    In this example, the test ids will be generated as 'test_foo[sum-list]',
-    'test_foo[len-int]' instead of the default 'test_foo[1-2]', 'test_foo[3-4]'.
-
-    """
     try:
         param = metafunc.function.parametrize
     except AttributeError:

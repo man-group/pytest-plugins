@@ -4,7 +4,8 @@ from pkg_resources import resource_filename
 import pytest
 
 
-def _setup(virtualenv):
+@pytest.fixture
+def setup(virtualenv):
     test_dir = resource_filename('pytest_profiling',
                                  'tests/integration/profile')
     virtualenv.install_package('pytest-cov')
@@ -12,16 +13,14 @@ def _setup(virtualenv):
     copy_tree(test_dir, virtualenv.workspace)
 
 
-def test_profile_profiles_tests(pytestconfig, virtualenv):
-    _setup(virtualenv)
+def test_profile_profiles_tests(pytestconfig, virtualenv, setup):
     output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile',
                                            'tests/unit/test_example.py'],
                                           pytestconfig, cd=virtualenv.workspace)
     assert 'test_example.py:1(test_foo)' in output
 
 
-def test_profile_generates_svg(pytestconfig, virtualenv):
-    _setup(virtualenv)
+def test_profile_generates_svg(pytestconfig, virtualenv, setup):
     output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile-svg',
                                           'tests/unit/test_example.py'],
                                           pytestconfig, cd=virtualenv.workspace)
