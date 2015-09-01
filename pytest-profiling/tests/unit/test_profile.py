@@ -1,5 +1,5 @@
 # HACK: if the profile plugin is imported before the coverage plugin then all
-# the top-level code in putest_profiling will be omitted from
+# the top-level code in pytest_profiling will be omitted from
 # coverage, so force it to be reloaded within this test unit under coverage
 
 from six.moves import reload_module  # @UnresolvedImport
