@@ -38,7 +38,7 @@ class PyTest(TestCommand):
         # import here, cause outside the eggs aren't loaded
         import pytest
 
-        pytest_args.extend(['--cov', 'pytest_pyramid',
+        pytest_args.extend(['--cov', 'pytest_pyramid_server',
                      '--cov-report', 'xml',
                      '--cov-report', 'html',
                      '--junitxml', 'junit.xml',
@@ -66,12 +66,12 @@ def main():
 
     entry_points = {
         'pytest11': [
-            'pyramid_server = pytest_pyramid',
+            'pyramid_server = pytest_pyramid_server',
         ]
     }
 
     setup(
-        name='pytest-pyramid',
+        name='pytest-pyramid-server',
         description='Pyramid server fixture for py.test',
         long_description=long_description,
         version='1.0.0',
