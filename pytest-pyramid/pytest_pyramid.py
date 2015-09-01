@@ -10,9 +10,7 @@ import socket
 import glob
 import shutil
 import threading
-import time
 
-from six.moves import http_client
 from path import path
 from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
