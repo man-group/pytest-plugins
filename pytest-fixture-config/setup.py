@@ -57,7 +57,7 @@ def main():
     install_requires = ['pytest']
 
     tests_require = ['pytest-cov',
-                     'mock'
+                     'six',
                      ]
 
     setup(
