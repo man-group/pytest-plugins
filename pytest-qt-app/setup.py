@@ -37,7 +37,7 @@ class PyTest(TestCommand):
         # import here, cause outside the eggs aren't loaded
         import pytest
 
-        pytest_args.extend(['--cov', 'pytest_qt',
+        pytest_args.extend(['--cov', 'pytest_qt_app',
                      '--cov-report', 'xml',
                      '--cov-report', 'html',
                      '--junitxml', 'junit.xml',
@@ -70,7 +70,7 @@ def main():
     }
 
     setup(
-        name='pytest-qt',
+        name='pytest-qt-app',
         description='QT app fixture for py.test',
         long_description=long_description,
         version='1.0.0',
