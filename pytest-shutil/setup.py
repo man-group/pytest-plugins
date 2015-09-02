@@ -57,6 +57,7 @@ def main():
     install_requires = ['six',
                         'execnet',
                         'contextlib2',
+                        'path.py',
                         ]
 
     tests_require = ['pytest',
