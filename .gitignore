@@ -16,6 +16,9 @@ lib64
 
 # Unit test / coverage reports
 .coverage
+junit.xml
+coverage.xml
+htmlcov
 
 # IDEs 
 .project

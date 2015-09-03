@@ -1,5 +1,0 @@
- -- how do we cleanup non-specified requirements? 
- -- keep logfile of 'root' installed packages somewhere in the venv
- -- swap Paste to mr.bob
- -- add a makefile to template
- -- look @ keychain for password management

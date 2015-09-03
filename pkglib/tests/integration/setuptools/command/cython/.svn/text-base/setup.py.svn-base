@@ -1,5 +1,0 @@
-from ahl.pkgutils.setuptools import setup
-from ahl.pkgutils.setuptools.extension import Extension
-setup(ext_modules = [Extension("ahl.foo._mycython",
-                       libraries=["m"],
-                       sources=["src/mycython.pyx","src/mymodule.c"])])
