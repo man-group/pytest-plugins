@@ -83,7 +83,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        py_modules=['pytest_webdriver'],
         entry_points=entry_points,
     )
 

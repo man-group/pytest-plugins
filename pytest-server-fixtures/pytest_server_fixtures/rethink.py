@@ -4,7 +4,11 @@ import logging
 import time
 
 import pytest
-import rethinkdb
+
+try:
+    import rethinkdb
+except ImportError:
+    pass
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config

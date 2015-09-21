@@ -54,7 +54,8 @@ def main():
         if pytest_args:
             sys.argv = sys.argv[:-len(pytest_args)]
 
-    install_requires = ['pytest-shutil',
+    install_requires = ['pytest-fixture-config',
+                        'pytest-shutil',
                         'pytest',
                         ]
 
@@ -82,7 +83,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        py_modules=['pytest_virtualenv'],
         entry_points=entry_points,
     )
 

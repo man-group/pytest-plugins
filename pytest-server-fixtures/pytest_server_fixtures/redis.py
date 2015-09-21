@@ -8,7 +8,10 @@ from __future__ import absolute_import
 import socket
 
 import pytest
-import redis
+try:
+    import redis
+except ImportError:
+    pass
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config

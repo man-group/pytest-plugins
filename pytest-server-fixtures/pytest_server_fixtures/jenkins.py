@@ -8,7 +8,11 @@ from __future__ import absolute_import
 import os.path
 import shutil
 
-import jenkins
+try:
+    import jenkins
+except ImportError:
+    pass
+
 import pytest
 
 from pytest_server_fixtures import CONFIG

@@ -4,8 +4,12 @@ import shutil
 import subprocess
 
 import pytest
-import pymongo
-from pymongo.errors import AutoReconnect, ConnectionFailure
+
+try:
+    import pymongo
+    from pymongo.errors import AutoReconnect, ConnectionFailure
+except ImportError:
+    pass
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config

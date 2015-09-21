@@ -97,7 +97,7 @@ def main():
         extras_require=extras_require,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        packages=find_packages(exclude='tests'),
         entry_points=entry_points,
     )
 

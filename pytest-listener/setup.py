@@ -80,7 +80,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        packages=find_packages(exclude='tests'),
         entry_points=entry_points,
     )
 
