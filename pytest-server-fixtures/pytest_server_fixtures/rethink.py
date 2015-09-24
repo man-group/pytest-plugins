@@ -1,14 +1,8 @@
 import socket
 import uuid
 import logging
-import time
 
 import pytest
-
-try:
-    import rethinkdb
-except ImportError:
-    pass
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
@@ -33,12 +27,12 @@ def _rethink_server(request):
 @pytest.fixture(scope='function')
 def rethink_server(request):
     """ Function-scoped RethinkDB server in a local thread.
-    
+
         Attributes
         ----------
         conn: (``rethinkdb.Connection``)  Connection to this server instance
-        .. also inherits all attributes from the `workspace` fixture 
-    
+        .. also inherits all attributes from the `workspace` fixture
+
     """
     return _rethink_server(request)
 
@@ -82,13 +76,12 @@ def rethink_module_db(rethink_server_sess):
 
 @pytest.fixture(scope="module")
 def rethink_make_tables(request, rethink_module_db):
-    """ Module-scoped fixture that creates all tables specified in the test 
+    """ Module-scoped fixture that creates all tables specified in the test
         module attribute FIXTURE_TABLES.
-        
+
     """
     reqd_table_list = getattr(request.module, 'FIXTURE_TABLES')
-    log.debug("Do stuff before all module tests with {}"
-             .format(reqd_table_list))
+    log.debug("Do stuff before all module tests with {}".format(reqd_table_list))
     conn = rethink_module_db
     for table_name, primary_key in reqd_table_list:
         try:
@@ -97,14 +90,13 @@ def rethink_make_tables(request, rethink_module_db):
                                                ).run(conn)
             log.info('Made table "{}" with key "{}"'
                      .format(table_name, primary_key))
-        except RqlRuntimeError, err:
-            log.debug('Table "{}" not made: {}'.format(table_name,
-                                                      err.message))
+        except rethinkdb.errors.RqlRuntimeError, err:
+            log.debug('Table "{}" not made: {}'.format(table_name, err.message))
 
 
 @pytest.yield_fixture(scope="function")
 def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
-    """ Function-scoped fixture that will empty all the tables defined 
+    """ Function-scoped fixture that will empty all the tables defined
         for the `rethink_make_tables` fixture.
 
         This is a useful approach, because of the long time taken to
@@ -124,6 +116,8 @@ class RethinkDBServer(TestServer):
     random_port = True
 
     def __init__(self, **kwargs):
+        global rethinkdb
+        import rethinkdb
         super(RethinkDBServer, self).__init__(**kwargs)
         self.cluster_port = self.get_port()
         self.http_port = self.get_port()
@@ -137,7 +131,7 @@ class RethinkDBServer(TestServer):
                 '--driver-port', str(self.port),
                 '--http-port', str(self.http_port),
                 '--cluster-port', str(self.cluster_port),
-        ]
+                ]
 
     def check_server_up(self):
         """Test connection to the server."""

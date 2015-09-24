@@ -65,7 +65,7 @@ def main():
 
     entry_points = {
         'pytest11': [
-            'qt = pytest_qt',
+            'qt = pytest_qt_app',
         ]
     }
 

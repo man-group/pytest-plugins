@@ -21,6 +21,7 @@ long_description = open("README.rst").read()
 
 pytest_args = []
 
+
 class PyTest(TestCommand):
 
     def initialize_options(self):
@@ -58,11 +59,11 @@ def main():
                         'execnet',
                         'contextlib2',
                         'path.py',
+                        'mock'
                         ]
 
     tests_require = ['pytest',
                      'pytest-cov',
-                     'mock'
                      ]
 
     entry_points = {

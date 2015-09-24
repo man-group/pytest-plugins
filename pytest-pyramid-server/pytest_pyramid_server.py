@@ -100,7 +100,7 @@ class PyramidTestServer(HTTPTestServer):
         parser.set('server:main', 'port', self.port)
         parser.set('server:main', 'host', self.hostname)
         [parser.set(section, k, v) for section, cfg in self.extra_config_vars.items() for (k, v) in cfg.items()]
-        with self.working_config.open('w') as fp:
+        with open(str(self.working_config), 'w') as fp:
             parser.write(fp)
 
         # Set the uri to be the external hostname and the url prefix

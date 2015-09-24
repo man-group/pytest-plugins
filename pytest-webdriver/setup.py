@@ -1,7 +1,7 @@
 import sys
 import logging
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 classifiers = [
@@ -21,6 +21,7 @@ long_description = open("README.rst").read()
 
 pytest_args = []
 
+
 class PyTest(TestCommand):
 
     def initialize_options(self):
@@ -38,10 +39,10 @@ class PyTest(TestCommand):
         import pytest
 
         pytest_args.extend(['--cov', 'pytest_webdriver',
-                     '--cov-report', 'xml',
-                     '--cov-report', 'html',
-                     '--junitxml', 'junit.xml',
-                     ])
+                            '--cov-report', 'xml',
+                            '--cov-report', 'html',
+                            '--junitxml', 'junit.xml',
+                            ])
         errno = pytest.main(pytest_args)
         sys.exit(errno)
 
@@ -60,7 +61,7 @@ def main():
                         'selenium',
                         ]
 
-    tests_require = [
+    tests_require = ['pytest-cov',
                      ]
 
     entry_points = {

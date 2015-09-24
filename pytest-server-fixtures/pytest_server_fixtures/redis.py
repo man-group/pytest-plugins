@@ -8,10 +8,6 @@ from __future__ import absolute_import
 import socket
 
 import pytest
-try:
-    import redis
-except ImportError:
-    pass
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
@@ -33,11 +29,11 @@ def _redis_server(request):
 @pytest.fixture(scope='function')
 def redis_server(request):
     """ Function-scoped Redis server in a local thread.
-    
+
         Attributes
         ----------
-        api: (``redis.Redis``)   Redis client API connected to this server 
-        .. also inherits all attributes from the `workspace` fixture 
+        api: (``redis.Redis``)   Redis client API connected to this server
+        .. also inherits all attributes from the `workspace` fixture
     """
     return _redis_server(request)
 
@@ -45,7 +41,7 @@ def redis_server(request):
 @requires_config(CONFIG, ['redis_executable'])
 @pytest.fixture(scope='session')
 def redis_server_sess(request):
-    """ Same as redis_server fixture, scoped for test session 
+    """ Same as redis_server fixture, scoped for test session
     """
     return _redis_server(request)
 
@@ -57,6 +53,8 @@ class RedisTestServer(TestServer):
     port_seed = 65532
 
     def __init__(self, db=0, **kwargs):
+        global redis
+        import redis
         self.db = db
         super(RedisTestServer, self).__init__(**kwargs)
         self.api = redis.Redis(host=self.hostname, port=self.port, db=self.db)

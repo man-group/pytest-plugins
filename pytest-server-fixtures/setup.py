@@ -56,6 +56,7 @@ def main():
 
     install_requires = ['pytest',
                         'pytest-shutil',
+                        'pytest-fixture-config',
                         'six',
                         'requests',
                         ]

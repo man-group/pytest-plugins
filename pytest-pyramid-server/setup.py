@@ -1,7 +1,7 @@
 import sys
 import logging
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 classifiers = [
@@ -22,6 +22,7 @@ long_description = open("README.rst").read()
 
 pytest_args = []
 
+
 class PyTest(TestCommand):
 
     def initialize_options(self):
@@ -39,10 +40,10 @@ class PyTest(TestCommand):
         import pytest
 
         pytest_args.extend(['--cov', 'pytest_pyramid_server',
-                     '--cov-report', 'xml',
-                     '--cov-report', 'html',
-                     '--junitxml', 'junit.xml',
-                     ])
+                            '--cov-report', 'xml',
+                            '--cov-report', 'html',
+                            '--junitxml', 'junit.xml',
+                            ])
         errno = pytest.main(pytest_args)
         sys.exit(errno)
 
@@ -61,14 +62,18 @@ def main():
                         ]
 
     tests_require = ['pytest-cov',
-                     'mock'
+                     'pyramid-debugtoolbar',
                      ]
 
     entry_points = {
         'pytest11': [
             'pyramid_server = pytest_pyramid_server',
-        ]
+        ],
+        'paste.app_factory': [
+            'pyramid_server_test = pyramid_server_test:main',
+        ],
     }
+    
 
     setup(
         name='pytest-pyramid-server',
@@ -84,7 +89,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        py_modules=['pytest_pyramid_server'],
+        py_modules=['pytest_pyramid_server', 'pyramid_server_test'],
         entry_points=entry_points,
     )
 
