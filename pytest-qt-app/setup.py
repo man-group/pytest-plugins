@@ -65,7 +65,7 @@ def main():
 
     entry_points = {
         'pytest11': [
-            'qt = pytest_qt',
+            'qt = pytest_qt_app',
         ]
     }
 
@@ -83,7 +83,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        py_modules=['pytest_qt_app'],
         entry_points=entry_points,
     )
 

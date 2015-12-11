@@ -4,8 +4,6 @@ import shutil
 import subprocess
 
 import pytest
-import pymongo
-from pymongo.errors import AutoReconnect, ConnectionFailure
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
@@ -32,11 +30,11 @@ def mongo_server(request):
 
         For completeness, we tidy up any outstanding mongo temp directories
         at the start and end of each test session
-        
+
         Attributes
         ----------
         api (`pymongo.MongoClient`)  : PyMongo Client API connected to this server
-        .. also inherits all attributes from the `workspace` fixture 
+        .. also inherits all attributes from the `workspace` fixture
     """
     return _mongo_server(request)
 
@@ -64,6 +62,8 @@ class MongoTestServer(TestServer):
     random_port = True
 
     def __init__(self, **kwargs):
+        global pymongo
+        import pymongo
         mongod_dir = tempfile.mkdtemp(dir=self.get_base_dir())
         super(MongoTestServer, self).__init__(workspace=mongod_dir, delete=True, **kwargs)
 
@@ -81,17 +81,17 @@ class MongoTestServer(TestServer):
     @property
     def run_cmd(self):
         return ['%s/mongod' % CONFIG.mongo_bin,
-                    '--bind_ip=%s' % self.hostname,
-                    '--port=%s' % self.port,
-                    '--dbpath=%s' % self.workspace,
-                    '--nounixsocket',
-                    '--smallfiles',
-                    '--syncdelay', '0',
-                    '--nohttpinterface',
-                    '--nssize=1',
-                    '--nojournal',
-                    '--quiet',
-        ]
+                '--bind_ip=%s' % self.hostname,
+                '--port=%s' % self.port,
+                '--dbpath=%s' % self.workspace,
+                '--nounixsocket',
+                '--smallfiles',
+                '--syncdelay', '0',
+                '--nohttpinterface',
+                '--nssize=1',
+                '--nojournal',
+                '--quiet',
+                ]
 
     def check_server_up(self):
         """Test connection to the server."""
@@ -99,7 +99,7 @@ class MongoTestServer(TestServer):
         try:
             self.api = pymongo.MongoClient(self.hostname, self.port)
             return True
-        except (AutoReconnect, ConnectionFailure) as e:
+        except (pymongo.AutoReconnect, pymongo.ConnectionFailure) as e:
             print(e)
         return False
 

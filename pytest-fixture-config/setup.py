@@ -1,7 +1,7 @@
 import sys
 import logging
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 classifiers = [
@@ -74,7 +74,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        py_modules=['pytest_fixture_config'],
     )
 
 if __name__ == '__main__':

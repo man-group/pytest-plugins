@@ -21,6 +21,7 @@ long_description = open("README.rst").read()
 
 pytest_args = []
 
+
 class PyTest(TestCommand):
 
     def initialize_options(self):
@@ -38,10 +39,10 @@ class PyTest(TestCommand):
         import pytest
 
         pytest_args.extend(['--cov', 'pytest_listener',
-                     '--cov-report', 'xml',
-                     '--cov-report', 'html',
-                     '--junitxml', 'junit.xml',
-                     ])
+                            '--cov-report', 'xml',
+                            '--cov-report', 'html',
+                            '--junitxml', 'junit.xml',
+                            ])
         errno = pytest.main(pytest_args)
         sys.exit(errno)
 
@@ -80,7 +81,7 @@ def main():
         install_requires=install_requires,
         tests_require=tests_require,
         cmdclass={'test': PyTest},
-        packages=find_packages(),
+        packages=find_packages(exclude='tests'),
         entry_points=entry_points,
     )
 

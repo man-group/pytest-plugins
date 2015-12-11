@@ -8,7 +8,6 @@ from __future__ import absolute_import
 import os.path
 import shutil
 
-import jenkins
 import pytest
 
 from pytest_server_fixtures import CONFIG
@@ -20,8 +19,8 @@ from .http import HTTPTestServer
 @yield_requires_config(CONFIG, ['jenkins_war', 'java_executable'])
 @pytest.yield_fixture(scope='session')
 def jenkins_server():
-    """ Session-scoped Jenkins server instance 
-    
+    """ Session-scoped Jenkins server instance
+
         Attributes
         ----------
         api (`jenkins.Jenkins`)  : python-jenkins client API connected to this server
@@ -37,6 +36,8 @@ class JenkinsTestServer(HTTPTestServer):
     kill_retry_delay = 2
 
     def __init__(self, **kwargs):
+        global jenkins
+        import jenkins
         super(JenkinsTestServer, self).__init__(**kwargs)
         self.env = dict(JENKINS_ROOT='/usr/share/jenkins',
                         JENKINS_HOME=self.workspace,
@@ -71,7 +72,7 @@ class JenkinsTestServer(HTTPTestServer):
 
         # copy the plugins to the jenkins plugin directory
         available_plugins = dict(((os.path.splitext(os.path.basename(x))[0], os.path.join(plugins_repo, x))
-                       for x in os.listdir(plugins_repo) if x.endswith('.hpi')))
+                                  for x in os.listdir(plugins_repo) if x.endswith('.hpi')))
 
         if plugins is None:
             plugins = available_plugins.keys()

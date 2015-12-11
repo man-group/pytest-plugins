@@ -9,17 +9,29 @@ class FixtureConfig(Config):
                  'rethink_executable', 'httpd_executable', 'httpd_modules', 'fixture_hostname',
                  'xvfb_executable')
 
+# Default values for system resource locations - patch this to change defaults
+DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostname()
+DEFAULT_SERVER_FIXTURES_JAVA = "java"
+DEFAULT_SERVER_FIXTURES_JENKINS_URL = 'http://acmejenkins.example.com'
+DEFAULT_SERVER_FIXTURES_JENKINS_WAR = '/usr/share/jenkins/jenkins.war'
+DEFAULT_SERVER_FIXTURES_MONGO_BIN = '/usr/bin'
+DEFAULT_SERVER_FIXTURES_REDIS = "/usr/sbin/redis-server"
+DEFAULT_SERVER_FIXTURES_RETHINK = "/usr/bin/rethinkdb"
+DEFAULT_SERVER_FIXTURES_HTTPD = "/usr/sbin/apache2"
+DEFAULT_SERVER_FIXTURES_HTTPD_MODULES = "/usr/lib/apache2/modules"
+DEFAULT_SERVER_FIXTURES_XVFB = "/usr/bin/Xvfb"
+
 # Global config for finding system resources.
 CONFIG = FixtureConfig(
     # Not using localhost here in case we are being used in a cluster-type job
-    fixture_hostname=os.getenv('SERVER_FIXTURES_HOSTNAME', socket.gethostname()),
-    java_executable=os.getenv('SERVER_FIXTURES_JAVA', "java"),
-    jenkins_url=os.getenv('SERVER_FIXTURES_JENKINS_URL', 'http://acmejenkins.example.com'),
-    jenkins_war=os.getenv('SERVER_FIXTURES_JENKINS_WAR', '/usr/share/jenkins/jenkins.war'),
-    mongo_bin=os.getenv('SERVER_FIXTURES_MONGO_BIN', '/usr/bin'),
-    redis_executable=os.getenv('SERVER_FIXTURES_REDIS', "/usr/sbin/redis-server"),
-    rethink_executable=os.getenv('SERVER_FIXTURES_RETHINK', "/usr/bin/rethinkdb"),
-    httpd_executable=os.getenv('SERVER_FIXTURES_HTTPD', "/usr/sbin/apache2"),
-    httpd_modules=os.getenv('SERVER_FIXTURES_HTTPD_MODULES', "/usr/lib/apache2/modules"),
-    xvfb_executable=os.getenv('SERVER_FIXTURES_XVFB', "/usr/bin/Xvfb"),
+    fixture_hostname=os.getenv('SERVER_FIXTURES_HOSTNAME', DEFAULT_SERVER_FIXTURES_HOSTNAME),
+    java_executable=os.getenv('SERVER_FIXTURES_JAVA', DEFAULT_SERVER_FIXTURES_JAVA),
+    jenkins_url=os.getenv('SERVER_FIXTURES_JENKINS_URL', DEFAULT_SERVER_FIXTURES_JENKINS_URL),
+    jenkins_war=os.getenv('SERVER_FIXTURES_JENKINS_WAR', DEFAULT_SERVER_FIXTURES_JENKINS_WAR),
+    mongo_bin=os.getenv('SERVER_FIXTURES_MONGO_BIN', DEFAULT_SERVER_FIXTURES_MONGO_BIN),
+    redis_executable=os.getenv('SERVER_FIXTURES_REDIS', DEFAULT_SERVER_FIXTURES_REDIS),
+    rethink_executable=os.getenv('SERVER_FIXTURES_RETHINK', DEFAULT_SERVER_FIXTURES_RETHINK),
+    httpd_executable=os.getenv('SERVER_FIXTURES_HTTPD', DEFAULT_SERVER_FIXTURES_HTTPD),
+    httpd_modules=os.getenv('SERVER_FIXTURES_HTTPD_MODULES', DEFAULT_SERVER_FIXTURES_HTTPD_MODULES),
+    xvfb_executable=os.getenv('SERVER_FIXTURES_XVFB', DEFAULT_SERVER_FIXTURES_XVFB),
 )

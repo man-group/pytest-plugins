@@ -16,8 +16,12 @@ from pytest_fixture_config import Config, yield_requires_config
 class FixtureConfig(Config):
     __slots__ = ('virtualenv_executable')
 
+# Default values for system resource locations - patch this to change defaults
+DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE = (cmdline.which('virtualenv') + ['virtualenv'])[0]
+DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE = '/apps/research/python/bin/virtualenv'
+
 CONFIG = FixtureConfig(
-    virtualenv_executable=os.getenv('VIRTUALENV_FIXTURE_EXECUTABLE', 'virtualenv'),
+    virtualenv_executable=os.getenv('VIRTUALENV_FIXTURE_EXECUTABLE', DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE),
 )
 
 
@@ -25,14 +29,14 @@ CONFIG = FixtureConfig(
 @yield_fixture(scope='function')
 def virtualenv():
     """ Function-scoped virtualenv in a temporary workspace.
-    
+
         Methods
         -------
         run()                : run a command using this virtualenv's shell environment
         run_with_coverage()  : run a command in this virtualenv, collecting coverage
         install_package()    : install a package in this virtualenv
         installed_packages() : return a dict of installed packages
-        
+
         Attributes
         ----------
         virtualenv (`path.path`)    : Path to this virtualenv's base directory
