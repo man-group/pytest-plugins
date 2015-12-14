@@ -1,12 +1,27 @@
 # Package list, in order of ancestry
-PACKAGES=pytest-fixture-config pytest-shutil pytest-server-fixtures pytest-listener pytest-pyramid-server pytest-qt-app pytest-svn pytest-virtualenv pytest-webdriver pytest-profiling pytest-verbose-parametrize
+PACKAGES=pytest-fixture-config          \
+         pytest-shutil                  \
+         pytest-server-fixtures         \
+         pytest-listener                \
+         pytest-pyramid-server          \
+         pytest-qt-app                  \
+         pytest-svn                     \
+         pytest-virtualenv              \
+         pytest-webdriver               \
+         pytest-profiling               \
+         pytest-verbose-parametrize
+VIRTUALENV=virtualenv
 VENV_PYTHON=venv/bin/python
+OPTIONAL_DEPS=python-jenkins redis pymongo rethinkdb
 
 .PHONY: test clean
 
 
 $(VENV_PYTHON):
-	virtualenv venv
+	$(VIRTUALENV) venv;                    \
+	for package in $(OPTIONAL_DEPS); do    \
+	   venv/bin/pip install $$package;     \
+	done
 
 
 venv: $(VENV_PYTHON)
