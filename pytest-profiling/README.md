@@ -1,32 +1,43 @@
-Pytest Profiling Plugin
-=======================
+# Pytest Profiling Plugin
 
 Profiling plugin for pytest, with tabular and heat graph output.
 
-Tests are profiled with cProfile_ and analysed with pstats_; heat graphs are
-generated using gprof2dot_ and dot_.
+Tests are profiled with [cProfile](http://docs.python.org/library/profile.html#module-cProfile) and analysed with [pstats](http://docs.python.org/library/profile.html#pstats.Stats); heat graphs are
+generated using [gprof2dot](http://code.google.com/p/jrfonseca/wiki/Gprof2Dot) and [dot](http://www.graphviz.org/).
 
-.. _cProfile: http://docs.python.org/library/profile.html#module-cProfile
-.. _pstats: http://docs.python.org/library/profile.html#pstats.Stats
-.. _gprof2dot: http://code.google.com/p/jrfonseca/wiki/Gprof2Dot
-.. _dot: http://www.graphviz.org/
 
-Usage
------
+## Installation
 
-Once the enclosing package is installed into your virtualenv, the plugin
-provides extra options to pytest::
+Install using your favourite package installer:
+```bash
+    pip install pytest-profilng
+    # or
+    easy_install pytest-profiling
+```
+    
+Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
 
+```python
+    pytest_plugins = ['pytest_profiling']
+```
+
+## Usage
+
+Once installed, the plugin provides extra options to pytest:
+
+```bash
     $ py.test --help
     ...
       Profiling:
         --profile           generate profiling information
         --profile-svg       generate profiling graph (using gprof2dot and dot
                             -Tsvg)
+```
 
 The ``--profile`` and ``profile-svg`` options can be combined with any other
 option::
 
+```
     $ py.test tests/unit/test_logging.py --profile
     ============================= test session starts ==============================
     platform linux2 -- Python 2.6.2 -- pytest-2.2.3
@@ -65,23 +76,26 @@ option::
 
 
     =========================== 3 passed in 0.13 seconds ===========================
+```
 
-pstats files (one per test item) are retained for later analysis in ``prof``
-directory, along with a ``combined.prof`` file::
+pstats files (one per test item) are retained for later analysis in `prof` directory, along with a `combined.prof` file:
 
+```bash
     $ ls -1 prof/
     combined.prof
     test_app.prof
     test_flushing.prof
     test_import.prof
+```
 
-If the ``--profile-svg`` option is given, along with the prof files and tabular
-output a svg file will be generated::
+If the ``--profile-svg`` option is given, along with the prof files and tabular output a svg file will be generated:
 
+```bash
     $ py.test tests/unit/test_logging.py --profile-svg
     ...
     SVG profile in prof/combined.svg.
+```
 
 This is best viewed with a good svg viewer e.g. Chrome.
 
-.. image:: ../_static/profile_combined.svg
+![Example Graph](docs/static/profile_combined.svg)
