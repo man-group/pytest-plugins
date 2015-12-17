@@ -5,6 +5,7 @@ Profiling plugin for pytest, with tabular and heat graph output.
 Tests are profiled with [cProfile](http://docs.python.org/library/profile.html#module-cProfile) and analysed with [pstats](http://docs.python.org/library/profile.html#pstats.Stats); heat graphs are
 generated using [gprof2dot](http://code.google.com/p/jrfonseca/wiki/Gprof2Dot) and [dot](http://www.graphviz.org/).
 
+![Example Graph](https://cdn.rawgit.com/manahl/pytest-plugins/master/pytest-profiling/docs/static/profile_combined.svg)
 
 ## Installation
 
@@ -97,5 +98,3 @@ If the ``--profile-svg`` option is given, along with the prof files and tabular 
 ```
 
 This is best viewed with a good svg viewer e.g. Chrome.
-
-![Example Graph](docs/static/profile_combined.svg)

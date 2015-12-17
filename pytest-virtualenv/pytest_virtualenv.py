@@ -18,7 +18,6 @@ class FixtureConfig(Config):
 
 # Default values for system resource locations - patch this to change defaults
 DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE = (cmdline.which('virtualenv') + ['virtualenv'])[0]
-DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE = '/apps/research/python/bin/virtualenv'
 
 CONFIG = FixtureConfig(
     virtualenv_executable=os.getenv('VIRTUALENV_FIXTURE_EXECUTABLE', DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE),
