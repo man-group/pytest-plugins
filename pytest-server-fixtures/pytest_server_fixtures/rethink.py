@@ -60,7 +60,7 @@ def rethink_unique_db(rethink_server_sess):
 
 @pytest.yield_fixture(scope="module")
 def rethink_module_db(rethink_server_sess):
-    """ Starts up a session-scoped server, and returns a connection to
+    """ Starts up a module-scoped server, and returns a connection to
         a unique database for all the tests in one module.
         Drops the database after module tests are complete.
     """
