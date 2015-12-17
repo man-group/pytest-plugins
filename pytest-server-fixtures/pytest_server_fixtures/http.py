@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import socket
 import logging
+import time
 
 import pytest
 import requests
@@ -51,10 +52,19 @@ class HTTPTestServer(TestServer):
             log.debug("Server not up yet (%s).." % e)
             return False
 
-    def query_url(self, path, as_json=True, attempts=25):
-        '''Queries url and returns the string returns, cnoverted to python equivalent of json if json=True.
-        Path argument should be whatever comes after 'http://hostname:port/'.
-        '''
+    def get(self, path, as_json=False, attempts=25):
+        """ Queries the server using requests.GET and returns the response object. 
+        
+        Parameters
+        ----------
+        path :  `str`
+            Path to the resource, relative to 'http://hostname:port/'
+        as_json :  `bool`
+            Returns the json object if True. Defaults to False.
+        attempts: `int`
+            This function will retry up to `attempts` times on connection errors, to handle 
+            the server still waking up. Defaults to 25.
+        """
         for i in range(attempts):
             try:
                 returned = requests.get('http://%s:%d/%s' % (self.hostname, self.port, path))
@@ -66,7 +76,19 @@ class HTTPTestServer(TestServer):
                 pass
         raise e
 
-    def post_to_url(self, path, data=None, attempts=25, as_json=True):
+    def post(self, path, data=None, attempts=25, as_json=False):
+        """ Posts data to the server using requests.POST and returns the response object. 
+        
+        Parameters
+        ----------
+        path :  `str`
+            Path to the resource, relative to 'http://hostname:port/'
+        as_json :  `bool`
+            Returns the json response if True. Defaults to False.
+        attempts: `int`
+            This function will retry up to `attempts` times on connection errors, to handle 
+            the server still waking up. Defaults to 25.
+        """
         for i in range(attempts):
             try:
                 returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data)

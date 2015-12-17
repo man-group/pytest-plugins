@@ -69,7 +69,8 @@ def main():
     }
 
     tests_require = ['pytest-cov',
-                     'mock'
+                     'mock',
+                     'psutil',
                      ]
 
     entry_points = {

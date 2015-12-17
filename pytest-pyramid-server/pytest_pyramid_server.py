@@ -37,11 +37,11 @@ def pyramid_server(request):
         
         Methods
         -------
-        get_config()  : Return current configuration as a dict.
-        query_url()   : Query url relative to the server root.
-        ..              Parse as json and retry failures by default.
-        post_to_url() : Post payload to url relative to the server root.
-        ..              Parse as json and retry failures by default.
+        get_config() : Return current configuration as a dict.
+        get()        : Query url relative to the server root.
+        ..             Retry failures by default.
+        post()       : Post payload to url relative to the server root.
+        ..             Retry failures by default.
         
         Attributes
         ----------

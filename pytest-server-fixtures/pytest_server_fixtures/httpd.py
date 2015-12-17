@@ -3,6 +3,7 @@ import socket
 import string
 
 import pytest
+import path
 
 from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG
@@ -51,14 +52,14 @@ class HTTPDServer(HTTPTestServer):
       ServerRoot $server_root
       Listen $listen_addr
 
-      ErrorLog $server_root/logs/error.log
+      ErrorLog $log_dir/error.log
       LogFormat "%h %l %u %t \\"%r\\" %>s %b" common
-      CustomLog logs/access_log common
+      CustomLog $log_dir/access.log common
       LogLevel info
 
       $proxy_rules
 
-      Alias / $document_root
+      Alias / $document_root/
 
       <Directory $server_root>
           Options +Indexes
@@ -67,7 +68,7 @@ class HTTPDServer(HTTPTestServer):
       $extra_cfg
     """)
 
-    def __init__(self, proxy_rules=None, extra_cfg='', **kwargs):
+    def __init__(self, proxy_rules=None, extra_cfg='', document_root=None, log_dir=None, **kwargs):
         """ httpd Proxy Server
 
         Parameters
@@ -76,11 +77,13 @@ class HTTPDServer(HTTPTestServer):
             { proxy_src: proxy_dest }. Eg   {'/downstream_url/' : server.uri}
         extra_cfg: `str`
             Any extra Apache config
-
+        document_root : `str`
+            Server document root, defaults to temporary workspace
+        log_dir : `str`
+            Server log directory, defaults to $(workspace)/logs
         """
         self.proxy_rules = proxy_rules if proxy_rules is not None else {}
         self.extra_cfg = extra_cfg
-        self.document_root = kwargs.get('document_root')
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
@@ -89,6 +92,11 @@ class HTTPDServer(HTTPTestServer):
         kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
 
         super(HTTPDServer, self).__init__(**kwargs)
+        
+        self.document_root = document_root or self.workspace
+        self.document_root = path.path(self.document_root)
+        self.log_dir = log_dir or self.workspace / 'logs'
+        self.log_dir = path.path(self.log_dir)
 
     def pre_setup(self):
         """ Write out the config file
@@ -100,7 +108,8 @@ class HTTPDServer(HTTPTestServer):
             rules.append("ProxyPassReverse {} {} \n".format(source, self.proxy_rules[source]))
         cfg = self.cfg_template.substitute(
             server_root=self.workspace,
-            document_root=self.document_root if self.document_root else self.workspace,
+            document_root=self.document_root,
+            log_dir=self.log_dir,
             listen_addr="{host}:{port}".format(host=self.hostname, port=self.port),
             proxy_rules='\n'.join(rules),
             extra_cfg=self.extra_cfg,
@@ -108,9 +117,10 @@ class HTTPDServer(HTTPTestServer):
         )
         self.config.write_text(cfg)
 
+        # This is where it stores PID files
         (self.workspace / 'run').mkdir()
-        if not os.path.exists(self.workspace / 'logs'):
-            (self.workspace / 'logs').mkdir()
+        if not os.path.exists(self.log_dir):
+            self.log_dir.mkdir()
 
     @property
     def run_cmd(self):

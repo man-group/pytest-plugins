@@ -45,11 +45,11 @@ Here's a noddy test case showing the main functionality:
         # to externally accessable IPs so a web browser can access it.
         assert pyramid_server.uri.startswith('http')
         
-        # GET a document from the server. Expects JSON by default
-        assert pyramid_server.query_url('/orders/macbooks')  == {'id-1234': 'MPB-15inch'}
+        # GET a document from the server.
+        assert pyramid_server.get('/orders/macbooks', as_json=True)  == {'id-1234': 'MPB-15inch'}
         
-        # POST a document to the server. Parse response as JSON by default
-        assert pyramid_server.post_to_url('/login', 'guest:password123') == {'ok': True}
+        # POST a document to the server.
+        assert pyramid_server.post('/login', 'guest:password123').response_code == 200
         
         # ``path.py`` path object to the running config file
         assert pyramid_server.working_config.endswith('testing.ini')
