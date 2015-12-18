@@ -110,7 +110,7 @@ class SimpleHTTPTestServer(HTTPTestServer):
         # code in kill won't work correctly. We don't set self.hostname however as we want our
         # uri property to still be correct.
         super(SimpleHTTPTestServer, self).__init__(workspace=workspace, delete=delete, hostname="0.0.0.0", **kwargs)
-        self.cwd = self.file_dir
+        self.cwd = self.document_root
 
     @property
     def uri(self):
@@ -123,7 +123,7 @@ class SimpleHTTPTestServer(HTTPTestServer):
         return ["python", "-m", "SimpleHTTPServer", str(self.port)]
 
     @property
-    def file_dir(self):
+    def document_root(self):
         """This is the folder of files served up by this SimpleHTTPServer"""
         file_dir = os.path.join(str(self.workspace), "files")
         if not os.path.exists(file_dir):
