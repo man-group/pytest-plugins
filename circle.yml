@@ -1,0 +1,15 @@
+dependencies:
+  pre: 
+    
+test:
+  override:
+    - make test 
+     
+machine:
+  services :
+     - mongodb
+     - redis
+     - apache
+     - rethinkdb
+  environment : 
+      
