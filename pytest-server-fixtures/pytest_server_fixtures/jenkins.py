@@ -39,8 +39,7 @@ class JenkinsTestServer(HTTPTestServer):
         global jenkins
         import jenkins
         super(JenkinsTestServer, self).__init__(**kwargs)
-        self.env = dict(JENKINS_ROOT='/usr/share/jenkins',
-                        JENKINS_HOME=self.workspace,
+        self.env = dict(JENKINS_HOME=self.workspace,
                         JENKINS_RUN=self.workspace / 'run',
                         RUN_STANDALONE='true',
                         JAVA_ARGS='-Xmx1G',
