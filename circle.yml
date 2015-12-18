@@ -1,6 +1,6 @@
 dependencies:
   pre: 
-    - apt-get install apache2 rethinkdb
+    - sudo apt-get install apache2 rethinkdb jenkins
 test:
   override:
     - make test 
