@@ -1,6 +1,6 @@
 dependencies:
   pre: 
-    
+    - apt-get install apache2 rethinkdb
 test:
   override:
     - make test 
@@ -9,7 +9,5 @@ machine:
   services :
      - mongodb
      - redis
-     - apache
-     - rethinkdb
   environment : 
       
