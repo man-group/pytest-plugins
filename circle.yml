@@ -8,6 +8,7 @@ dependencies:
 test:
   override:
     - make test 
+    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/$i.xml || true; done
      
 machine:
   services :
