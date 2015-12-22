@@ -16,12 +16,14 @@ PACKAGES=pytest-fixture-config          \
 VIRTUALENV=virtualenv
 VENV_PYTHON=venv/bin/python
 EXTRA_DEPS=pypandoc       \
+           coverage       \
            python-jenkins \
            redis          \
            pymongo        \
            rethinkdb
+DIST_FORMATS=sdist bdist_wheel bdist_egg
 
-.PHONY: venv setup test clean
+.PHONY: venv setup test dist clean
 
 
 $(VENV_PYTHON):
@@ -32,20 +34,30 @@ $(VENV_PYTHON):
 
 venv: $(VENV_PYTHON)
 
-setup: venv
+develop: venv
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
 	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
     done
 
-test: setup
+test: develop
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
 	     ../$(VENV_PYTHON) setup.py test;               \
 	    )                                               \
     done
 
+
+dist: venv
+	for package in $(PACKAGES); do                     \
+	    cd $$package;                                  \
+            for format in $(DIST_FORMATS); do          \
+                 ../$(VENV_PYTHON) setup.py $$format || exit 1;   \
+            done;                                      \
+	    cd ..;                                         \
+    done
+ 
  
 clean:
 	for package in $(PACKAGES); do                            \

@@ -8,9 +8,11 @@ dependencies:
 test:
   override:
     - make test 
-    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/$i.xml || true; done
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/ $CIRCLE_ARTIFACTS/htmlcov/
+    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/junit/$i.xml || true; done
     - venv/bin/coverage combine pytest-*/.coverage 
-    - venv/bin/coverage html -d $CIRCLE_ARTIFACTS
+    - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov
+    - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
      
 machine:
   services :
