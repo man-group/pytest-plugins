@@ -26,3 +26,5 @@ htmlcov
 .pydevproject
 .settings
 TAGS
+/venv/
+/pip-log.txt

@@ -1,8 +1,7 @@
-import sys
-import logging
-
+import os
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
+
+execfile(os.path.join(os.path.pardir, 'common_setup.py'))
 
 classifiers = [
     'License :: OSI Approved :: MIT License',
@@ -17,78 +16,34 @@ classifiers = [
     'Programming Language :: Python :: 2.7',
 ]
 
-long_description = open("README.rst").read()
+install_requires = ['six',
+                    'execnet',
+                    'contextlib2',
+                    'path.py',
+                    'mock'
+                    ]
 
-pytest_args = []
+tests_require = ['pytest',
+                 'pytest-cov',
+                 ]
 
+entry_points = {
+    'pytest11': [
+        'workspace = pytest_shutil.workspace',
+    ]
+}
 
-class PyTest(TestCommand):
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s', level='DEBUG')
-
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-
-        pytest_args.extend(['--cov', 'pytest_shutil',
-                     '--cov-report', 'xml',
-                     '--cov-report', 'html',
-                     '--junitxml', 'junit.xml',
-                     ])
-        errno = pytest.main(pytest_args)
-        sys.exit(errno)
-
-
-def main():
-    # Gather trailing arguments for pytest, this can't be done using setuptools' api
-    global pytest_args
-    if 'test' in sys.argv:
-        pytest_args = sys.argv[sys.argv.index('test') + 1:]
-        if pytest_args:
-            sys.argv = sys.argv[:-len(pytest_args)]
-
-    install_requires = ['six',
-                        'execnet',
-                        'contextlib2',
-                        'path.py',
-                        'mock'
-                        ]
-
-    tests_require = ['pytest',
-                     'pytest-cov',
-                     ]
-
-    entry_points = {
-        'pytest11': [
-            'workspace = pytest_shutil.workspace',
-        ]
-    }
-
-    setup(
+if __name__ == '__main__':
+    kwargs = common_setup('pytest_shutil')
+    kwargs.update(dict(
         name='pytest-shutil',
         description='A goodie-bag of unix shell and environment tools for py.test',
-        long_description=long_description,
-        version='1.0.0',
-        url='https://github.com/manahl/pytest-plugins',
-        license='MIT license',
-        platforms=['unix', 'linux'],
         author='Edward Easton',
         author_email='eeaston@gmail.com',
         classifiers=classifiers,
         install_requires=install_requires,
         tests_require=tests_require,
-        cmdclass={'test': PyTest},
         packages=find_packages(exclude='tests'),
         entry_points=entry_points,
-    )
-
-if __name__ == '__main__':
-    main()
+    ))
+    setup(**kwargs)

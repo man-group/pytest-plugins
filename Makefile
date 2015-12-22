@@ -2,47 +2,59 @@
 PACKAGES=pytest-fixture-config          \
          pytest-shutil                  \
          pytest-server-fixtures         \
-         pytest-listener                \
          pytest-pyramid-server          \
+         pytest-listener                \
          pytest-qt-app                  \
          pytest-svn                     \
          pytest-virtualenv              \
          pytest-webdriver               \
-         pytest-profiling               \
-         pytest-verbose-parametrize
+         pytest-profiling               
+         
+# TODO: fix this package for latest py.test        
+#         pytest-verbose-parametrize
+
 VIRTUALENV=virtualenv
 VENV_PYTHON=venv/bin/python
-OPTIONAL_DEPS=python-jenkins redis pymongo rethinkdb
+EXTRA_DEPS=pypandoc       \
+           python-jenkins \
+           redis          \
+           pymongo        \
+           rethinkdb
 
-.PHONY: test clean
+.PHONY: venv setup test clean
 
 
 $(VENV_PYTHON):
-	$(VIRTUALENV) venv;                    \
-	for package in $(OPTIONAL_DEPS); do    \
-	   venv/bin/pip install $$package;     \
+	$(VIRTUALENV) venv;                 \
+	for package in $(EXTRA_DEPS); do    \
+	   venv/bin/pip install $$package;  \
 	done
-
 
 venv: $(VENV_PYTHON)
 
-test: $(VENV_PYTHON)
+setup: venv
+	for package in $(PACKAGES); do                      \
+	    cd $$package;                                   \
+	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
+	    cd ..;                                          \
+    done
+
+test: setup
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py develop || exit 1;  \
-	     ../$(VENV_PYTHON) setup.py test || exit 1;     \
-	    ) || break;                                     \
+	     ../$(VENV_PYTHON) setup.py test;               \
+	    )                                               \
     done
 
  
 clean:
-	for package in $(PACKAGES); do                      \
-        (cd $$package;                                  \
-         rm -rf build dist *.xml .coverage              \
-        );                                              \
-	done;                                               \
-	rm -rf venv
-	
+	for package in $(PACKAGES); do                            \
+        (cd $$package;                                        \
+         rm -rf build dist *.xml .coverage *.egg-info .eggs htmlcov .cache  \
+        );                                                    \
+	done;                                                     \
+	rm -rf venv pytest-pyramid-server/vx pip-log.txt
+	find . -name *.pyc -delete
 
 all: 
 	test
