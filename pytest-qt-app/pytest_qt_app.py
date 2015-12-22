@@ -2,7 +2,6 @@ import gc
 import os
 import pytest
 
-from PyQt4 import QtGui
 
 from pytest_shutil.env import set_env
 from pytest_server_fixtures.xvfb import XvfbServer
@@ -19,6 +18,11 @@ TestQtApp = _TestQtApp()
 def q_application():
     """ Initialise a QT application with a Xvfb server
     """
+    try:
+        from PyQt4 import QtGui
+    except ImportError:
+        pytest.skip('PyQT4 not installed, skipping test')
+
     global TestQtApp
     assert hasattr(TestQtApp, 'app'), "Can only initialize QApplication once per process"
 
