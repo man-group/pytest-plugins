@@ -15,9 +15,6 @@ from datetime import datetime
 import logging
 
 from six import string_types
-from six.moves import http_client
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.error import URLError
 
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace

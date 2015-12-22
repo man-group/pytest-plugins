@@ -37,7 +37,10 @@ class JenkinsTestServer(HTTPTestServer):
 
     def __init__(self, **kwargs):
         global jenkins
-        import jenkins
+        try:
+            import jenkins
+        except ImportError:
+            pytest.skip('python-jenkins not installed, skipping test')
         super(JenkinsTestServer, self).__init__(**kwargs)
         self.env = dict(JENKINS_HOME=self.workspace,
                         JENKINS_RUN=self.workspace / 'run',

@@ -10,6 +10,10 @@ import requests
 from six.moves import http_client
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
+from contextlib import contextmanager
+
+from pytest_shutil.env import unset_env
+from pytest_server_fixtures import CONFIG
 
 from .base import TestServer
 
@@ -37,12 +41,22 @@ class HTTPTestServer(TestServer):
             return self._uri
         return "http://%s:%s" % (self.hostname, self.port)
 
+    @contextmanager
+    def handle_proxy(self):
+        if CONFIG.disable_proxy:
+            with unset_env(['http_proxy', 'https_proxy', 'HTTP_PROXY', ' HTTPS_PROXY']):
+                yield
+        else:
+            yield
+
+
     def check_server_up(self):
         """ Check the server is up by polling self.uri
         """
         try:
             log.debug('accessing URL: {}'.format(self.uri))
-            url = urlopen(self.uri)
+            with self.handle_proxy():
+                url = urlopen(self.uri)
             return url.getcode() == 200
         except (URLError, socket.error, http_client.BadStatusLine) as e:
             if getattr(e, 'code', None) == 403:
@@ -67,7 +81,8 @@ class HTTPTestServer(TestServer):
         """
         for i in range(attempts):
             try:
-                returned = requests.get('http://%s:%d/%s' % (self.hostname, self.port, path))
+                with self.handle_proxy():
+                    returned = requests.get('http://%s:%d/%s' % (self.hostname, self.port, path))
                 if as_json:
                     return returned.json()
                 return returned
@@ -91,7 +106,8 @@ class HTTPTestServer(TestServer):
         """
         for i in range(attempts):
             try:
-                returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data)
+                with self.handle_proxy():
+                    returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data)
                 if as_json:
                     return returned.json()
                 return returned

@@ -54,7 +54,10 @@ class RedisTestServer(TestServer):
 
     def __init__(self, db=0, **kwargs):
         global redis
-        import redis
+        try:
+            import redis
+        except ImportError:
+            pytest.skip('redis not installed, skipping test')
         self.db = db
         super(RedisTestServer, self).__init__(**kwargs)
         self.api = redis.Redis(host=self.hostname, port=self.port, db=self.db)

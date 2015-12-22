@@ -63,7 +63,10 @@ class MongoTestServer(TestServer):
 
     def __init__(self, **kwargs):
         global pymongo
-        import pymongo
+        try:
+            import pymongo
+        except ImportError:
+            pytest.skip('pymongo not installed, skipping test')
         mongod_dir = tempfile.mkdtemp(dir=self.get_base_dir())
         super(MongoTestServer, self).__init__(workspace=mongod_dir, delete=True, **kwargs)
 

@@ -11,6 +11,7 @@ from .base import TestServer
 
 
 log = logging.getLogger(__name__)
+rethinkdb = None
 
 
 def _rethink_server(request):
@@ -117,7 +118,10 @@ class RethinkDBServer(TestServer):
 
     def __init__(self, **kwargs):
         global rethinkdb
-        import rethinkdb
+        try:
+            import rethinkdb
+        except ImportError:
+            pytest.skip('rethinkdb not installed, skipping test')
         super(RethinkDBServer, self).__init__(**kwargs)
         self.cluster_port = self.get_port()
         self.http_port = self.get_port()
