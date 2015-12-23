@@ -20,4 +20,4 @@ machine:
      - mongodb
      - redis
   environment :
-      VIRTUALENV_SYSTEM_SITE_PACKAGES=1
+      VIRTUALENV_SYSTEM_SITE_PACKAGES : 1
