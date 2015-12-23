@@ -11,7 +11,7 @@ classifiers = [
     'Topic :: Utilities',
     'Intended Audience :: Developers',
     'Operating System :: POSIX',
-    'Framework :: Pyramid'
+    'Framework :: Pyramid',
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
