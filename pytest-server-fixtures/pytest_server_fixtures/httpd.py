@@ -39,7 +39,9 @@ class HTTPDServer(HTTPTestServer):
       LoadModule alias_module $modules/mod_alias.so
       LoadModule dir_module $modules/mod_dir.so
       LoadModule autoindex_module $modules/mod_autoindex.so
-      LoadModule log_config_module $modules/mod_log_config.so
+      <IfModule !mod_log_config.c>
+          LoadModule log_config_module $modules/mod_log_config.so
+      </IfModule>
       LoadModule mime_module $modules/mod_mime.so
 
       StartServers 1
@@ -51,6 +53,7 @@ class HTTPDServer(HTTPTestServer):
 
       ServerRoot $server_root
       Listen $listen_addr
+      PidFile $server_root/run/httpd.pid
 
       ErrorLog $log_dir/error.log
       LogFormat "%h %l %u %t \\"%r\\" %>s %b" common
