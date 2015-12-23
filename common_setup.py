@@ -55,7 +55,7 @@ def common_setup(src_dir):
 
     return dict(
             # Version is shared between all the projects in this repo
-            version=open(version_file).read(),
+            version=open(version_file).read().strip(),
             long_description='\n'.join((long_description, changelog)),
             url='https://github.com/manahl/pytest-plugins',
             license='MIT license',
