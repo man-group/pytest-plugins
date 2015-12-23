@@ -7,6 +7,10 @@ dependencies:
 
 test:
   override:
+    - make venv
+    # Just pull in PyQt4 from the system site-packages - if we create the venv with --system-site-packages
+    # then we can't install many of the other dependencies due to install errors in pip/setuptools
+    - cd venv/lib/python2.7/site-packages; ln -s $(python2.7 -c "import PyQt4; print PyQt4.__path__[0]"); cd -
     - make test 
     - make dist
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/ $CIRCLE_ARTIFACTS/htmlcov/
@@ -19,5 +23,3 @@ machine:
   services :
      - mongodb
      - redis
-  environment :
-      VIRTUALENV_SYSTEM_SITE_PACKAGES : 1
