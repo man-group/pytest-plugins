@@ -16,6 +16,7 @@ PACKAGES=pytest-fixture-config          \
 VIRTUALENV=virtualenv
 VENV_PYTHON=venv/bin/python
 EXTRA_DEPS=pypandoc       \
+           wheel          \
            coverage       \
            python-jenkins \
            redis          \
@@ -23,8 +24,10 @@ EXTRA_DEPS=pypandoc       \
            rethinkdb
 COPY_FILES=VERSION CHANGES.md common_setup.py MANIFEST.in
 DIST_FORMATS=sdist bdist_wheel bdist_egg
+UPLOAD_OPTS=
 
-.PHONY: venv setup test dist clean
+
+.PHONY: venv copyfiles develop test dist upload clean
 
 
 $(VENV_PYTHON):
@@ -35,12 +38,18 @@ $(VENV_PYTHON):
 
 venv: $(VENV_PYTHON)
 
-develop: venv
+copyfiles:
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
 	    for file in $(COPY_FILES); do                   \
 	        cp ../$$file .;                             \
 	    done;                                           \
+	    cd ..;                                          \
+    done
+
+develop: venv copyfiles
+	for package in $(PACKAGES); do                      \
+	    cd $$package;                                   \
 	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
     done
@@ -52,8 +61,7 @@ test: develop
 	    )                                               \
     done
 
-
-dist: venv
+dist: venv copyfiles
 	for package in $(PACKAGES); do                     \
 	    cd $$package;                                  \
             for format in $(DIST_FORMATS); do          \
@@ -61,8 +69,16 @@ dist: venv
             done;                                      \
 	    cd ..;                                         \
     done
- 
- 
+
+upload: dist
+	for package in $(PACKAGES); do                     \
+	    cd $$package;                                  \
+            for format in $(DIST_FORMATS); do          \
+                 ../$(VENV_PYTHON) setup.py $$format upload $(UPLOAD_OPTS) || exit 1;   \
+            done;                                      \
+	    cd ..;                                         \
+    done
+
 clean:
 	for package in $(PACKAGES); do                            \
         (cd $$package;                                        \
