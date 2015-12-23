@@ -32,10 +32,11 @@ class PyTest(TestCommand):
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
+
 def common_setup(src_dir):
     readme_file = 'README.md'
-    changelog_file = os.path.join(os.path.pardir, 'CHANGES.md')
-    version_file = os.path.join(os.path.pardir, 'VERSION')
+    changelog_file = 'CHANGES.md'
+    version_file = 'VERSION'
 
     # Convert Markdown to RST for PyPI
     try:

@@ -1,7 +1,5 @@
-import os
 from setuptools import setup
-
-execfile(os.path.join(os.path.pardir, 'common_setup.py'))
+from common_setup import common_setup
 
 classifiers = [
     'License :: OSI Approved :: MIT License',

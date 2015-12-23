@@ -21,6 +21,7 @@ EXTRA_DEPS=pypandoc       \
            redis          \
            pymongo        \
            rethinkdb
+COPY_FILES=VERSION CHANGES.md common_setup.py MANIFEST.in
 DIST_FORMATS=sdist bdist_wheel bdist_egg
 
 .PHONY: venv setup test dist clean
@@ -37,6 +38,9 @@ venv: $(VENV_PYTHON)
 develop: venv
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
+	    for file in $(COPY_FILES); do                   \
+	        cp ../$$file .;                             \
+	    done;                                           \
 	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
     done
@@ -63,6 +67,7 @@ clean:
 	for package in $(PACKAGES); do                            \
         (cd $$package;                                        \
          rm -rf build dist *.xml .coverage *.egg-info .eggs htmlcov .cache  \
+         rm $(COPY_FILES);                                   \
         );                                                    \
 	done;                                                     \
 	rm -rf venv pytest-pyramid-server/vx pip-log.txt
