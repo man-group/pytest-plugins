@@ -5,11 +5,20 @@ import os
 import cProfile
 import pstats
 import pipes
+import six
 import errno
 from hashlib import md5
 
 
 LARGE_FILENAME_HASH_LEN = 8
+
+
+def clean_filename(s):
+    forbidden_chars = set('/?<>\:*|"')
+    return "".join(
+        c if c not in forbidden_chars and ord(c) < 127 else '_'
+        for c in six.text_type(s)
+    )
 
 
 class Profiling(object):
@@ -57,7 +66,7 @@ class Profiling(object):
         """
         prof = cProfile.Profile()
         prof.runctx("fn()", globals(), dict(fn=__multicall__.execute))
-        prof_filename = os.path.join("prof", pyfuncitem.name + ".prof")
+        prof_filename = os.path.join("prof", clean_filename(pyfuncitem.name) + ".prof")
         try:
             prof.dump_stats(prof_filename)
         except EnvironmentError as err:
