@@ -9,6 +9,9 @@ import errno
 from hashlib import md5
 
 
+LARGE_FILENAME_HASH_LEN = 8
+
+
 class Profiling(object):
     """Profiling plugin for pytest."""
     svg = False
@@ -61,11 +64,10 @@ class Profiling(object):
             if err.errno != errno.ENAMETOOLONG:
                 raise
 
-            hash_len = 8
-            if len(pyfuncitem.name) < hash_len:
+            if len(pyfuncitem.name) < LARGE_FILENAME_HASH_LEN:
                 raise
 
-            hash_str = md5(pyfuncitem.name).hexdigest()[:hash_len]
+            hash_str = md5(pyfuncitem.name).hexdigest()[:LARGE_FILENAME_HASH_LEN]
             prof_filename = os.path.join("prof", hash_str + ".prof")
             prof.dump_stats(prof_filename)
 
