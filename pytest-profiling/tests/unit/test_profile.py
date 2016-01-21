@@ -22,13 +22,16 @@ def test_hooks_pyfunc_call():
     multicall, pyfuncitem, plugin = Mock(), Mock(), Profiling(False)
     pyfuncitem.name.__add__ = Mock()
     with patch('os.path.join', return_value=sentinel.join):
-        with patch('pytest_profiling.cProfile') as cProfile:
+        with patch('pytest_profiling.cProfile.Profile') as Profile:
             plugin.pytest_pyfunc_call(multicall, pyfuncitem)
-    assert cProfile.runctx.called
-    args, kwargs = cProfile.runctx.call_args
-    assert kwargs['filename'] == sentinel.join
+    prof = Profile()  # mock instances are singletons
+    assert prof.runctx.called
+    assert prof.dump_stats.called
+    runctx_args, _ = prof.runctx.call_args
+    (dump_stats_filename, ), _ = prof.dump_stats.call_args
+    assert dump_stats_filename == sentinel.join
     assert not multicall.execute.called
-    eval(*args)
+    eval(*runctx_args)
     assert multicall.execute.called
     assert plugin.profs == [sentinel.join]
 

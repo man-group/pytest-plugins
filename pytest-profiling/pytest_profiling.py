@@ -70,6 +70,7 @@ class Profiling(object):
             hash_str = md5(pyfuncitem.name).hexdigest()[:LARGE_FILENAME_HASH_LEN]
             prof_filename = os.path.join("prof", hash_str + ".prof")
             prof.dump_stats(prof_filename)
+        self.profs.append(prof_filename)
 
 
 def pytest_addoption(parser):
