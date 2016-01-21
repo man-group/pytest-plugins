@@ -89,6 +89,15 @@ pstats files (one per test item) are retained for later analysis in `prof` direc
     test_import.prof
 ```
 
+Profiling plugin by default names pstats filename as corresponding test name. If full path is longer that operation system allows then plugin renames it to first 4 bytes of md5 hash of test name:
+
+```bash
+    $ ls -1 prof/
+    combined.prof
+    test_not_longer_than_max_allowed.prof
+    68b329da.prof
+```
+
 If the ``--profile-svg`` option is given, along with the prof files and tabular output a svg file will be generated:
 
 ```bash
