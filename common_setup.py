@@ -62,4 +62,6 @@ def common_setup(src_dir):
             license='MIT license',
             platforms=['unix', 'linux'],
             cmdclass={'test': PyTest},
+            setup_requires=['setuptools-git'],
+            include_package_data=True
             )

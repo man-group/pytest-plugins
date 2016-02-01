@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from common_setup import common_setup
 
 classifiers = [
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         classifiers=classifiers,
         install_requires=install_requires,
         tests_require=tests_require,
-        py_modules=['pytest_devpi_server'],
+        packages=find_packages(exclude='tests'),
         entry_points=entry_points,
     ))
     setup(**kwargs)
