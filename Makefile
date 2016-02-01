@@ -27,7 +27,6 @@ COPY_FILES=VERSION CHANGES.md common_setup.py MANIFEST.in
 DIST_FORMATS=sdist bdist_wheel bdist_egg
 UPLOAD_OPTS=
 
-
 .PHONY: venv copyfiles install test dist upload clean
 
 
@@ -59,9 +58,10 @@ install: venv copyfiles
 test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py test -sv;           \
+	     ../$(VENV_PYTHON) setup.py test -sv || touch ../FAILED; \
 	    )                                               \
-    done
+    done;                                               \
+    [ -f FAILED ] && exit 1 
 
 dist: venv copyfiles
 	for package in $(PACKAGES); do                     \
