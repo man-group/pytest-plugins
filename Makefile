@@ -51,7 +51,8 @@ copyfiles:
 install: venv copyfiles
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
-	    ../$(VENV_PYTHON) setup.py bdist_egg install || exit 1;   \
+	    ../$(VENV_PYTHON) setup.py bdist_egg || exit 1; \
+	    ../venv/bin/easy_install dist/*.egg || exit 1;  \
 	    cd ..;                                          \
     done
 
