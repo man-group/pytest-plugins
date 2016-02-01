@@ -3,6 +3,7 @@ PACKAGES=pytest-fixture-config          \
          pytest-shutil                  \
          pytest-server-fixtures         \
          pytest-pyramid-server          \
+         pytest-devpi-server            \
          pytest-listener                \
          pytest-qt-app                  \
          pytest-svn                     \
