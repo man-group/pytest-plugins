@@ -28,7 +28,7 @@ DIST_FORMATS=sdist bdist_wheel bdist_egg
 UPLOAD_OPTS=
 
 
-.PHONY: venv copyfiles develop test dist upload clean
+.PHONY: venv copyfiles install test dist upload clean
 
 
 $(VENV_PYTHON):
@@ -48,17 +48,17 @@ copyfiles:
 	    cd ..;                                          \
     done
 
-develop: venv copyfiles
+install: venv copyfiles
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
-	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
+	    ../$(VENV_PYTHON) setup.py bdist_egg install || exit 1;   \
 	    cd ..;                                          \
     done
 
-test: develop
+test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py test;               \
+	     ../$(VENV_PYTHON) setup.py test -sv;           \
 	    )                                               \
     done
 

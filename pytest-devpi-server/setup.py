@@ -17,7 +17,7 @@ classifiers = [
 
 install_requires = ['pytest-server-fixtures',
                     'pytest',
-                    'devpi-server',
+                    'devpi-server>=2.6.0',
                     'devpi-client',
                     ]
 
