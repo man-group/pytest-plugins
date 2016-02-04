@@ -11,7 +11,7 @@ generated using [gprof2dot](http://code.google.com/p/jrfonseca/wiki/Gprof2Dot) a
 
 Install using your favourite package installer:
 ```bash
-    pip install pytest-profilng
+    pip install pytest-profiling
     # or
     easy_install pytest-profiling
 ```
