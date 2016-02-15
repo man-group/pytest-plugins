@@ -4,6 +4,7 @@
 ### 1.1.0 (2016-2-15)
  
  * New plugin: devpi server fixture
+ * pytest-profiling improvement: overly-long .prof files are saved as the short hash of the test name (Thanks to Vladimir Lagunov for PR)
  * Changed default behavior of workspace.run() to not use a subshell for security reasons
  * Corrected virtualenv.run() method to handle arguments the same as the parent method workspace.run()
  * Removed deprecated '--distribute' from virtualenv args
