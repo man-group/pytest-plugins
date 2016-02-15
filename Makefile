@@ -58,7 +58,7 @@ install: venv copyfiles
 test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py test -sv || touch ../FAILED; \
+	     ../$(VENV_PYTHON) setup.py test -sv -ra || touch ../FAILED; \
 	    )                                               \
     done;                                               \
     [ -f FAILED ] && exit 1 
