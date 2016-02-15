@@ -58,12 +58,10 @@ install: venv copyfiles
 test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py test -sv -ra ||     \
-	       (echo " ========= Test suite for $$package Failed! ======== "; \
-	        touch ../FAILED); \
+	     ../$(VENV_PYTHON) setup.py test -sv -ra || touch ../FAILED; \
 	    )                                               \
     done;                                               \
-    [ -f FAILED ] && exit 1 
+    [ -f FAILED ] && exit 1  || true
 
 dist: venv copyfiles
 	for package in $(PACKAGES); do                     \
