@@ -27,6 +27,10 @@ COPY_FILES=VERSION CHANGES.md common_setup.py MANIFEST.in
 DIST_FORMATS=sdist bdist_wheel bdist_egg
 UPLOAD_OPTS=
 
+# Used for determining which packages get released
+LAST_TAG := $(shell git tag -l v\* | tail -1)
+CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
+
 .PHONY: venv copyfiles install test dist upload clean
 
 
@@ -64,7 +68,7 @@ test: install
     [ -f FAILED ] && exit 1  || true
 
 dist: venv copyfiles
-	for package in $(PACKAGES); do                     \
+	for package in $(CHANGED_PACKAGES); do                     \
 	    cd $$package;                                  \
             for format in $(DIST_FORMATS); do          \
                  ../$(VENV_PYTHON) setup.py $$format || exit 1;   \
@@ -73,14 +77,14 @@ dist: venv copyfiles
     done
 
 upload: dist
-	for package in $(PACKAGES); do                     \
+	for package in $(CHANGED_PACKAGES); do                     \
 	    cd $$package;                                  \
             for format in $(DIST_FORMATS); do          \
                  ../$(VENV_PYTHON) setup.py $$format upload $(UPLOAD_OPTS) || exit 1;   \
             done;                                      \
 	    cd ..;                                         \
     done
-
+    
 clean:
 	for package in $(PACKAGES); do                            \
         (cd $$package;                                        \
