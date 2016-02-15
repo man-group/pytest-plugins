@@ -90,6 +90,7 @@ clean:
 	done;                                                     \
 	rm -rf venv pytest-pyramid-server/vx pip-log.txt
 	find . -name *.pyc -delete
+	rm -f FAILED
 
 all: 
 	test

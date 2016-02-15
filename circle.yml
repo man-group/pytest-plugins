@@ -7,7 +7,7 @@ dependencies:
 
 test:
   override:
-    - make venv
+    - make clean venv
     # Just pull in PyQt4 from the system site-packages - if we create the venv with --system-site-packages
     # then we can't install many of the other dependencies due to install errors in pip/setuptools
     - cd venv/lib/python2.7/site-packages; ln -s $(python2.7 -c "import PyQt4; print PyQt4.__path__[0]"); ln -s $(python2.7 -c "import sip; print sip.__file__");
