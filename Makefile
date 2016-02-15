@@ -3,6 +3,7 @@ PACKAGES=pytest-fixture-config          \
          pytest-shutil                  \
          pytest-server-fixtures         \
          pytest-pyramid-server          \
+         pytest-devpi-server            \
          pytest-listener                \
          pytest-qt-app                  \
          pytest-svn                     \
@@ -26,8 +27,7 @@ COPY_FILES=VERSION CHANGES.md common_setup.py MANIFEST.in
 DIST_FORMATS=sdist bdist_wheel bdist_egg
 UPLOAD_OPTS=
 
-
-.PHONY: venv copyfiles develop test dist upload clean
+.PHONY: venv copyfiles install test dist upload clean
 
 
 $(VENV_PYTHON):
@@ -47,19 +47,21 @@ copyfiles:
 	    cd ..;                                          \
     done
 
-develop: venv copyfiles
+install: venv copyfiles
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
-	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
+	    ../$(VENV_PYTHON) setup.py bdist_egg || exit 1; \
+	    ../venv/bin/easy_install dist/*.egg || exit 1;  \
 	    cd ..;                                          \
     done
 
-test: develop
+test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py test;               \
+	     ../$(VENV_PYTHON) setup.py test -sv -ra || touch ../FAILED; \
 	    )                                               \
-    done
+    done;                                               \
+    [ -f FAILED ] && exit 1  || true
 
 dist: venv copyfiles
 	for package in $(PACKAGES); do                     \
@@ -88,6 +90,7 @@ clean:
 	done;                                                     \
 	rm -rf venv pytest-pyramid-server/vx pip-log.txt
 	find . -name *.pyc -delete
+	rm -f FAILED
 
 all: 
 	test
