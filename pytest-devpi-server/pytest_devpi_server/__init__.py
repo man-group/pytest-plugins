@@ -18,7 +18,6 @@ from pytest_server_fixtures.http import HTTPTestServer
 
 log = logging.getLogger(__name__)
 
-
 @yield_fixture(scope='session')
 def devpi_server(request):
     """ Session-scoped Devpi server run in a subprocess, out of a temp dir. 
@@ -79,14 +78,17 @@ class DevpiServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return [path(sys.exec_prefix) / 'bin' / 'python',
+        res = [path(sys.exec_prefix) / 'bin' / 'python',
                 path(sys.exec_prefix) / 'bin' / 'devpi-server',
                 '--serverdir', self.server_dir,
                 '--host', self.hostname,
-                '--port', str(self.port),
-                '--offline-mode' if self.offline else '',
-                '--debug' if self.debug else '',
+                '--port', str(self.port)
                 ]
+        if self.offline:
+            res.append('--offline-mode')
+        if self.debug:
+            res.append('--debug')
+        return res
 
     def api(self, *args):
         """ Client API.
@@ -106,12 +108,6 @@ class DevpiServer(HTTPTestServer):
 
 
     def pre_setup(self):
-        if self.data is None and self.offline:
-            # As of 2.6.0, the server still tries to access the internet on first boot to
-            # create the initial index :( We've bundled a version of an empty db to get
-            # around this.
-            self.data = pkg_resources.resource_filename('pytest_devpi_server',
-                                                        'data/db-{}.zip'.format(_devpi_server.__version__))
         if self.data:
             log.info("Extracting initial server data from {}".format(self.data))
             zipfile.ZipFile(self.data, 'r').extractall(self.server_dir)
