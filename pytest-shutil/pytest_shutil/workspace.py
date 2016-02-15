@@ -79,7 +79,7 @@ class Workspace(object):
         # Prefer CI server workspaces. TODO: look for env vars for other CI servers
         return os.getenv('WORKSPACE')
 
-    def run(self, cmd, capture=False, check_rc=True, cd=None, shell=True, **kwargs):
+    def run(self, cmd, capture=False, check_rc=True, cd=None, shell=False, **kwargs):
         """
         Run a command relative to a given directory, defaulting to the workspace root
 
@@ -94,13 +94,17 @@ class Workspace(object):
         cd : `str`
             Path to chdir to, defaults to workspace root
         """
-        if isinstance(cmd, str):
-            cmd = [cmd]
+        if isinstance(cmd, string_types):
             shell = True
+        else:
+            # Some of the command components might be path objects or numbers
+            cmd = [str(i) for i in cmd]
+
         if not cd:
             cd = self.workspace
+
         with cmdline.chdir(cd):
-            log.debug("run: %s" % str(cmd))
+            log.debug("run: {}".format(cmd))
             if capture:
                 p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
             else:
