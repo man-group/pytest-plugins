@@ -119,17 +119,17 @@ class VirtualEnv(Workspace):
             del(self.env['PYTHONPATH'])
 
         self.virtualenv_cmd = CONFIG.virtualenv_executable
-        self.run('%s -p %s %s --distribute' % (self.virtualenv_cmd,
-                                               python or cmdline.get_real_python_executable(),
-                                               self.virtualenv))
+        self.run([self.virtualenv_cmd,
+                 '-p', python or cmdline.get_real_python_executable(),
+                 self.virtualenv])
 
-    def run(self, *args, **kwargs):
+    def run(self, args, **kwargs):
         """
         Add our cleaned shell environment into any subprocess execution
         """
         if 'env' not in kwargs:
             kwargs['env'] = self.env
-        return super(VirtualEnv, self).run(*args, **kwargs)
+        return super(VirtualEnv, self).run(args, **kwargs)
 
     def run_with_coverage(self, *args, **kwargs):
         """
@@ -186,7 +186,7 @@ class VirtualEnv(Workspace):
             else:
                 cmd = 'cd %(src_dir)s; %(python)s setup.py -q develop' % d
 
-        self.run(cmd, capture=True)
+        self.run(cmd, capture=False)
 
     def installed_packages(self, package_type=None):
         """
