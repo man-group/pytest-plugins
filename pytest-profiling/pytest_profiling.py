@@ -5,6 +5,11 @@ import os
 import cProfile
 import pstats
 import pipes
+import errno
+from hashlib import md5
+
+
+LARGE_FILENAME_HASH_LEN = 8
 
 
 class Profiling(object):
@@ -50,9 +55,22 @@ class Profiling(object):
         """Hook into pytest_pyfunc_call; marked as a tryfirst hook so that we
         can call everyone else inside `cProfile.runctx`.
         """
-        prof = os.path.join("prof", pyfuncitem.name + ".prof")
-        cProfile.runctx("fn()", globals(), dict(fn=__multicall__.execute), filename=prof)
-        self.profs.append(prof)
+        prof = cProfile.Profile()
+        prof.runctx("fn()", globals(), dict(fn=__multicall__.execute))
+        prof_filename = os.path.join("prof", pyfuncitem.name + ".prof")
+        try:
+            prof.dump_stats(prof_filename)
+        except EnvironmentError as err:
+            if err.errno != errno.ENAMETOOLONG:
+                raise
+
+            if len(pyfuncitem.name) < LARGE_FILENAME_HASH_LEN:
+                raise
+
+            hash_str = md5(pyfuncitem.name).hexdigest()[:LARGE_FILENAME_HASH_LEN]
+            prof_filename = os.path.join("prof", hash_str + ".prof")
+            prof.dump_stats(prof_filename)
+        self.profs.append(prof_filename)
 
 
 def pytest_addoption(parser):
