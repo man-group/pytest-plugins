@@ -1,5 +1,7 @@
 # A goody-bag of nifty plugins for [Py.Test](https://pytest.org)
 
+[![Circle CI](https://circleci.com/gh/manahl/pytest-plugins.svg?style=shield)](https://circleci.com/gh/manahl/pytest-plugins)
+
 Plugin | Description |
 ------ | ----------- |
 | [pytest-server-fixtures](pytest-server-fixtures) |  Extensible server-running framework with a suite of well-known databases and webservices included | 
