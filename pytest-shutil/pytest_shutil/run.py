@@ -249,7 +249,7 @@ def run_with_coverage(cmd, pytestconfig, coverage=None, cd=None, **kwargs):
         coverage = [coverage]
 
     args = coverage + ['run', '-p']
-    if pytestconfig.option.cov_source:
+    if getattr(pytestconfig.option, 'cov_source', None):
         source_dirs = ",".join(pytestconfig.option.cov_source)
         args += ['--source=%s' % source_dirs]
     args += cmd
