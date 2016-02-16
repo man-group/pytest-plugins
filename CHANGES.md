@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.1.1 (2016-2-16)
+ * pytest-profiling improvement: escape illegal characters in .prof files (Thanks to Aarni Koskela for the PR)
+
 ### 1.1.0 (2016-2-15)
  
  * New plugin: devpi server fixture
