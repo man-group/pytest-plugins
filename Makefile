@@ -59,6 +59,15 @@ install: venv copyfiles
 	    cd ..;                                          \
     done
 
+
+develop: venv copyfiles
+	for package in $(PACKAGES); do                      \
+	    cd $$package;                                   \
+	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
+	    cd ..;                                          \
+    done
+
+
 test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
