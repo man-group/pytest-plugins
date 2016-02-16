@@ -79,7 +79,7 @@ option::
     =========================== 3 passed in 0.13 seconds ===========================
 ```
 
-pstats files (one per test item) are retained for later analysis in `prof` directory, along with a `combined.prof` file:
+`pstats` files (one per test item) are retained for later analysis in `prof` directory, along with a `combined.prof` file:
 
 ```bash
     $ ls -1 prof/
@@ -89,7 +89,8 @@ pstats files (one per test item) are retained for later analysis in `prof` direc
     test_import.prof
 ```
 
-Profiling plugin by default names pstats filename as corresponding test name. If full path is longer that operation system allows then plugin renames it to first 4 bytes of md5 hash of test name:
+By default the `pstats` files are named after their corresponding test name, with illegal filesystem characters replaced by underscores.
+If the full path is longer that operating system allows then it will be renamed to first 4 bytes of an md5 hash of the test name:
 
 ```bash
     $ ls -1 prof/

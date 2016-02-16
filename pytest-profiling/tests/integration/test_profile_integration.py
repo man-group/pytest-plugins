@@ -3,24 +3,27 @@ from distutils.dir_util import copy_tree
 from pkg_resources import resource_filename
 import pytest
 
+from pytest_virtualenv import VirtualEnv
 
-@pytest.fixture
-def setup(virtualenv):
-    test_dir = resource_filename('pytest_profiling',
+@pytest.yield_fixture(scope='session')
+def virtualenv():
+    with VirtualEnv() as venv:
+        test_dir = resource_filename('pytest_profiling',
                                  'tests/integration/profile')
-    virtualenv.install_package('pytest-cov')
-    virtualenv.install_package('pytest-profiling')
-    copy_tree(test_dir, virtualenv.workspace)
+        venv.install_package('pytest-cov')
+        venv.install_package('pytest-profiling')
+        copy_tree(test_dir, venv.workspace)
+        yield venv
 
 
-def test_profile_profiles_tests(pytestconfig, virtualenv, setup):
+def test_profile_profiles_tests(pytestconfig, virtualenv):
     output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile',
                                            'tests/unit/test_example.py'],
                                           pytestconfig, cd=virtualenv.workspace)
     assert 'test_example.py:1(test_foo)' in output
 
 
-def test_profile_generates_svg(pytestconfig, virtualenv, setup):
+def test_profile_generates_svg(pytestconfig, virtualenv):
     output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile-svg',
                                           'tests/unit/test_example.py'],
                                           pytestconfig, cd=virtualenv.workspace)
@@ -29,3 +32,11 @@ def test_profile_generates_svg(pytestconfig, virtualenv, setup):
 
     assert 'test_example.py:1(test_foo)' in output
     assert 'SVG' in output
+
+
+def test_profile_long_name(pytestconfig, virtualenv):
+    output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile',
+                                           'tests/unit/test_long_name.py'],
+                                          pytestconfig, cd=virtualenv.workspace)
+    assert (virtualenv.workspace / 'prof/fbf7dc37.prof').isfile()
+

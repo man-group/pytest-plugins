@@ -20,7 +20,7 @@ def test_creates_prof_dir():
 def test_hooks_pyfunc_call():
     assert getattr(Profiling.pytest_pyfunc_call, 'tryfirst')
     multicall, pyfuncitem, plugin = Mock(), Mock(), Profiling(False)
-    pyfuncitem.name.__add__ = Mock()
+    pyfuncitem.name = 'test_foo'
     with patch('os.path.join', return_value=sentinel.join):
         with patch('pytest_profiling.cProfile.Profile') as Profile:
             plugin.pytest_pyfunc_call(multicall, pyfuncitem)
@@ -92,3 +92,7 @@ def test_configures():
     with patch('pytest_profiling.Profiling') as Profiling:
         pytest_configure(config)
     config.pluginmanager.register.assert_called_with(Profiling.return_value)
+
+
+def test_clean_filename():
+    assert pytest_profiling.clean_filename('a:b/c\256d') == 'a_b_c_d'

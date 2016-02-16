@@ -15,10 +15,8 @@ LARGE_FILENAME_HASH_LEN = 8
 
 def clean_filename(s):
     forbidden_chars = set('/?<>\:*|"')
-    return "".join(
-        c if c not in forbidden_chars and ord(c) < 127 else '_'
-        for c in six.text_type(s)
-    )
+    return six.text_type("".join(c if c not in forbidden_chars and ord(c) < 127 else '_'
+                                 for c in s))
 
 
 class Profiling(object):
