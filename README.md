@@ -13,6 +13,7 @@ Plugin | Description |
 | [pytest-virtualenv](pytest-virtualenv) | Virtualenv fixture | 
 | [pytest-qt-app](pytest-qt-app) | PyQT application fixture | 
 | [pytest-listener](pytest-listener)  | TCP Listener/Reciever for testing remote systems | 
+| [pytest-git](pytest-git) | Git repository fixture | 
 | [pytest-svn](pytest-svn) | SVN repository fixture | 
 | [pytest-fixture-config](pytest-fixture-config) | Configuration tools for Py.test fixtures |
 | [pytest-verbose-parametrize](pytest-verbose-parametrize) | Makes py.test's parametrize output a little more verbose |

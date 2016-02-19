@@ -7,6 +7,7 @@ PACKAGES=pytest-fixture-config          \
          pytest-listener                \
          pytest-qt-app                  \
          pytest-svn                     \
+         pytest-git                     \
          pytest-virtualenv              \
          pytest-webdriver               \
          pytest-profiling               
