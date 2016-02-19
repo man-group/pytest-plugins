@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.0 (2016-2-19)
+ * New plugin: git repository fixture
+
 ### 1.1.1 (2016-2-16)
  * pytest-profiling improvement: escape illegal characters in .prof files (Thanks to Aarni Koskela for the PR)
 
