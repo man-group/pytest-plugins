@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.1 (2016-3-1)
+ * Fixed pytest-verbose-parametrize for latest version of py.test
+
 ### 1.2.0 (2016-2-19)
  * New plugin: git repository fixture
 

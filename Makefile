@@ -10,11 +10,9 @@ PACKAGES=pytest-fixture-config          \
          pytest-git                     \
          pytest-virtualenv              \
          pytest-webdriver               \
-         pytest-profiling               
+         pytest-profiling               \
+         pytest-verbose-parametrize
          
-# TODO: fix this package for latest py.test        
-#         pytest-verbose-parametrize
-
 VIRTUALENV=virtualenv
 VENV_PYTHON=venv/bin/python
 EXTRA_DEPS=pypandoc       \
@@ -99,12 +97,12 @@ upload: dist
 clean:
 	for package in $(PACKAGES); do                            \
         (cd $$package;                                        \
-         rm -rf build dist *.xml .coverage *.egg-info .eggs htmlcov .cache  \
+         rm -rf build dist *.xml *.egg-info .eggs htmlcov .cache  \
          rm $(COPY_FILES);                                   \
         );                                                    \
 	done;                                                     \
 	rm -rf venv pytest-pyramid-server/vx pip-log.txt
-	find . -name *.pyc -delete
+	find . -name *.pyc -name .coverage -name .coverage.* -delete
 	rm -f FAILED
 
 all: 
