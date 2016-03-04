@@ -91,7 +91,7 @@ def rethink_make_tables(request, rethink_module_db):
                                                ).run(conn)
             log.info('Made table "{}" with key "{}"'
                      .format(table_name, primary_key))
-        except rethinkdb.errors.RqlRuntimeError, err:
+        except rethinkdb.errors.RqlRuntimeError as err:
             log.debug('Table "{}" not made: {}'.format(table_name, err.message))
 
 
