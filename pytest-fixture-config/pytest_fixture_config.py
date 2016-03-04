@@ -40,11 +40,11 @@ def yield_requires_config(cfg, vars_):
     def decorator(f):
         # We need to specify 'request' in the args here to satisfy pytest's fixture logic
         @functools.wraps(f)
-        def wrapper(request, *args, **kwargs):
+        def wrapper(*args, **kwargs):
             for var in vars_:
                 if not getattr(cfg, var):
                     pytest.skip('config variable {} missing, skipping test'.format(var))
             gen = f(*args, **kwargs)
-            yield gen.next()
+            yield next(gen)
         return wrapper
     return decorator
