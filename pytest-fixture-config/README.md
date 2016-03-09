@@ -58,7 +58,7 @@ Simply reference the singleton at run-time in your fixtures:
 
 There are some decorators that allow you to skip tests when settings aren't set.
 This is useful when you're testing something you might not have installed
-but don't want your tests suite to fail::
+but don't want your tests suite to fail:
 
 ```python
     from pytest_fixture_config import requires_config
@@ -69,7 +69,7 @@ but don't want your tests suite to fail::
         return subprocess.popen([CONFIG.log_watcher, '--log-dir', CONFIG.log_dir])
 ```
     
-There is also a version for yield_fixtures::
+There is also a version for yield_fixtures:
 
 ```python
     from pytest_fixture_config import yield_requires_config

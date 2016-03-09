@@ -5,32 +5,34 @@ servers in your tests, as well as a suite of fixtures for some well-known webser
 and databases.
 
 ## Table of Contents
-* [Batteries Included]()
-* [Installation]()
-* [Configuration]()
-* [Common fixture properties]()
-* [MongoDB]()
-* [Redis]()
-* [RethinkDB]()
-* [Apache `httpd`]()
-* [Simple HTTP Server]()
-* [Xvfb]()
-* [Jenkins]()
-* [Server Framework]()
+* [Batteries Included](#batteries-included)
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Common fixture properties](#common-fixture-properties)
+* [MongoDB](#mongodb)
+* [Redis](#redis)
+* [RethinkDB](#rethinkdb)
+* [Apache httpd](#apache-httpd)
+* [Simple HTTP Server](#simple-http-server)
+* [Xvfb](#xvfp)
+* [Jenkins](#jenkins)
+* [Server Framework](#server-framework)
 
 
                       
 ## Batteries Included
 
-| Fixture | Extra Dependency Name
-| ------- | ---------------------
-| MongoDB                                | mongodb 
-| Redis                                  | redis
-| RethinkDB                              | rethinkdb
-| Apache Httpd                           | 
-| Simple HTTP Server                     |
-| Jenkins                                | jenkins
-| Xvfb (X-Windows Virtual Frame Buffer)  |
+
+| Fixture | Extra Dependency Name 
+| - | - 
+| MongoDB | mongodb 
+| Redis   | redis
+| RethinkDB | rethinkdb
+| Apache Httpd | <none>
+| Simple HTTP Server | <none>
+| Jenkins  | jenkins
+| Xvfb (X-Windows Virtual Frame Buffer)  | <none>
+
 
 ## Installation
 
@@ -208,7 +210,7 @@ def test_empty_db(rethink_empty_db):
     assert not conn.table('transactions').run(conn)
 ```
 
-# Apache `httpd`
+# Apache httpd
 
 The `httpd` module contains the following fixtures:
 
@@ -392,7 +394,7 @@ There are also some class attributes that can be overridden to modify server beh
 | `random_port`      | Start the server on a guaranteed unique random TCP port  | True
 | `port_seed`        | If `random_port` is false, port number is semi-repeatable and based on a hash of the class name and this seed. | 65535
 | `kill_signal`      | Signal used to kill the server | `SIGTERM`
-| `kill_retry_delay` | Number of seconds to wait between kill retries. Increase this if your server takes a while to die
+| `kill_retry_delay` | Number of seconds to wait between kill retries. Increase this if your server takes a while to die | 1
 
 ## Constructor Arguments
 
