@@ -1,6 +1,7 @@
 """ Python virtual environment fixtures
 """
 import os
+import sys
 from distutils import sysconfig
 
 from pytest import yield_fixture
@@ -104,24 +105,32 @@ class VirtualEnv(Workspace):
     def __init__(self, env=None, workspace=None, name='.env', python=None):
         Workspace.__init__(self, workspace)
         self.virtualenv = self.workspace / name
-        self.python = self.virtualenv / 'bin' / 'python'
-        self.easy_install = self.virtualenv / "bin" / "easy_install"
+        if sys.platform == 'win32':
+            # In virtualenv on windows "Scripts" folder is used instead of "bin".
+            self.python = self.virtualenv / 'Scripts' / 'python.exe'
+            self.easy_install = self.virtualenv / 'Scripts' / 'easy_install.exe'
+            self.coverage = self.virtualenv / 'Scripts' / 'coverage.exe'
+        else:
+            self.python = self.virtualenv / 'bin' / 'python'
+            self.easy_install = self.virtualenv / "bin" / "easy_install"
+            self.coverage = self.virtualenv / 'bin' / 'coverage'
 
         if env is None:
             self.env = dict(os.environ)
         else:
             self.env = dict(env)  # ensure we take a copy just in case there's some modification
 
-        self.env['VIRTUAL_ENV'] = self.virtualenv
-        self.env['PATH'] = os.path.dirname(self.python) + ((os.path.pathsep + self.env["PATH"])
-                                                           if "PATH" in self.env else "")
+        self.env['VIRTUAL_ENV'] = str(self.virtualenv)
+
+        self.env['PATH'] = str(self.python.dirname()) + ((os.path.pathsep + self.env["PATH"])
+                                                         if "PATH" in self.env else "")
         if 'PYTHONPATH' in self.env:
             del(self.env['PYTHONPATH'])
 
         self.virtualenv_cmd = CONFIG.virtualenv_executable
         self.run([self.virtualenv_cmd,
                  '-p', python or cmdline.get_real_python_executable(),
-                 self.virtualenv])
+                 str(self.virtualenv)])
 
     def run(self, args, **kwargs):
         """
@@ -145,7 +154,7 @@ class VirtualEnv(Workspace):
         """
         if 'env' not in kwargs:
             kwargs['env'] = self.env
-        coverage = [self.python, '%s/bin/coverage' % self.virtualenv]
+        coverage = [str(self.python), str(self.coverage)]
         return run.run_with_coverage(*args, coverage=coverage, **kwargs)
 
     def install_package(self, pkg_name, installer='easy_install', build_egg=None):
@@ -161,7 +170,7 @@ class VirtualEnv(Workspace):
         """
         installed = [p for p in working_set if p.project_name == pkg_name]
         if not installed or installed[0].location.endswith('.egg'):
-            installer = os.path.join(self.virtualenv, 'bin', installer)
+            installer = str(self.virtualenv / 'bin' / installer)
             if not self.debug:
                 installer += ' -q'
             # Note we're running this as 'python easy_install foobar', instead of 'easy_install foobar'
