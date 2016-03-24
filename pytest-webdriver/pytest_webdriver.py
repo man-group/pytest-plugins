@@ -85,8 +85,6 @@ def pytest_runtest_makereport(item, call, __multicall__):
     """
     if not 'webdriver' in item.funcargs:
         return
-    # if not item.config.getvalue('screenshot'):
-    #    return
     if not call.excinfo or call.excinfo.errisinstance(pytest.skip.Exception):
         return
     fname = item.nodeid.replace('/', '__') + '.png'
