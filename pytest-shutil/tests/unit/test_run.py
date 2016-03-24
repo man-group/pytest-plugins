@@ -1,3 +1,4 @@
+import sys
 from uuid import uuid4
 from subprocess import PIPE, STDOUT
 
@@ -154,7 +155,14 @@ def test_run_in_runbound_method():
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(c.fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            assert cPickle.loads(s) == (run._invoke_method, (c, 'fn', ARG,), {'kw': KW})
+
+            if sys.version_info < (3, 0, 0):
+                # Bound methods are not pickleable in Python 2.
+                assert cPickle.loads(s) == (run._invoke_method, (c, 'fn', ARG,), {'kw': KW})
+            else:
+                # Bound methods are pickleable in Python 3.
+                assert cPickle.loads(s) == (c.fn, (ARG,), {'kw': KW})
+
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
@@ -261,7 +269,12 @@ def test_run_in_runclassmethod():
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(c.fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            assert cPickle.loads(s) == (run._invoke_method, (C, 'fn', ARG), {'kw': KW})
+            if sys.version_info < (3, 0, 0):
+                # Class methods are not pickleable in Python 2.
+                assert cPickle.loads(s) == (run._invoke_method, (C, 'fn', ARG), {'kw': KW})
+            else:
+                # Class methods are pickleable in Python 3.
+                assert cPickle.loads(s) == (c.fn, (ARG,), {'kw': KW})
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)

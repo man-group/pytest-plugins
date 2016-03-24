@@ -3,7 +3,7 @@ dependencies:
     - source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
     - sudo apt-get update
-    - sudo apt-get install -y rethinkdb jenkins python-qt4
+    - sudo apt-get install -y rethinkdb jenkins python-qt4 python3-pyqt4
 
 test:
   override:
@@ -18,6 +18,12 @@ test:
     - venv/bin/coverage combine pytest-*/.coverage 
     - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov
     - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
+
+    # Run tests on Python 3
+    - make clean
+    - make venv "VIRTUALENV=virtualenv -p /usr/bin/python3"
+    - cd venv/lib/python3.4/site-packages; ln -s $(python3.4 -c "import PyQt4; print (PyQt4.__path__[0])"); ln -s $(python3.4 -c "import sip; print(sip.__file__)");
+    - make test PACKAGES="pytest-fixture-config pytest-shutil pytest-virtualenv"
      
 machine:
   services :

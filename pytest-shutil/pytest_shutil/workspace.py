@@ -9,7 +9,7 @@ import subprocess
 from path import path
 from six import string_types
 
-import cmdline
+from . import cmdline
 
 log = logging.getLogger(__name__)
 
