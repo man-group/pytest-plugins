@@ -9,6 +9,7 @@ import os.path
 import shutil
 
 import pytest
+import six
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import yield_requires_config
@@ -79,7 +80,7 @@ class JenkinsTestServer(HTTPTestServer):
         if plugins is None:
             plugins = available_plugins.keys()
         else:
-            if isinstance(plugins, basestring):
+            if isinstance(plugins, six.string_types):
                 plugins = [plugins]
 
             errors = []

@@ -110,7 +110,7 @@ class DevpiServer(HTTPTestServer):
         client_args.extend(args)
         client_args.extend(['--clientdir', self.client_dir])
         log.info(' '.join(client_args))
-        captured = cStringIO.StringIO()
+        captured = cStringIO()
         stdout = sys.stdout
         sys.stdout = captured
         try:

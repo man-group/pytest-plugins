@@ -97,7 +97,7 @@ class PyramidTestServer(HTTPTestServer):
 
         parser = configparser.ConfigParser()
         parser.read(self.original_config)
-        parser.set('server:main', 'port', self.port)
+        parser.set('server:main', 'port', str(self.port))
         parser.set('server:main', 'host', self.hostname)
         [parser.set(section, k, v) for section, cfg in self.extra_config_vars.items() for (k, v) in cfg.items()]
         with open(str(self.working_config), 'w') as fp:

@@ -18,6 +18,7 @@ lib64
 
 # Unit test / coverage reports
 .coverage
+.coverage.*
 junit.xml
 coverage.xml
 htmlcov
@@ -30,3 +31,9 @@ TAGS
 /venv/
 /pip-log.txt
 .idea
+
+# Copied files
+*/MANIFEST.in
+*/CHANGES.md
+*/VERSION
+*/common_setup.py
