@@ -67,6 +67,13 @@ develop: venv copyfiles
     done
 
 
+local_develop: copyfiles
+	for package in $(PACKAGES); do                      \
+	    cd $$package;                                   \
+	    python setup.py develop || exit 1;   \
+	    cd ..;                                          \
+    done
+
 test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
