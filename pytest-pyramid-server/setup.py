@@ -15,10 +15,12 @@ classifiers = [
     'Programming Language :: Python :: 2.7',
 ]
 
+
 install_requires = ['pytest-server-fixtures',
                     'pytest',
                     'pyramid',
                     'waitress',
+                    'six',
                     ]
 
 tests_require = [

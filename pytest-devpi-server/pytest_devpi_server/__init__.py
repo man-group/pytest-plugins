@@ -7,7 +7,7 @@ import os
 import sys
 import zipfile
 import logging
-import cStringIO
+from six.moves import cStringIO
 
 import pkg_resources
 from pytest import yield_fixture

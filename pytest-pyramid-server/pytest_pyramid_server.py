@@ -4,7 +4,7 @@ Created on 25 Apr 2012
 @author: eeaston
 '''
 import os
-import ConfigParser
+from six.moves import configparser
 import sys
 import socket
 import glob
@@ -95,7 +95,7 @@ class PyramidTestServer(HTTPTestServer):
 
         Path.copy(self.original_config, self.working_config)
 
-        parser = ConfigParser.ConfigParser()
+        parser = configparser.ConfigParser()
         parser.read(self.original_config)
         parser.set('server:main', 'port', self.port)
         parser.set('server:main', 'host', self.hostname)
