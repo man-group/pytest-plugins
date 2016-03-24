@@ -12,11 +12,14 @@ import cStringIO
 import pkg_resources
 from pytest import yield_fixture
 from path import Path
+from pytest import yield_fixture, fixture
+from path import path
 import devpi_server as _devpi_server
 from devpi.main import main as devpi_client
 from pytest_server_fixtures.http import HTTPTestServer
 
 log = logging.getLogger(__name__)
+
 
 @yield_fixture(scope='session')
 def devpi_server(request):
@@ -47,6 +50,16 @@ def devpi_server(request):
     with DevpiServer() as server:
         server.start()
         yield server
+
+
+@fixture
+def devpi_function_index(request, devpi_server):
+    """ Creates and activates an index for your current test function. 
+    """
+    index_name = '/'.join((devpi_server.user, request.function.__name__))
+    devpi_server.api('index', '-c', index_name)
+    devpi_server.api('use', index_name)
+    return index_name
 
 
 class DevpiServer(HTTPTestServer):
@@ -122,3 +135,7 @@ class DevpiServer(HTTPTestServer):
         # Create and use stand-alone index
         self.api('index', '-c', self.index, 'bases=')
         self.api('use', self.index)
+        log.info("=" * 60)
+        log.info(" Started DevPI server at {}".format(self.uri))
+        log.info(" Created initial index at {}/{}".format(self.user, self.index))
+        log.info("=" * 60)
