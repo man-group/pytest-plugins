@@ -13,17 +13,22 @@ test:
     - cd venv/lib/python2.7/site-packages; ln -s $(python2.7 -c "import PyQt4; print PyQt4.__path__[0]"); ln -s $(python2.7 -c "import sip; print sip.__file__");
     - make test 
     - make dist
-    - mkdir -p $CIRCLE_TEST_REPORTS/junit/ $CIRCLE_ARTIFACTS/htmlcov/
-    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/junit/$i.xml || true; done
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/ $CIRCLE_ARTIFACTS/htmlcov/py27
+    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/junit/$i-py27.xml || true; done
     - venv/bin/coverage combine pytest-*/.coverage*
-    - venv/bin/coverage html -i -d $CIRCLE_ARTIFACTS/htmlcov
+    - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/py27
     - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
 
     # Run tests on Python 3
-    - make clean
-    - make venv "VIRTUALENV=virtualenv -p /usr/bin/python3"
+    - make clean venv "VIRTUALENV=virtualenv -p /usr/bin/python3"
     - cd venv/lib/python3.4/site-packages; ln -s $(python3.4 -c "import PyQt4; print (PyQt4.__path__[0])"); ln -s $(python3.4 -c "import sip; print(sip.__file__)");
-    - make test PACKAGES=$(grep -l 3.4 */setup.py | cut -d/ -f1)
+    - make test
+    - make dist
+    - mkdir -p $CIRCLE_ARTIFACTS/htmlcov/py34
+    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/junit/$i-py34.xml || true; done
+    - venv/bin/coverage combine pytest-*/.coverage 
+    - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/py34
+    - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
     
      
 machine:

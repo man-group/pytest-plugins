@@ -1,30 +1,34 @@
 # Package list, in order of ancestry
-PACKAGES=pytest-fixture-config          \
-         pytest-shutil                  \
-         pytest-server-fixtures         \
-         pytest-pyramid-server          \
-         pytest-devpi-server            \
-         pytest-listener                \
-         pytest-qt-app                  \
-         pytest-svn                     \
-         pytest-git                     \
-         pytest-virtualenv              \
-         pytest-webdriver               \
-         pytest-profiling               \
-         pytest-verbose-parametrize
-         
-VIRTUALENV=virtualenv
-VENV_PYTHON=venv/bin/python
-EXTRA_DEPS=pypandoc       \
-           wheel          \
-           coverage       \
-           python-jenkins \
-           redis          \
-           pymongo        \
-           rethinkdb
-COPY_FILES=VERSION CHANGES.md common_setup.py MANIFEST.in
-DIST_FORMATS=sdist bdist_wheel bdist_egg
-UPLOAD_OPTS=
+PACKAGES = pytest-fixture-config      \
+           pytest-shutil                  \
+           pytest-server-fixtures         \
+           pytest-pyramid-server          \
+           pytest-devpi-server            \
+           pytest-listener                \
+           pytest-qt-app                  \
+           pytest-svn                     \
+           pytest-git                     \
+           pytest-virtualenv              \
+           pytest-webdriver               \
+           pytest-profiling               \
+           pytest-verbose-parametrize
+
+VIRTUALENV = virtualenv
+VENV_PYTHON = venv/bin/python
+PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
+PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(PYVERSION) $$pkg/setup.py && echo $$pkg; done)
+
+EXTRA_DEPS = pypandoc       \
+             wheel          \
+             coverage       \
+             python-jenkins \
+             redis          \
+             pymongo        \
+             rethinkdb
+             
+COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in
+DIST_FORMATS = sdist bdist_wheel bdist_egg
+UPLOAD_OPTS =
 
 # Used for determining which packages get released
 LAST_TAG := $(shell git tag -l v\* | tail -1)
@@ -51,7 +55,7 @@ copyfiles:
     done
 
 install: venv copyfiles
-	for package in $(PACKAGES); do                      \
+	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
 	    ../$(VENV_PYTHON) setup.py bdist_egg || exit 1; \
 	    ../venv/bin/easy_install dist/*.egg || exit 1;  \
@@ -60,7 +64,7 @@ install: venv copyfiles
 
 
 develop: venv copyfiles
-	for package in $(PACKAGES); do                      \
+	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
 	    ../($VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
@@ -68,14 +72,14 @@ develop: venv copyfiles
 
 
 local_develop: copyfiles
-	for package in $(PACKAGES); do                      \
+	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
-	    python setup.py develop || exit 1;   \
+	    python setup.py develop || exit 1;              \
 	    cd ..;                                          \
     done
 
 test: install
-	for package in $(PACKAGES); do                      \
+	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
 	     ../venv/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED; \
 	    )                                               \
