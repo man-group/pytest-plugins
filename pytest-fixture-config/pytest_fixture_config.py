@@ -23,13 +23,12 @@ def requires_config(cfg, vars_):
         are missing or undefined in the configuration
     """
     def decorator(f):
-        # We need to specify 'request' in the args here to satisfy pytest's fixture logic
         @functools.wraps(f)
-        def wrapper(request, *args, **kwargs):
+        def wrapper(*args, **kwargs):
             for var in vars_:
                 if not getattr(cfg, var):
                     pytest.skip('config variable {} missing, skipping test'.format(var))
-            return f(request, *args, **kwargs)
+            return f(*args, **kwargs)
         return wrapper
     return decorator
 
@@ -38,7 +37,6 @@ def yield_requires_config(cfg, vars_):
     """ As above but for py.test yield_fixtures
     """
     def decorator(f):
-        # We need to specify 'request' in the args here to satisfy pytest's fixture logic
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
             for var in vars_:

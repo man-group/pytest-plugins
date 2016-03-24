@@ -23,7 +23,8 @@ test:
     - make clean
     - make venv "VIRTUALENV=virtualenv -p /usr/bin/python3"
     - cd venv/lib/python3.4/site-packages; ln -s $(python3.4 -c "import PyQt4; print (PyQt4.__path__[0])"); ln -s $(python3.4 -c "import sip; print(sip.__file__)");
-    - make test PACKAGES="pytest-fixture-config pytest-shutil pytest-virtualenv"
+    - make test PACKAGES=$(grep -l "Python :: 3" */setup.py | cut -d/ -f1)
+    
      
 machine:
   services :
