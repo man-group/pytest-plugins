@@ -31,8 +31,6 @@ ifeq ($(CIRCLE_NODE_INDEX),3)
 endif
 
 CIRCLE_SYSTEM_PYTHON = python$(CIRCLE_PYVERSION)
-CIRCLE_PYQT_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__path__[0])")
-CIRCLE_SIP_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)")
 
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
@@ -134,15 +132,36 @@ clean:
 	find . -name *.pyc -name .coverage -name .coverage.* -delete
 	rm -f FAILED
 
-circleci_setup:
+circleci_sip:
+	mkdir sip; \
+    (cd sip; \
+     curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf - \
+     cd sip-*; \
+     $(CIRCLE_SYSTEM_PYTHON) configure.py; \
+     make -j 4;  \
+     sudo make install; \
+    ); \
+    (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages; \
+     ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)"`; \
+    )
+    
+circleci_pyqt:
+	mkdir pyqt; \
+    (cd pyqt; \
+     curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
+     cd PyQt*; \
+     $(CIRCLE_SYSTEM_PYTHON) configure.py; \
+     make -j 4; \
+     sudo make install;  \
+    ); \
+    (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
+     ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__file__)"`; \
+    )
+    
+
+circleci_setup: circleci_sip circleci_pyqt
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit; \
-    if [ ! -z "$(CIRCLE_PYQT_PATH)" ]; then \
-        (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
-         ln -s $(CIRCLE_PYQT_PATH); \
-         ln -s $(CIRCLE_SIP_PATH); \
-         );  \
-    fi
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
 circleci: clean venv circleci_setup test dist
