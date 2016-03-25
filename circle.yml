@@ -25,6 +25,12 @@ test:
         1) make circleci ;; \
         2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
         3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; \
+    - >
+      case $CIRCLE_NODE_INDEX in 
+        0) sudo apt-get install -y python2.6 python2.6-dev; make circleci ;; 
+        1) make circleci ;; 
+        2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; 
+        3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; 
       esac:
         parallel: true
 
