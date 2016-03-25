@@ -31,8 +31,8 @@ ifeq ($(CIRCLE_NODE_INDEX),3)
 endif
 
 CIRCLE_SYSTEM_PYTHON = python$(CIRCLE_PYVERSION)
-CIRCLE_PYQT_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print PyQt4.__path__[0]")
-CIRCLE_SIP_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import sip; print sip.__file__")
+CIRCLE_PYQT_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__path__[0])")
+CIRCLE_SIP_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)")
 
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
@@ -137,10 +137,12 @@ clean:
 circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit; \
-    (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
-     ln -s $(CIRCLE_PYQT_PATH); \
-     ln -s $(CIRCLE_SIP_PATH); \
-     );
+    if [ ! -z "$(CIRCLE_PYQT_PATH" ]; then \
+        (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
+         ln -s $(CIRCLE_PYQT_PATH); \
+         ln -s $(CIRCLE_SIP_PATH); \
+         );
+    fi
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
 circleci: clean venv circleci_setup test dist
