@@ -138,7 +138,7 @@ circleci_setup:
      ln -s $(python$(CIRCLE_PYVERSION) -c "import sip; print sip.__file__");  \
      );
 
-circleci: VIRTUALENV = virtualenv -p $(CIRCLE_PYVERSION)
+circleci: VIRTUALENV = virtualenv -p python$(CIRCLE_PYVERSION)
 circleci: clean venv circleci_setup test dist
 	cp pytest-*/junit.xml $CIRCLE_TEST_REPORTS/junit/$$package-py$(CIRCLE_PYVERSION).xml;
 	venv/bin/coverage combine pytest-*/.coverage;  \
