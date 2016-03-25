@@ -6,7 +6,6 @@ dependencies:
     - sudo apt-get update
     - sudo apt-get install -y rethinkdb jenkins
     - sudo apt-get install -y python2.6
-    - sudo apt-get install -y python3.4
     - sudo apt-get install -y python3.5
     - sudo apt-get install -y python-qt4
     - sudo apt-get install -y python3-pyqt4
