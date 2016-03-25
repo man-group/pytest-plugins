@@ -99,10 +99,10 @@ local_develop: copyfiles
 test: install
 	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
-	     ../venv/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED; \
+	     ../venv/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED-$$package; \
 	    )                                               \
     done;                                               \
-    [ -f FAILED ] && exit 1  || true
+    [ -f FAILED-* ] && exit 1  || true
 
 dist: venv copyfiles
 	for package in $(CHANGED_PACKAGES); do                     \
