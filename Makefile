@@ -150,7 +150,7 @@ circleci_pyqt:
     (cd pyqt; \
      curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
      cd PyQt*; \
-     $(CIRCLE_SYSTEM_PYTHON) configure.py; \
+     $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
      make -j 4; \
      sudo make install;  \
     ); \
