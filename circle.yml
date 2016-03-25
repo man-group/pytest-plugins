@@ -4,10 +4,6 @@ dependencies:
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
     - sudo add-apt-repository -y ppa:fkrull/deadsnakes
     - sudo apt-get update
-    - sudo apt-get install -y rethinkdb jenkins
-    - sudo apt-get install -y python2.6 python2.6-dev 
-    - sudo apt-get install -y python3.4-dev
-    - sudo apt-get install -y python3.5 python3.5-dev
 
 test:
   override:
@@ -24,6 +20,13 @@ test:
     - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
     - make circleci:
        parallel: true
+    - case $CIRCLE_NODE_INDEX in \
+        0) sudo apt-get install -y python2.6 python2.6-dev; make circleci ;; \
+        1) make circleci ;; \
+        2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
+        3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; \
+      esac:
+        parallel: true
 
 machine:
   services :
