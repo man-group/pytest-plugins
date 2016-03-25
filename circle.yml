@@ -2,8 +2,9 @@ dependencies:
   pre: 
     - source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
+    - sudo add-apt-repository ppa:fkrull/deadsnakes
     - sudo apt-get update
-    - sudo apt-get install -y rethinkdb jenkins python-qt4 python3-pyqt4
+    - sudo apt-get install -y rethinkdb jenkins python2.6 python2.7 python3.4 python3.5 python-qt4 python3-pyqt4
 
 test:
   override:
@@ -18,19 +19,9 @@ test:
     - venv/bin/coverage combine pytest-*/.coverage*
     - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/py27
     - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
+    - make circleci:
+       parallel: true
 
-    # Run tests on Python 3
-    - make clean venv "VIRTUALENV=virtualenv -p /usr/bin/python3"
-    - cd venv/lib/python3.4/site-packages; ln -s $(python3.4 -c "import PyQt4; print (PyQt4.__path__[0])"); ln -s $(python3.4 -c "import sip; print(sip.__file__)");
-    - make test
-    - make dist
-    - mkdir -p $CIRCLE_ARTIFACTS/htmlcov/py34
-    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/junit/$i-py34.xml || true; done
-    - venv/bin/coverage combine pytest-*/.coverage 
-    - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/py34
-    - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
-    
-     
 machine:
   services :
      - mongodb

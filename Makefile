@@ -15,8 +15,22 @@ PACKAGES = pytest-fixture-config      \
 
 VIRTUALENV = virtualenv
 VENV_PYTHON = venv/bin/python
-PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
-PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(PYVERSION) $$pkg/setup.py && echo $$pkg; done)
+VENV_PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
+
+ifeq ($(CIRCLE_NODE_INDEX),0)
+  CIRCLE_PYVERSION = 2.6
+endif
+ifeq ($(CIRCLE_NODE_INDEX),1)
+  CIRCLE_PYVERSION = 2.7
+endif
+ifeq ($(CIRCLE_NODE_INDEX),2)
+  CIRCLE_PYVERSION = 3.4
+endif
+ifeq ($(CIRCLE_NODE_INDEX),3)
+  CIRCLE_PYVERSION = 3.5
+endif
+
+PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
 EXTRA_DEPS = pypandoc       \
              wheel          \
@@ -34,7 +48,7 @@ UPLOAD_OPTS =
 LAST_TAG := $(shell git tag -l v\* | tail -1)
 CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
 
-.PHONY: venv copyfiles install test dist upload clean
+.PHONY: venv copyfiles install test dist upload clean circleci circleci_setup
 
 
 $(VENV_PYTHON):
@@ -116,5 +130,20 @@ clean:
 	find . -name *.pyc -name .coverage -name .coverage.* -delete
 	rm -f FAILED
 
-all: 
+circleci_setup:
+	mkdir -p $CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
+    mkdir -p $CIRCLE_TEST_REPORTS/junit; \
+    (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
+     ln -s $(python$(CIRCLE_PYVERSION) -c "import PyQt4; print PyQt4.__path__[0]"); \
+     ln -s $(python$(CIRCLE_PYVERSION) -c "import sip; print sip.__file__");  \
+     );
+
+circleci: VIRTUALENV = virtualenv -p $(CIRCLE_PYVERSION)
+circleci: clean venv circleci_setup test dist
+	cp pytest-*/junit.xml $CIRCLE_TEST_REPORTS/junit/$$package-py$(CIRCLE_PYVERSION).xml;
+	venv/bin/coverage combine pytest-*/.coverage;  \
+    venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
+    cp pytest-*/dist/* $CIRCLE_ARTIFACTS
+
+all:
 	test
