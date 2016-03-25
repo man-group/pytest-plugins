@@ -31,7 +31,7 @@ test:
         1) make circleci ;; 
         2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; 
         3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; 
-      esac:
+      esac
         parallel: true
 
 machine:
