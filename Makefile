@@ -137,7 +137,7 @@ clean:
 circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit; \
-    if [ ! -z "$(CIRCLE_PYQT_PATH" ]; then \
+    if [ ! -z "$(CIRCLE_PYQT_PATH)" ]; then \
         (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
          ln -s $(CIRCLE_PYQT_PATH); \
          ln -s $(CIRCLE_SIP_PATH); \
