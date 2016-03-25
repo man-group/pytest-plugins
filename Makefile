@@ -30,6 +30,10 @@ ifeq ($(CIRCLE_NODE_INDEX),3)
   CIRCLE_PYVERSION = 3.5
 endif
 
+CIRCLE_SYSTEM_PYTHON = python$(CIRCLE_PYVERSION)
+CIRCLE_PYQT_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print PyQt4.__path__[0]")
+CIRCLE_SIP_PATH = $(shell $(CIRCLE_SYSTEM_PYTHON) -c "import sip; print sip.__file__")
+
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
 EXTRA_DEPS = pypandoc       \
@@ -131,19 +135,21 @@ clean:
 	rm -f FAILED
 
 circleci_setup:
-	mkdir -p $CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
-    mkdir -p $CIRCLE_TEST_REPORTS/junit; \
+	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
+    mkdir -p $$CIRCLE_TEST_REPORTS/junit; \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
-     ln -s $(python$(CIRCLE_PYVERSION) -c "import PyQt4; print PyQt4.__path__[0]"); \
-     ln -s $(python$(CIRCLE_PYVERSION) -c "import sip; print sip.__file__");  \
+     ln -s $(CIRCLE_PYQT_PATH); \
+     ln -s $(CIRCLE_SIP_PATH); \
      );
 
-circleci: VIRTUALENV = virtualenv -p python$(CIRCLE_PYVERSION)
+circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
 circleci: clean venv circleci_setup test dist
-	cp pytest-*/junit.xml $CIRCLE_TEST_REPORTS/junit/$$package-py$(CIRCLE_PYVERSION).xml;
+	for i in $(PYVERSION_PACKAGES); do \
+        cp $$i/junit.xml $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
+    done; \
 	venv/bin/coverage combine pytest-*/.coverage;  \
-    venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
-    cp pytest-*/dist/* $CIRCLE_ARTIFACTS
+    venv/bin/coverage html -d $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
+    cp pytest-*/dist/* $$CIRCLE_ARTIFACTS
 
 all:
 	test
