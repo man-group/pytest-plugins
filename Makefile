@@ -135,8 +135,8 @@ clean:
 circleci_python:
 	case $(CIRCLE_PYVERSION) in  \
         2.6) sudo apt-get install -y python2.6 python2.6-dev ;;  \
-        2.8) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
-        2.9) sudo apt-get install -y python3.5 python3.5-dev ;;  \
+        3.4) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
+        3.5) sudo apt-get install -y python3.5 python3.5-dev ;;  \
     esac
 
 circleci_sip:
