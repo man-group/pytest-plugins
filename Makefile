@@ -135,7 +135,7 @@ clean:
 circleci_sip:
 	mkdir sip; \
     (cd sip; \
-     curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf - \
+     curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
      cd sip-*; \
      $(CIRCLE_SYSTEM_PYTHON) configure.py; \
      make -j 4;  \
