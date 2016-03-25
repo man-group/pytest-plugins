@@ -132,6 +132,13 @@ clean:
 	find . -name *.pyc -name .coverage -name .coverage.* -delete
 	rm -f FAILED
 
+circleci_python:
+	case $(CIRCLE_PYVERSION) in  \
+        2.6) sudo apt-get install -y python2.6 python2.6-dev ;;  \
+        2.8) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
+        2.9) sudo apt-get install -y python3.5 python3.5-dev ;;  \
+    esac
+
 circleci_sip:
 	mkdir sip; \
     (cd sip; \
@@ -161,10 +168,10 @@ circleci_pyqt:
 
 circleci_setup: circleci_sip circleci_pyqt
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
-    mkdir -p $$CIRCLE_TEST_REPORTS/junit; \
+    mkdir -p $$CIRCLE_TEST_REPORTS/junit;
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
-circleci: clean venv circleci_setup test dist
+circleci: clean circleci_python venv circleci_setup test dist
 	for i in $(PYVERSION_PACKAGES); do \
         cp $$i/junit.xml $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
     done; \
