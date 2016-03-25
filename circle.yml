@@ -4,7 +4,12 @@ dependencies:
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
     - sudo add-apt-repository -y ppa:fkrull/deadsnakes
     - sudo apt-get update
-    - sudo apt-get install -y rethinkdb jenkins python2.6 python2.7 python3.4 python3.5 python-qt4 python3-pyqt4
+    - sudo apt-get install -y rethinkdb jenkins
+    - sudo apt-get install -y python2.6
+    - sudo apt-get install -y python3.4
+    - sudo apt-get install -y python3.5
+    - sudo apt-get install -y python-qt4
+    - sudo apt-get install -y python3-pyqt4
 
 test:
   override:
