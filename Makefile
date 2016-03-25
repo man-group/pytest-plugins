@@ -141,7 +141,7 @@ circleci_setup:
         (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
          ln -s $(CIRCLE_PYQT_PATH); \
          ln -s $(CIRCLE_SIP_PATH); \
-         );
+         );  \
     fi
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
