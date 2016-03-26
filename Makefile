@@ -167,12 +167,12 @@ circleci_sip:
     )
     
 circleci_pyqt:
-	previous_build=`venv/bin/python ./circle_artifact.py 'PyQt*.tgz'` \
+	previous_build=`venv/bin/python ./circle_artifact.py $(CIRCLE_API_KEY) 'PyQt*.tgz'` \
 	mkdir pyqt; \
     (cd pyqt; \
      if [ -z "$$previous_build" ]; then \
          curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
-         cd PyQt-4.11.4; \
+         cd PyQt-x11-gpl-4.11.4; \
          $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
          make -j 4; \
          cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PtQt*; \
@@ -181,7 +181,7 @@ circleci_pyqt:
          tar xzf PyQt*.tgz; \
      fi; \
      mv PyQt*.tgz $(CIRCLE_ARTIFACTS); \
-     cd PyQt-4.11.4; \
+     cd PyQt-x11-gpl-4.11.4; \
      sudo make install;  \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
