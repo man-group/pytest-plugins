@@ -31,6 +31,7 @@ ifeq ($(CIRCLE_NODE_INDEX),3)
 endif
 
 CIRCLE_SYSTEM_PYTHON = python$(CIRCLE_PYVERSION)
+CIRCLE_API_KEY = fbb7daf2022ce0d88327252bc0bb0628f19d0a45
 
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
@@ -144,7 +145,7 @@ circleci_python:
 
 
 circleci_sip:
-	previous_build=`venv/bin/python ./circle_artifact.py 'sip*.tgz'` \
+	previous_build=`venv/bin/python ./circle_artifact.py $(CIRCLE_API_KEY) 'sip*.tgz'` \
 	mkdir sip; \
     (cd sip; \
      if [ -z "$$previous_build" ]; then \

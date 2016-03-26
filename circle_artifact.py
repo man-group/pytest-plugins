@@ -8,8 +8,8 @@ import fnmatch
 
 
 def main():
-    search_pattern = sys.argv[1]
-    token = os.environ['CIRCLE_TOKEN']
+    token = sys.argv[1]
+    search_pattern = sys.argv[2]
     user = os.environ['CIRCLE_PROJECT_USERNAME']
     repo = os.environ['CIRCLE_PROJECT_REPONAME']
     branch = os.environ['CIRCLE_BRANCH']
