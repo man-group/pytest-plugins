@@ -134,10 +134,14 @@ clean:
 
 circleci_python:
 	case $(CIRCLE_PYVERSION) in  \
+        2.6|3.5 ) sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get update; \
+    esac; \
+	case $(CIRCLE_PYVERSION) in  \
         2.6) sudo apt-get install -y python2.6 python2.6-dev ;;  \
-        3.4) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
+        3.4) sudo apt-get install -y python3.4-dev ;; \
         3.5) sudo apt-get install -y python3.5 python3.5-dev ;;  \
-    esac
+    esac; \
+
 
 circleci_sip:
 	mkdir sip; \
@@ -147,6 +151,7 @@ circleci_sip:
      $(CIRCLE_SYSTEM_PYTHON) configure.py; \
      make -j 4;  \
      sudo make install; \
+     cd ..; tar czf sip-py$(CIRCLE_PYVERSION).tgz sip-*;  cp sip*.tgz $(CIRCLE_ARTIFACTS); \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages; \
      ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)"`; \
@@ -160,18 +165,19 @@ circleci_pyqt:
      $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
      make -j 4; \
      sudo make install;  \
+     cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PtQt*; cp PyQt*.tgz $(CIRCLE_ARTIFACTS); \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
      ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__file__)"`; \
     )
     
-
-circleci_setup: circleci_sip circleci_pyqt
+circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
+	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit;
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
-circleci: clean circleci_python venv circleci_setup test dist
+circleci: clean circleci_python venv circleci_setup circleci_sip circleci_pyqt test dist
 	for i in $(PYVERSION_PACKAGES); do \
         cp $$i/junit.xml $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
     done; \
