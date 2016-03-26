@@ -144,28 +144,44 @@ circleci_python:
 
 
 circleci_sip:
+	previous_build=`venv/bin/python ./circle_artifact.py 'sip*.tgz'` \
 	mkdir sip; \
     (cd sip; \
-     curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
-     cd sip-*; \
-     $(CIRCLE_SYSTEM_PYTHON) configure.py; \
-     make -j 4;  \
+     if [ -z "$$previous_build" ]; then \
+         curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
+         cd sip-4.17; \
+         $(CIRCLE_SYSTEM_PYTHON) configure.py; \
+         make -j 4;  \
+         cd ..; tar czf sip-py$(CIRCLE_PYVERSION).tgz sip-4.17; \
+     else \
+         wget "$$previous_build"; \
+         tar xzf sip-*.tgz
+     fi;  \
+     mv sip*.tgz $(CIRCLE_ARTIFACTS); \
+     cd sip-4.17; \
      sudo make install; \
-     cd ..; tar czf sip-py$(CIRCLE_PYVERSION).tgz sip-*;  cp sip*.tgz $(CIRCLE_ARTIFACTS); \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages; \
      ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)"`; \
     )
     
 circleci_pyqt:
+	previous_build=`venv/bin/python ./circle_artifact.py 'PyQt*.tgz'` \
 	mkdir pyqt; \
     (cd pyqt; \
-     curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
-     cd PyQt*; \
-     $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
-     make -j 4; \
+     if [ -z "$$previous_build" ]; then \
+         curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
+         cd PyQt-4.11.4; \
+         $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
+         make -j 4; \
+         cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PtQt*; \
+     else \
+         wget "$$previous_build"; \
+         tar xzf PyQt*.tgz; \
+     fi; \
+     mv PyQt*.tgz $(CIRCLE_ARTIFACTS); \
+     cd PyQt-4.11.4
      sudo make install;  \
-     cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PtQt*; cp PyQt*.tgz $(CIRCLE_ARTIFACTS); \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
      ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__file__)"`; \
@@ -175,6 +191,7 @@ circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
 	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit;
+    venv/bin/pip install circleclient
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
 circleci: clean circleci_python venv circleci_setup circleci_sip circleci_pyqt test dist
