@@ -155,7 +155,7 @@ circleci_sip:
          cd ..; tar czf sip-py$(CIRCLE_PYVERSION).tgz sip-4.17; \
      else \
          wget "$$previous_build"; \
-         tar xzf sip-*.tgz
+         tar xzf sip-*.tgz; \
      fi;  \
      mv sip*.tgz $(CIRCLE_ARTIFACTS); \
      cd sip-4.17; \
@@ -180,7 +180,7 @@ circleci_pyqt:
          tar xzf PyQt*.tgz; \
      fi; \
      mv PyQt*.tgz $(CIRCLE_ARTIFACTS); \
-     cd PyQt-4.11.4
+     cd PyQt-4.11.4; \
      sudo make install;  \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
@@ -190,7 +190,7 @@ circleci_pyqt:
 circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
 	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
-    mkdir -p $$CIRCLE_TEST_REPORTS/junit;
+    mkdir -p $$CIRCLE_TEST_REPORTS/junit;  \
     venv/bin/pip install circleclient
 
 circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
