@@ -62,7 +62,7 @@ class JenkinsTestServer(HTTPTestServer):
                 '--httpListenAddress=%s' % self.hostname,
                 '--ajp13Port=-1',
                 '--preferredClassLoader=java.net.URLClassLoader',
-                '--webroot={}'.format(self.workspace / 'run' / 'war')
+                '--webroot={0}'.format(self.workspace / 'run' / 'war')
                 ]
 
     def load_plugins(self, plugins_repo, plugins=None):

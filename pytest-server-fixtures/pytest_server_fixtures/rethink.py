@@ -82,17 +82,17 @@ def rethink_make_tables(request, rethink_module_db):
 
     """
     reqd_table_list = getattr(request.module, 'FIXTURE_TABLES')
-    log.debug("Do stuff before all module tests with {}".format(reqd_table_list))
+    log.debug("Do stuff before all module tests with {0}".format(reqd_table_list))
     conn = rethink_module_db
     for table_name, primary_key in reqd_table_list:
         try:
             rethinkdb.db(conn.db).table_create(table_name,
                                                primary_key=primary_key,
                                                ).run(conn)
-            log.info('Made table "{}" with key "{}"'
+            log.info('Made table "{0}" with key "{1}"'
                      .format(table_name, primary_key))
         except rethinkdb.errors.RqlRuntimeError as err:
-            log.debug('Table "{}" not made: {}'.format(table_name, err.message))
+            log.debug('Table "{0}" not made: {1}'.format(table_name, err.message))
 
 
 @pytest.yield_fixture(scope="function")
@@ -109,7 +109,7 @@ def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
 
     for table_name in tables_to_emptied:
         rethinkdb.db(conn.db).table(table_name).delete().run(conn)
-        log.debug('Emptied "{}" before test'.format(table_name))
+        log.debug('Emptied "{0}" before test'.format(table_name))
     yield conn
 
 
@@ -139,7 +139,7 @@ class RethinkDBServer(TestServer):
 
     def check_server_up(self):
         """Test connection to the server."""
-        log.info("Connecting to RethinkDB at {}:{}".format(
+        log.info("Connecting to RethinkDB at {0}:{1}".format(
             self.hostname, self.port))
         try:
             self.conn = rethinkdb.connect(host=self.hostname,

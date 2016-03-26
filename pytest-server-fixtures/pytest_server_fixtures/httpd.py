@@ -107,8 +107,8 @@ class HTTPDServer(HTTPTestServer):
         self.config = self.workspace / 'httpd.conf'
         rules = []
         for source in self.proxy_rules:
-            rules.append("ProxyPass {} {}".format(source, self.proxy_rules[source]))
-            rules.append("ProxyPassReverse {} {} \n".format(source, self.proxy_rules[source]))
+            rules.append("ProxyPass {0} {1}".format(source, self.proxy_rules[source]))
+            rules.append("ProxyPassReverse {0} {1} \n".format(source, self.proxy_rules[source]))
         cfg = self.cfg_template.substitute(
             server_root=self.workspace,
             document_root=self.document_root,

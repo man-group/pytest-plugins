@@ -104,7 +104,7 @@ class Workspace(object):
             cd = self.workspace
 
         with cmdline.chdir(cd):
-            log.debug("run: {}".format(cmd))
+            log.debug("run: {0}".format(cmd))
             if capture:
                 p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
             else:
