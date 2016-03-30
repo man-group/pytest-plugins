@@ -160,7 +160,7 @@ circleci_sip:
          tar xzf sip-*.tgz; \
      fi;  \
      mv sip*.tgz $(CIRCLE_ARTIFACTS); \
-     cd sip-4.17; \
+     cd sip*; \
      sudo make install; \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages; \
@@ -172,16 +172,16 @@ circleci_pyqt:
     (cd pyqt; \
      if [ -z "$(CIRCLE_CACHED_PYQT)" ]; then \
          curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
-         cd PyQt-x11-gpl-4.11.4; \
+         cd PyQt*; \
          $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
          make -j 4; \
-         cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PtQt*; \
+         cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PyQt*; \
      else \
          wget "$(CIRCLE_CACHED_PYQT)"; \
          tar xzf PyQt*.tgz; \
      fi; \
      mv PyQt*.tgz $(CIRCLE_ARTIFACTS); \
-     cd PyQt-x11-gpl-4.11.4; \
+     cd PyQt*; \
      sudo make install;  \
     ); \
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
