@@ -14,26 +14,33 @@ PACKAGES = pytest-fixture-config      \
            pytest-verbose-parametrize
 
 VIRTUALENV = virtualenv
-VENV = venv
+VENV = $(shell dirname $(shell readlink -l setup.py))/venv
 VENV_PYTHON = $(VENV)/bin/python
 VENV_PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
+PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
 ifeq ($(CIRCLE_NODE_INDEX),0)
   CIRCLE_PYVERSION = 2.6
+  CIRCLE_PYVERSION_FULL = 2.6.8
 endif
 ifeq ($(CIRCLE_NODE_INDEX),1)
   CIRCLE_PYVERSION = 2.7
+  CIRCLE_PYVERSION_FULL = 2.7.9
 endif
 ifeq ($(CIRCLE_NODE_INDEX),2)
   CIRCLE_PYVERSION = 3.4
+  CIRCLE_PYVERSION_FULL = 3.4.4
 endif
 ifeq ($(CIRCLE_NODE_INDEX),3)
   CIRCLE_PYVERSION = 3.5
+  CIRCLE_PYVERSION_FULL = 3.5.1
 endif
 
-CIRCLE_SYSTEM_PYTHON = python$(CIRCLE_PYVERSION)
-
-PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
+# Look up the last completed build's python tarball. We can't use the normal cache from circleci as it only caches
+# dependencies set up in node 0 *headdesk*
+CIRCLE_API_KEY = fbb7daf2022ce0d88327252bc0bb0628f19d0a45
+CIRCLE_CACHED_PYTHON = $(shell /usr/bin/python circle_artifact.py $(CIRCLE_API_KEY) 'venv.tgz')
+CIRCLE_PYTHON_ARCH = https://www.python.org/ftp/python/$(CIRCLE_PYVERSION_FULL)/Python-$(CIRCLE_PYVERSION_FULL).tgz
 
 EXTRA_DEPS = pypandoc       \
              wheel          \
@@ -51,16 +58,33 @@ UPLOAD_OPTS =
 LAST_TAG := $(shell git tag -l v\* | tail -1)
 CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
 
-.PHONY: venv copyfiles install test test_nocheck dist upload clean circleci circleci_setup
+.PHONY: venv copyfiles install test test_nocheck dist upload clean circleci_test circleci_test_setup circleci_sip circleci_pyqt
 
+# CircleCI builds Python from source instead of using virtualenv. It's easier to do this as:
+#   a) Not all the python versions are available from Ubuntu without custom repos
+#   b) We need to build sip and PyQt which don't work with easy_install/pip
 
 $(VENV_PYTHON):
-	$(VIRTUALENV) $(VENV);                 \
-	for package in $(EXTRA_DEPS); do    \
-	   $(VENV)/bin/pip install $$package;  \
-	done
+	if [ -z "$$CIRCLECI" ]; then \
+       $(VIRTUALENV) $(VENV);  \
+    else \
+        if [ -z "$(CIRCLE_CACHED_PYTHON)" ]; then \
+            curl -L "$(CIRCLE_PYTHON_ARCH)" | tar xzf -; \
+            cd Python-*; \
+            ./configure --prefix=$(VENV) && make -j4 && make install; \
+        else \
+            wget $(CIRCLE_CACHED_PYTHON); \
+            tar xzf venv.tgz; \
+            mv venv.tgz $$CIRCLE_ARTIFACTS; \
+        fi \
+    fi
 
 venv: $(VENV_PYTHON)
+	if [ -z "$$CIRCLECI" -o ! -f "$$CIRCLE_ARTIFACTS/venv.tgz" ]; then \
+        for package in $(EXTRA_DEPS); do    \
+           $(VENV)/bin/pip install $$package;  \
+        done; \
+    fi
 
 copyfiles:
 	for package in $(PACKAGES); do                      \
@@ -74,15 +98,15 @@ copyfiles:
 install: venv copyfiles
 	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
-	    ../$(VENV_PYTHON) setup.py bdist_egg || exit 1; \
-	    ../$(VENV)/bin/easy_install dist/*.egg || exit 1;  \
+	    $(VENV_PYTHON) setup.py bdist_egg || exit 1; \
+	    $(VENV)/bin/easy_install dist/*.egg || exit 1;  \
 	    cd ..;                                          \
     done
 
 develop: venv copyfiles
 	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
-	    ../($VENV_PYTHON) setup.py develop || exit 1;   \
+	    $(VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
     done
 
@@ -96,7 +120,7 @@ local_develop: copyfiles
 test_nocheck: install
 	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
-	     ../venv/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED-$$package; \
+	     $(VENV)/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED-$$package; \
 	    )                                               \
     done;                                               \
 
@@ -107,7 +131,7 @@ dist: venv copyfiles
 	for package in $(CHANGED_PACKAGES); do                     \
 	    cd $$package;                                  \
             for format in $(DIST_FORMATS); do          \
-                 ../$(VENV_PYTHON) setup.py $$format || exit 1;   \
+                 $(VENV_PYTHON) setup.py $$format || exit 1;   \
             done;                                      \
 	    cd ..;                                         \
     done
@@ -115,9 +139,9 @@ dist: venv copyfiles
 upload: dist
 	for package in $(CHANGED_PACKAGES); do                     \
 	    cd $$package;                                  \
-            ../$(VENV_PYTHON) setup.py register $(UPLOAD_OPTS) || exit 1;   \
+            $(VENV_PYTHON) setup.py register $(UPLOAD_OPTS) || exit 1;   \
             for format in $(DIST_FORMATS); do          \
-                 ../$(VENV_PYTHON) setup.py $$format upload $(UPLOAD_OPTS) || exit 1;   \
+                 $(VENV_PYTHON) setup.py $$format upload $(UPLOAD_OPTS) || exit 1;   \
             done;                                      \
 	    cd ..;                                         \
     done
@@ -133,50 +157,32 @@ clean:
 	find . -name *.pyc -name .coverage -name .coverage.* -delete
 	rm -f FAILED-*
 
-circleci_python:
-	case $(CIRCLE_PYVERSION) in  \
-        2.6|3.5 ) sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get update; \
-    esac; \
-	case $(CIRCLE_PYVERSION) in  \
-        2.6) sudo apt-get install -y python2.6 python2.6-dev ;;  \
-        3.4) sudo apt-get install -y python3.4-dev ;; \
-        3.5) sudo apt-get install -y python3.5 python3.5-dev ;;  \
-    esac; \
-
-
-circleci_sip:
-	mkdir sip; \
-    (cd sip; \
-     curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
-     cd sip*; \
-     $(CIRCLE_SYSTEM_PYTHON) configure.py; \
-     make -j 4;  \
-     sudo make install; \
-    ); \
-    (cd $(VENV)/lib/python$(CIRCLE_PYVERSION)/site-packages; \
-     ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)"`; \
-    )
-
-circleci_pyqt:
-	mkdir pyqt; \
-    (cd pyqt; \
-     curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
-     cd PyQt*; \
-     $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
-     make -j 4; \
-     sudo make install;  \
-    ); \
-    (cd $(VENV)/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
-     ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__file__)"`; \
-    )
-
-circleci_dependencies: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
-circleci_dependencies: clean circleci_python venv circleci_sip circleci_pyqt
-
-circleci_test_setup:
+circleci_setup:
+	sudo /usr/bin/python -m pip install circleclient
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
 	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit;  \
+
+circleci_sip:
+	if [ ! -f "$$CIRCLE_ARTIFACTS/venv.tgz" ]; then \
+        curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
+        cd sip*; \
+        $(VENV_PYTHON) configure.py; \
+        make -j 4 && make install; \
+    fi
+
+circleci_pyqt:
+	if [ ! -f "$$CIRCLE_ARTIFACTS/venv.tgz" ]; then \
+        curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
+        cd PyQt*; \
+        $(VENV_PYTHON) configure.py --confirm-license; \
+        make -j 4 && make install; \
+    fi
+
+circleci_venv: venv circleci_sip circleci_pyqt
+	if [ ! -f "$$CIRCLE_ARTIFACTS/venv.tgz" ]; then \
+        tar czf $$CIRCLE_ARTIFACTS/venv.tgz venv; \
+    fi
 
 circleci_collect:
 	for i in $(PYVERSION_PACKAGES); do \
@@ -186,8 +192,7 @@ circleci_collect:
     $(VENV)/bin/coverage html -d $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
     cp pytest-*/dist/* $$CIRCLE_ARTIFACTS
 
-circleci_test: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
-circleci_test: circleci_test_setup test_nocheck dist circleci_collect
+circleci: clean circleci_setup circleci_venv test_nocheck dist circleci_collect
 	[ -f FAILED-* ] && exit 1  || true
 
 all:
