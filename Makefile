@@ -21,19 +21,23 @@ PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION
 
 ifeq ($(CIRCLE_NODE_INDEX),0)
   CIRCLE_PYVERSION = 2.6
-  CIRCLE_PYVERSION_FULL = 2.6.8
+  CIRCLE_PYVERSION_FULL = 2.6.9
+  VENV_PYTHON = $(VENV)/bin/python2.6
 endif
 ifeq ($(CIRCLE_NODE_INDEX),1)
   CIRCLE_PYVERSION = 2.7
   CIRCLE_PYVERSION_FULL = 2.7.9
+  VENV_PYTHON = $(VENV)/bin/python2.7
 endif
 ifeq ($(CIRCLE_NODE_INDEX),2)
   CIRCLE_PYVERSION = 3.4
   CIRCLE_PYVERSION_FULL = 3.4.4
+  VENV_PYTHON = $(VENV)/bin/python3.4
 endif
 ifeq ($(CIRCLE_NODE_INDEX),3)
   CIRCLE_PYVERSION = 3.5
   CIRCLE_PYVERSION_FULL = 3.5.1
+  VENV_PYTHON = $(VENV)/bin/python3.5
 endif
 
 # Look up the last completed build's python tarball. We can't use the normal cache from circleci as it only caches
