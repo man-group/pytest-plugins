@@ -62,7 +62,7 @@ UPLOAD_OPTS =
 LAST_TAG := $(shell git tag -l v\* | tail -1)
 CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
 
-.PHONY: venv copyfiles install test test_nocheck dist upload clean circleci_test circleci_test_setup circleci_sip circleci_pyqt
+.PHONY: venv copyfiles extras install test test_nocheck dist upload clean circleci_setup circleci_sip circleci_pyqt circleci_venv circleci_collect circleci
 
 # CircleCI builds Python from source instead of using virtualenv. It's easier to do this as:
 #   a) Not all the python versions are available from Ubuntu without custom repos
@@ -76,8 +76,8 @@ $(VENV_PYTHON):
             curl -L "$(CIRCLE_PYTHON_ARCH)" | tar xzf -; \
             cd Python-*; \
             ./configure --prefix=$(VENV) && make -j4 && make install; \
-            wget https://bootstrap.pypa.io/get-pip.py; \
-            $(VENV_PYTHON) get-pip.py; \
+            wget https://bootstrap.pypa.io/ez_setup.py -O - | $(VENV_PYTHON); \
+            $(VENV)/bin/easy_install pip; \
         else \
             wget $(CIRCLE_CACHED_PYTHON); \
             tar xzf venv.tgz; \
@@ -86,11 +86,11 @@ $(VENV_PYTHON):
     fi
 
 venv: $(VENV_PYTHON)
-	if [ -z "$$CIRCLECI" -o ! -f "$$CIRCLE_ARTIFACTS/venv.tgz" ]; then \
-        for package in $(EXTRA_DEPS); do    \
+
+extras: venv
+	for package in $(EXTRA_DEPS); do    \
            $(VENV)/bin/pip install $$package;  \
-        done; \
-    fi
+    done; \
 
 copyfiles:
 	for package in $(PACKAGES); do                      \
@@ -101,7 +101,7 @@ copyfiles:
 	    cd ..;                                          \
     done
 
-install: venv copyfiles
+install: venv extras copyfiles
 	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
 	    $(VENV_PYTHON) setup.py bdist_egg || exit 1; \
