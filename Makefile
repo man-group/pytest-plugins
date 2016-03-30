@@ -32,6 +32,8 @@ endif
 
 CIRCLE_SYSTEM_PYTHON = python$(CIRCLE_PYVERSION)
 CIRCLE_API_KEY = fbb7daf2022ce0d88327252bc0bb0628f19d0a45
+CIRCLE_CACHED_SIP = $(shell $(VENV_PYTHON) circle_artifact.py $(CIRCLE_API_KEY) 'sip*.tgz')
+CIRCLE_CACHED_PYQT = $(shell $(VENV_PYTHON) circle_artifact.py $(CIRCLE_API_KEY) 'PyQt*.tgz')
 
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
@@ -42,7 +44,7 @@ EXTRA_DEPS = pypandoc       \
              redis          \
              pymongo        \
              rethinkdb
-             
+
 COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in
 DIST_FORMATS = sdist bdist_wheel bdist_egg
 UPLOAD_OPTS =
@@ -51,7 +53,7 @@ UPLOAD_OPTS =
 LAST_TAG := $(shell git tag -l v\* | tail -1)
 CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
 
-.PHONY: venv copyfiles install test dist upload clean circleci circleci_setup
+.PHONY: venv copyfiles install test test_nocheck dist upload clean circleci circleci_setup
 
 
 $(VENV_PYTHON):
@@ -79,14 +81,12 @@ install: venv copyfiles
 	    cd ..;                                          \
     done
 
-
 develop: venv copyfiles
 	for package in $(PYVERSION_PACKAGES); do            \
 	    cd $$package;                                   \
 	    ../($VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
     done
-
 
 local_develop: copyfiles
 	for package in $(PYVERSION_PACKAGES); do            \
@@ -95,13 +95,15 @@ local_develop: copyfiles
 	    cd ..;                                          \
     done
 
-test: install
+test_nocheck: install
 	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
 	     ../venv/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED-$$package; \
 	    )                                               \
     done;                                               \
-    [ -f FAILED-* ] && exit 1  || true
+
+test: test_nocheck
+	[ -f FAILED-* ] && exit 1  || true
 
 dist: venv copyfiles
 	for package in $(CHANGED_PACKAGES); do                     \
@@ -121,7 +123,7 @@ upload: dist
             done;                                      \
 	    cd ..;                                         \
     done
-    
+
 clean:
 	for package in $(PACKAGES); do                            \
         (cd $$package;                                        \
@@ -131,7 +133,7 @@ clean:
 	done;                                                     \
 	rm -rf venv pytest-pyramid-server/vx pip-log.txt
 	find . -name *.pyc -name .coverage -name .coverage.* -delete
-	rm -f FAILED
+	rm -f FAILED-*
 
 circleci_python:
 	case $(CIRCLE_PYVERSION) in  \
@@ -145,17 +147,16 @@ circleci_python:
 
 
 circleci_sip:
-	previous_build=`venv/bin/python ./circle_artifact.py $(CIRCLE_API_KEY) 'sip*.tgz'` \
 	mkdir sip; \
     (cd sip; \
-     if [ -z "$$previous_build" ]; then \
+     if [ -z "$(CIRCLE_CACHED_SIP)" ]; then \
          curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
          cd sip-4.17; \
          $(CIRCLE_SYSTEM_PYTHON) configure.py; \
          make -j 4;  \
          cd ..; tar czf sip-py$(CIRCLE_PYVERSION).tgz sip-4.17; \
      else \
-         wget "$$previous_build"; \
+         wget "$(CIRCLE_CACHED_SIP)"; \
          tar xzf sip-*.tgz; \
      fi;  \
      mv sip*.tgz $(CIRCLE_ARTIFACTS); \
@@ -165,19 +166,18 @@ circleci_sip:
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages; \
      ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import sip; print(sip.__file__)"`; \
     )
-    
+
 circleci_pyqt:
-	previous_build=`venv/bin/python ./circle_artifact.py $(CIRCLE_API_KEY) 'PyQt*.tgz'` \
 	mkdir pyqt; \
     (cd pyqt; \
-     if [ -z "$$previous_build" ]; then \
+     if [ -z "$(CIRCLE_CACHED_PYQT)" ]; then \
          curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
          cd PyQt-x11-gpl-4.11.4; \
          $(CIRCLE_SYSTEM_PYTHON) configure.py --confirm-license; \
          make -j 4; \
          cd ..; tar czf PyQt-py$(CIRCLE_PYVERSION).tgz PtQt*; \
      else \
-         wget "$$previous_build"; \
+         wget "$(CIRCLE_CACHED_PYQT)"; \
          tar xzf PyQt*.tgz; \
      fi; \
      mv PyQt*.tgz $(CIRCLE_ARTIFACTS); \
@@ -187,21 +187,24 @@ circleci_pyqt:
     (cd venv/lib/python$(CIRCLE_PYVERSION)/site-packages;  \
      ln -s `$(CIRCLE_SYSTEM_PYTHON) -c "import PyQt4; print(PyQt4.__file__)"`; \
     )
-    
+
 circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
 	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit;  \
     venv/bin/pip install circleclient
 
-circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
-circleci: clean circleci_python venv circleci_setup circleci_sip circleci_pyqt test dist
+circleci_collect:
 	for i in $(PYVERSION_PACKAGES); do \
         cp $$i/junit.xml $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
     done; \
 	venv/bin/coverage combine pytest-*/.coverage;  \
     venv/bin/coverage html -d $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
     cp pytest-*/dist/* $$CIRCLE_ARTIFACTS
+
+circleci: VIRTUALENV = virtualenv -p $(CIRCLE_SYSTEM_PYTHON)
+circleci: clean circleci_python venv circleci_setup circleci_sip circleci_pyqt test_nocheck dist circleci_collect
+	[ -f FAILED-* ] && exit 1  || true
 
 all:
 	test
