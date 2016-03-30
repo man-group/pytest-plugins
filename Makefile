@@ -14,7 +14,7 @@ PACKAGES = pytest-fixture-config      \
            pytest-verbose-parametrize
 
 VIRTUALENV = virtualenv
-VENV = $(shell dirname $(shell readlink -l setup.py))/venv
+VENV = $(shell dirname $(shell readlink -f setup.py))/venv
 VENV_PYTHON = $(VENV)/bin/python
 VENV_PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
