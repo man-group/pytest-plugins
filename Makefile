@@ -72,6 +72,8 @@ $(VENV_PYTHON):
             curl -L "$(CIRCLE_PYTHON_ARCH)" | tar xzf -; \
             cd Python-*; \
             ./configure --prefix=$(VENV) && make -j4 && make install; \
+            wget https://bootstrap.pypa.io/get-pip.py; \
+            $(VENV_PYTHON) get-pip.py; \
         else \
             wget $(CIRCLE_CACHED_PYTHON); \
             tar xzf venv.tgz; \
