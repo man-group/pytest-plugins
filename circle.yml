@@ -4,7 +4,7 @@ dependencies:
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
     - sudo apt-get update
     - sudo apt-get install rethinkdb jenkins
-    - make circle_dependencies
+    - make circleci_dependencies
     
   cache_directories:
     - venv
@@ -36,5 +36,5 @@ test:
         2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; 
         3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; 
       esac
-    - make circleci:
+    - make circleci_test:
         parallel: true
