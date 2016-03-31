@@ -123,7 +123,7 @@ class TestServer(Workspace):
             # import things properly
             env = self.env or dict(os.environ)
             env['PYTHONPATH'] = os.pathsep.join(sys.path)
-            self.env - env
+            self.env = env
 
     def start(self):
         self.kill()
