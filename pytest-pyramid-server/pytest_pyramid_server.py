@@ -82,7 +82,7 @@ class PyramidTestServer(HTTPTestServer):
         # Discover externally accessable hostname so selenium can get to it
         kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
 
-        super(PyramidTestServer, self).__init__(**kwargs)
+        super(PyramidTestServer, self).__init__(preserve_sys_path=True, **kwargs)
 
     def pre_setup(self):
         """ Make a copy of at the ini files and set the port number and host in the new testing.ini
@@ -106,18 +106,15 @@ class PyramidTestServer(HTTPTestServer):
         # Set the uri to be the external hostname and the url prefix
         self._uri = "http://%s:%s/%s" % (os.uname()[1], self.port, parser.get('app:main', 'url_prefix'))
 
-    @property
     def run_cmd(self):
-        return [Path(sys.exec_prefix) / 'bin' / 'python', Path(sys.exec_prefix) / 'bin' / 'pserve', self.working_config]
-
-
+        return [sys.executable, '-c', 'from pyramid.scripts.pserve import main; sys.exit(main())', self.working_config]
 
     def get_config(self):
         """ Convenience method to return our currently running config file as
             an items dictionary, skipping logging sections
         """
         # Use our workspace for %(here) expansion
-        parser = ConfigParser.ConfigParser({'here': self.workspace})
+        parser = configparser.ConfigParser({'here': self.workspace})
         parser.read(self.config)
         return dict([(section, dict(parser.items(section)))
                      for section in parser.sections()
