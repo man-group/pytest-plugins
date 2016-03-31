@@ -88,7 +88,7 @@ class DevpiServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        res = [sys.executable, '-c', 'from devpi_server.main import main; main()',
+        res = [sys.executable, '-c', 'import sys; from devpi_server.main import main; sys.exit(main())',
                 '--serverdir', self.server_dir,
                 '--host', self.hostname,
                 '--port', str(self.port)

@@ -108,7 +108,7 @@ class PyramidTestServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return [sys.executable, '-c', 'from pyramid.scripts.pserve import main; sys.exit(main())', self.working_config]
+        return [sys.executable, '-c', 'import sys; from pyramid.scripts.pserve import main; sys.exit(main())', self.working_config]
 
     def get_config(self):
         """ Convenience method to return our currently running config file as
