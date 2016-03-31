@@ -34,4 +34,3 @@ test:
       esac
     - make circleci_test:
         parallel: true
-        

@@ -66,7 +66,8 @@ CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cu
 
 # CircleCI builds Python from source instead of using virtualenv. It's easier to do this as:
 #   a) Not all the python versions are available from Ubuntu without custom repos
-#   b) We need to build sip and PyQt which don't work with easy_install/pip
+#   b) We need to build sip and PyQt which don't work with easy_install/pip, and aren't
+#      available from Ubuntu packages servers at all our different Python versions
 
 $(VENV_PYTHON):
 	if [ -z "$$CIRCLECI" ]; then \
@@ -76,8 +77,10 @@ $(VENV_PYTHON):
             curl -L "$(CIRCLE_PYTHON_ARCH)" | tar xzf -; \
             cd Python-*; \
             ./configure --prefix=$(VENV) && make -j4 && make install; \
-            wget https://bootstrap.pypa.io/ez_setup.py -O - | $(VENV_PYTHON); \
-            $(VENV)/bin/easy_install pip; \
+            cd $(VENV)/bin; \
+            [ ! -f python ] && ln -s python$(CIRCLE_PYVERSION) ./python; \
+            wget https://bootstrap.pypa.io/ez_setup.py -O - | ./python; \
+            ./easy_install pip; \
         else \
             wget $(CIRCLE_CACHED_PYTHON); \
             tar xzf venv.tgz; \
@@ -192,6 +195,8 @@ circleci_venv: venv circleci_sip circleci_pyqt
 
 circleci_collect:
 	for i in $(PYVERSION_PACKAGES); do \
+        sed -i $$i/junit.xml 's/classname="tests/classname="tests$(CIRCLE_PYVERSION)'/; \
+        sed -i $$i/junit.xml 's/classname="tests/classname="tests$(CIRCLE_PYVERSION)'/; \
         cp $$i/junit.xml $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
     done; \
 	$(VENV)/bin/coverage combine pytest-*/.coverage;  \
