@@ -107,7 +107,7 @@ class TestServer(Workspace):
     # Number of seconds to wait between kill retries. Increase if the service takes a while to die
     kill_retry_delay = 1
 
-    def __init__(self, workspace=None, delete=None, **kwargs):
+    def __init__(self, workspace=None, delete=None, preserve_sys_path=False, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
         self.port = kwargs.get('port', self.get_port())
         self.hostname = kwargs.get('hostname', CONFIG.fixture_hostname)
@@ -115,6 +115,15 @@ class TestServer(Workspace):
         self.dead = False
         self.env = kwargs.get('env')
         self.cwd = kwargs.get('cwd')
+
+        if preserve_sys_path:
+            # If the child class was installed as a test dependency, the python dist files might not
+            # be properly installed and subprocesses won't find them. When this flag is set
+            # we preserve our full sys.path in PYTHONPATH to make sure the child process can still
+            # import things properly
+            env = self.env or dict(os.environ)
+            env['PYTHONPATH'] = os.pathsep.join(sys.path)
+            self.env - env
 
     def start(self):
         self.kill()

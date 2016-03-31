@@ -10,10 +10,7 @@ import logging
 from six.moves import cStringIO
 
 import pkg_resources
-from pytest import yield_fixture
-from path import Path
 from pytest import yield_fixture, fixture
-from path import path
 import devpi_server as _devpi_server
 from devpi.main import main as devpi_client
 from pytest_server_fixtures.http import HTTPTestServer
@@ -79,7 +76,7 @@ class DevpiServer(HTTPTestServer):
         self.debug = debug
         if os.getenv('DEBUG') in (True, '1', 'Y', 'y'):
             self.debug = True
-        super(DevpiServer, self).__init__(**kwargs)
+        super(DevpiServer, self).__init__(preserve_sys_path=True, **kwargs)
 
         self.offline = offline
         self.data = data
@@ -91,12 +88,11 @@ class DevpiServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        res = [Path(sys.exec_prefix) / 'bin' / 'python',
-               Path(sys.exec_prefix) / 'bin' / 'devpi-server',
-               '--serverdir', self.server_dir,
-               '--host', self.hostname,
-               '--port', str(self.port)
-               ]
+        res = [sys.executable, '-c', 'from devpi_server.main import main; main()',
+                '--serverdir', self.server_dir,
+                '--host', self.hostname,
+                '--port', str(self.port)
+                ]
         if self.offline:
             res.append('--offline-mode')
         if self.debug:
