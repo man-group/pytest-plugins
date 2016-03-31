@@ -106,6 +106,7 @@ class PyramidTestServer(HTTPTestServer):
         # Set the uri to be the external hostname and the url prefix
         self._uri = "http://%s:%s/%s" % (os.uname()[1], self.port, parser.get('app:main', 'url_prefix'))
 
+    @property
     def run_cmd(self):
         return [sys.executable, '-c', 'from pyramid.scripts.pserve import main; sys.exit(main())', self.working_config]
 
