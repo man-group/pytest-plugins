@@ -195,9 +195,7 @@ circleci_venv: venv circleci_sip circleci_pyqt
 
 circleci_collect:
 	for i in $(PYVERSION_PACKAGES); do \
-        sed -i $$i/junit.xml 's/classname="tests/classname="tests$(CIRCLE_PYVERSION)'/; \
-        sed -i $$i/junit.xml 's/classname="tests/classname="tests$(CIRCLE_PYVERSION)'/; \
-        cp $$i/junit.xml $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
+        sed 's/classname="tests/classname="tests$(CIRCLE_PYVERSION)/' $$i/junit.xml > $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
     done; \
 	$(VENV)/bin/coverage combine pytest-*/.coverage;  \
     $(VENV)/bin/coverage html -d $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
