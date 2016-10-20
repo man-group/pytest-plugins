@@ -18,8 +18,7 @@ classifiers = [
 install_requires = ['six',
                     'pytest']
 
-tests_require = ['pytest-cov',
-                 ]
+tests_require = []
 
 entry_points = {
     'pytest11': [

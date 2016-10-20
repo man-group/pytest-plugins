@@ -28,7 +28,7 @@ extras_require = {
     'redis':  ["redis"],
 }
 
-tests_require = ['pytest-cov',
+tests_require = [
                  'mock',
                  'psutil',
                  ]

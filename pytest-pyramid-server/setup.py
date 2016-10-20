@@ -21,7 +21,7 @@ install_requires = ['pytest-server-fixtures',
                     'waitress',
                     ]
 
-tests_require = ['pytest-cov',
+tests_require = [
                  'pyramid-debugtoolbar',
                  ]
 

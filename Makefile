@@ -62,7 +62,7 @@ install: venv copyfiles
 develop: venv copyfiles
 	for package in $(PACKAGES); do                      \
 	    cd $$package;                                   \
-	    ../$(VENV_PYTHON) setup.py develop || exit 1;   \
+	    ../($VENV_PYTHON) setup.py develop || exit 1;   \
 	    cd ..;                                          \
     done
 
@@ -70,7 +70,7 @@ develop: venv copyfiles
 test: install
 	for package in $(PACKAGES); do                      \
 	    (cd $$package;                                  \
-	     ../$(VENV_PYTHON) setup.py test -sv -ra || touch ../FAILED; \
+	     ../venv/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED; \
 	    )                                               \
     done;                                               \
     [ -f FAILED ] && exit 1  || true
