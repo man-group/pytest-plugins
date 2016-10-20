@@ -19,7 +19,7 @@ install_requires = ['pytest',
                     'pytest-shutil',
                     ]
 
-tests_require = ['pytest-cov',
+tests_require = [
                  ]
 
 entry_points = {

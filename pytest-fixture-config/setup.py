@@ -16,8 +16,7 @@ classifiers = [
 
 install_requires = ['pytest']
 
-tests_require = ['pytest-cov',
-                 'six',
+tests_require = ['six',
                  ]
 
 if __name__ == '__main__':

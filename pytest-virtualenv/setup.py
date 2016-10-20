@@ -19,7 +19,7 @@ install_requires = ['pytest-fixture-config',
                     'pytest',
                     ]
 
-tests_require = ['pytest-cov',
+tests_require = [
                  'mock'
                  ]
 

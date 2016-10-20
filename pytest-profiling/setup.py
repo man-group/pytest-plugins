@@ -19,7 +19,7 @@ install_requires = ['six',
                     'gprof2dot',
                     ]
 
-tests_require = ['pytest-cov',
+tests_require = [
                  'pytest-virtualenv',
                  ]
 

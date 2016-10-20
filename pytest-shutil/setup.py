@@ -22,7 +22,6 @@ install_requires = ['six',
                     ]
 
 tests_require = ['pytest',
-                 'pytest-cov',
                  ]
 
 entry_points = {
