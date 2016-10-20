@@ -17,25 +17,6 @@ def test_creates_prof_dir():
     makedirs.assert_called_with('prof')
 
 
-def test_hooks_pyfunc_call():
-    assert getattr(Profiling.pytest_pyfunc_call, 'tryfirst')
-    multicall, pyfuncitem, plugin = Mock(), Mock(), Profiling(False)
-    pyfuncitem.name = 'test_foo'
-    with patch('os.path.join', return_value=sentinel.join):
-        with patch('pytest_profiling.cProfile.Profile') as Profile:
-            plugin.pytest_pyfunc_call(multicall, pyfuncitem)
-    prof = Profile()  # mock instances are singletons
-    assert prof.runctx.called
-    assert prof.dump_stats.called
-    runctx_args, _ = prof.runctx.call_args
-    (dump_stats_filename, ), _ = prof.dump_stats.call_args
-    assert dump_stats_filename == sentinel.join
-    assert not multicall.execute.called
-    eval(*runctx_args)
-    assert multicall.execute.called
-    assert plugin.profs == [sentinel.join]
-
-
 def test_combines_profs():
     plugin = Profiling(False)
     plugin.profs = [sentinel.prof0, sentinel.prof1]

@@ -20,7 +20,7 @@ install_requires = ['py',
                     'selenium',
                     ]
 
-tests_require = ['pytest-cov',
+tests_require = [
                  ]
 
 entry_points = {

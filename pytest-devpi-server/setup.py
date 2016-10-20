@@ -21,8 +21,7 @@ install_requires = ['pytest-server-fixtures',
                     'devpi-client',
                     ]
 
-tests_require = ['pytest-cov',
-                 ]
+tests_require = []
 
 entry_points = {
     'pytest11': [
