@@ -2,6 +2,8 @@
 
 [![Circle CI](https://circleci.com/gh/manahl/pytest-plugins.svg?style=shield)](https://circleci.com/gh/manahl/pytest-plugins)
 
+[![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
+
 Plugin | Description |
 ------ | ----------- |
 | [pytest-server-fixtures](pytest-server-fixtures) |  Extensible server-running framework with a suite of well-known databases and webservices included | 
