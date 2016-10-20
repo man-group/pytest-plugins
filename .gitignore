@@ -29,3 +29,4 @@ htmlcov
 TAGS
 /venv/
 /pip-log.txt
+.idea

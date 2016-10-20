@@ -24,11 +24,7 @@ class PyTest(TestCommand):
         # import here, cause outside the eggs aren't loaded
         import pytest
 
-        self.pytest_args.extend(['--cov', self.src_dir,
-                     '--cov-report', 'xml',
-                     '--cov-report', 'html',
-                     '--junitxml', 'junit.xml',
-                     ])
+        self.pytest_args.extend(['--junitxml', 'junit.xml'])
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
