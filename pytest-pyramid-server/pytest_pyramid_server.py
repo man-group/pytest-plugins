@@ -11,7 +11,7 @@ import glob
 import shutil
 import threading
 
-from path import path
+from path import Path
 from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
 from pytest import yield_fixture
@@ -74,7 +74,7 @@ class PyramidTestServer(HTTPTestServer):
         self.config_filename = config_filename if config_filename else 'testing.ini'
 
         self.working_config = None
-        self.original_config = path(self.config_dir) / self.config_filename
+        self.original_config = Path(self.config_dir) / self.config_filename
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
@@ -93,7 +93,7 @@ class PyramidTestServer(HTTPTestServer):
         for filename in glob.glob(os.path.join(self.config_dir, '*.ini')):
             shutil.copy(filename, self.workspace)
 
-        path.copy(self.original_config, self.working_config)
+        Path.copy(self.original_config, self.working_config)
 
         parser = ConfigParser.ConfigParser()
         parser.read(self.original_config)
@@ -108,7 +108,7 @@ class PyramidTestServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return [path(sys.exec_prefix) / 'bin' / 'python', path(sys.exec_prefix) / 'bin' / 'pserve', self.working_config]
+        return [Path(sys.exec_prefix) / 'bin' / 'python', Path(sys.exec_prefix) / 'bin' / 'pserve', self.working_config]
 
 
 

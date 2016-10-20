@@ -11,7 +11,7 @@ import cStringIO
 
 import pkg_resources
 from pytest import yield_fixture
-from path import path
+from path import Path
 import devpi_server as _devpi_server
 from devpi.main import main as devpi_client
 from pytest_server_fixtures.http import HTTPTestServer
@@ -78,12 +78,12 @@ class DevpiServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        res = [path(sys.exec_prefix) / 'bin' / 'python',
-                path(sys.exec_prefix) / 'bin' / 'devpi-server',
-                '--serverdir', self.server_dir,
-                '--host', self.hostname,
-                '--port', str(self.port)
-                ]
+        res = [Path(sys.exec_prefix) / 'bin' / 'python',
+               Path(sys.exec_prefix) / 'bin' / 'devpi-server',
+               '--serverdir', self.server_dir,
+               '--host', self.hostname,
+               '--port', str(self.port)
+               ]
         if self.offline:
             res.append('--offline-mode')
         if self.debug:

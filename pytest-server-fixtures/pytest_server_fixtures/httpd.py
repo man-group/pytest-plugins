@@ -97,9 +97,9 @@ class HTTPDServer(HTTPTestServer):
         super(HTTPDServer, self).__init__(**kwargs)
         
         self.document_root = document_root or self.workspace
-        self.document_root = path.path(self.document_root)
+        self.document_root = path.Path(self.document_root)
         self.log_dir = log_dir or self.workspace / 'logs'
-        self.log_dir = path.path(self.log_dir)
+        self.log_dir = path.Path(self.log_dir)
 
     def pre_setup(self):
         """ Write out the config file
