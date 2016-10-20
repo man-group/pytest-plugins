@@ -1,6 +1,10 @@
 
 ## Changelog
 
+### 1.2.2 (2016-10-20)
+ * Fixed deprecated multicall in pytest-profiling (Thanks to Paul van der Linden for PR)
+ * Added missing licence file
+
 ### 1.2.1 (2016-3-1)
  * Fixed pytest-verbose-parametrize for latest version of py.test
 
