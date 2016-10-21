@@ -6,7 +6,7 @@ import shutil
 import logging
 import subprocess
 
-from path import path
+from path import Path
 from six import string_types
 
 from . import cmdline
@@ -47,11 +47,11 @@ class Workspace(object):
         log.debug("")
         log.debug("=======================================================")
         if workspace is None:
-            self.workspace = path(tempfile.mkdtemp(dir=self.get_base_tempdir()))
+            self.workspace = Path(tempfile.mkdtemp(dir=self.get_base_tempdir()))
             log.debug("pytest_shutil created workspace %s" % self.workspace)
 
         else:
-            self.workspace = path(workspace)
+            self.workspace = Path(workspace)
             log.debug("pytest_shutil using workspace %s" % self.workspace)
         if 'DEBUG' in os.environ:
             self.debug = True

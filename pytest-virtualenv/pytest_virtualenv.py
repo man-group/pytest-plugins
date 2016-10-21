@@ -6,7 +6,7 @@ from distutils import sysconfig
 
 from pytest import yield_fixture
 from pkg_resources import working_set
-from path import path
+from path import Path
 
 
 from pytest_shutil.workspace import Workspace
@@ -186,7 +186,7 @@ class VirtualEnv(Workspace):
                  'pyversion': sysconfig.get_python_version(),
                  }
 
-            d['egg_file'] = path(pkg.location) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
+            d['egg_file'] = Path(pkg.location) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
             if build_egg and not d['egg_file'].isfile():
                 self.run('cd %(src_dir)s; %(python)s setup.py -q bdist_egg' % d, capture=True)
 
