@@ -34,7 +34,7 @@ ifeq ($(CIRCLE_NODE_INDEX),2)
 endif
 
 ifeq ($(CIRCLECI),true)
-    PYTHON = /usr/local/bin/python$(CIRCLE_PYVERSION)
+    PYTHON = /opt/circleci/.pyenv/shims/python$(CIRCLE_PYVERSION)
     VENV_PYTHON = $(VENV)/bin/python$(CIRCLE_PYVERSION)
     VIRTUALENV = $(PYTHON) -m virtualenv
 endif
