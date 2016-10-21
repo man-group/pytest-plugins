@@ -1,3 +1,7 @@
+machine:
+  post:
+    - pyenv global 2.7.11 3.4.4 3.5.2
+
 dependencies:
   pre:
     - source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
