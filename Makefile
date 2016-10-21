@@ -19,6 +19,7 @@ VENV = $(shell dirname $(shell perl -e 'use Cwd "abs_path";print abs_path(shift)
 VENV_PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
 
+
 ifeq ($(CIRCLE_NODE_INDEX),0)
   CIRCLE_PYVERSION = 2.7
   CIRCLE_PYVERSION_FULL = 2.7.11
