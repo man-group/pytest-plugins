@@ -1,36 +1,11 @@
 dependencies:
-  pre: 
+  pre:
     - source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
     - sudo apt-get update
     - sudo apt-get install rethinkdb jenkins
-    
+
 test:
   override:
-    - make clean venv
-    # Just pull in PyQt4 from the system site-packages - if we create the venv with --system-site-packages
-    # then we can't install many of the other dependencies due to install errors in pip/setuptools
-    - cd venv/lib/python2.7/site-packages; ln -s $(python2.7 -c "import PyQt4; print PyQt4.__path__[0]"); ln -s $(python2.7 -c "import sip; print sip.__file__");
-    - make test 
-    - make dist
-    - mkdir -p $CIRCLE_TEST_REPORTS/junit/ $CIRCLE_ARTIFACTS/htmlcov/py27
-    - for i in pytest-*; do cp $i/junit.xml $CIRCLE_TEST_REPORTS/junit/$i-py27.xml || true; done
-    - venv/bin/coverage combine pytest-*/.coverage*
-    - venv/bin/coverage html -d $CIRCLE_ARTIFACTS/htmlcov/py27
-    - cp pytest-*/dist/* $CIRCLE_ARTIFACTS
     - make circleci:
-       parallel: true
-    - case $CIRCLE_NODE_INDEX in \
-        0) sudo apt-get install -y python2.6 python2.6-dev; make circleci ;; \
-        1) make circleci ;; \
-        2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; \
-        3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; \
-    - >
-      case $CIRCLE_NODE_INDEX in 
-        0) sudo apt-get install -y python2.6 python2.6-dev; make circleci ;; 
-        1) make circleci ;; 
-        2) sudo apt-get -f; sudo apt-get install -y python3.4-dev ;; 
-        3) sudo apt-get install -y python3.5 python3.5-dev; make circleci ;; 
-      esac
-    - make circleci_test:
         parallel: true
