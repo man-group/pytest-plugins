@@ -5,7 +5,7 @@ PACKAGES = pytest-fixture-config      \
            pytest-pyramid-server          \
            pytest-devpi-server            \
            pytest-listener                \
-           pytest-qt-app                  \
+           #pytest-qt-app                  \
            pytest-svn                     \
            pytest-git                     \
            pytest-virtualenv              \
@@ -55,7 +55,8 @@ UPLOAD_OPTS =
 LAST_TAG := $(shell git tag -l v\* | tail -1)
 CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
 
-.PHONY: venv copyfiles extras install test test_nocheck dist upload clean circleci_setup circleci_sip circleci_pyqt circleci_collect circleci
+# removed from PHONY:  circleci_sip circleci_pyqt
+.PHONY: venv copyfiles extras install test test_nocheck dist upload clean circleci_setup circleci_collect circleci
 
 $(VENV_PYTHON):
 	if [ ! -z "$$CIRCLECI" ]; then \
@@ -146,17 +147,17 @@ circleci_setup:
 	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit;  \
 
-circleci_sip:
-	curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
-    cd sip*; \
-    $(VENV_PYTHON) configure.py; \
-    make -j 4 && make install
+#circleci_sip:
+#	curl -L "http://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz?r=&ts=1458926351&use_mirror=heanet" | tar xzf -; \
+#    cd sip*; \
+#    $(VENV_PYTHON) configure.py; \
+#    make -j 4 && make install
 
-circleci_pyqt:
-	curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
-    cd PyQt*; \
-    $(VENV_PYTHON) configure.py --confirm-license; \
-    make -j 4 && make install
+#circleci_pyqt:
+#	curl -L "http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.11.4/PyQt-x11-gpl-4.11.4.tar.gz?r=&ts=1458926298&use_mirror=netix" | tar xzf -;  \
+#    cd PyQt*; \
+#    $(VENV_PYTHON) configure.py --confirm-license; \
+#    make -j 4 && make install
 
 circleci_collect:
 	for i in $(PYVERSION_PACKAGES); do \
@@ -166,7 +167,8 @@ circleci_collect:
     $(VENV)/bin/coverage html -d $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
     cp pytest-*/dist/* $$CIRCLE_ARTIFACTS
 
-circleci: clean circleci_setup venv circleci_sip circleci_pyqt test_nocheck dist circleci_collect
+#removed: circleci_sip circleci_pyqt
+circleci: clean circleci_setup venv  test_nocheck dist circleci_collect
 	[ -f FAILED-* ] && exit 1  || true
 
 
