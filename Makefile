@@ -59,8 +59,8 @@ CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cu
 
 $(VENV_PYTHON):
 	if [ ! -z "$$CIRCLECI" ]; then \
-	    sudo $(PYTHON) -m pip install virtualenv
-	fi \
+	    sudo $(PYTHON) -m pip install virtualenv; \
+	fi; \
     $(VIRTUALENV) $(VENV)
 
 venv: $(VENV_PYTHON)
