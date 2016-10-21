@@ -33,7 +33,7 @@ ifeq ($(CIRCLE_NODE_INDEX),2)
   CIRCLE_PYVERSION_FULL = 3.5.2
 endif
 
-ifeq ($(CIRCLE),true)
+ifeq ($(CIRCLECI),true)
     PYTHON = /usr/local/bin/python$(CIRCLE_PYVERSION)
     VENV_PYTHON = $(VENV)/bin/python$(CIRCLE_PYVERSION)
     VIRTUALENV = $(PYTHON) -m virtualenv
