@@ -1,11 +1,11 @@
 # Package list, in order of ancestry
+# removed pytest-qt-app                  
 PACKAGES = pytest-fixture-config      \
            pytest-shutil                  \
            pytest-server-fixtures         \
            pytest-pyramid-server          \
            pytest-devpi-server            \
            pytest-listener                \
-           #pytest-qt-app                  
            pytest-svn                     \
            pytest-git                     \
            pytest-virtualenv              \
