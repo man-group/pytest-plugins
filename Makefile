@@ -5,7 +5,7 @@ PACKAGES = pytest-fixture-config      \
            pytest-pyramid-server          \
            pytest-devpi-server            \
            pytest-listener                \
-           #pytest-qt-app                  \
+           #pytest-qt-app                  
            pytest-svn                     \
            pytest-git                     \
            pytest-virtualenv              \
