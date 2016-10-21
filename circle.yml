@@ -9,5 +9,6 @@ dependencies:
 
 test:
   override:
+    - env
     - make circleci:
         parallel: true
