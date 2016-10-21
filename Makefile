@@ -141,7 +141,6 @@ clean:
 	rm -f FAILED-*
 
 circleci_setup:
-	sudo /usr/bin/python -m pip install circleclient
 	mkdir -p $$CIRCLE_ARTIFACTS/htmlcov/$(CIRCLE_PYVERSION);  \
 	mkdir -p $$CIRCLE_ARTIFACTS/dist/$(CIRCLE_PYVERSION);  \
     mkdir -p $$CIRCLE_TEST_REPORTS/junit;  \
