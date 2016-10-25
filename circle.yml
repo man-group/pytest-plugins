@@ -9,7 +9,7 @@ dependencies:
     - source /etc/lsb-release && echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list
     - wget -qO- https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
     - sudo apt-get update
-    - sudo apt-get install rethinkdb jenkins redis-server pandoc
+    - sudo apt-get install rethinkdb jenkins redis-server pandoc subversion graphviz
 
 test:
   override:
