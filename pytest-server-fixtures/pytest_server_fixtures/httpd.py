@@ -34,7 +34,8 @@ def httpd_server():
 
 class HTTPDServer(HTTPTestServer):
     port_seed = 65531
-    cfg_template = string.Template("""
+
+    cfg_modules_template = """
       LoadModule headers_module $modules/mod_headers.so
       LoadModule proxy_module $modules/mod_proxy.so
       LoadModule proxy_http_module $modules/mod_proxy_http.so
@@ -46,7 +47,11 @@ class HTTPDServer(HTTPTestServer):
           LoadModule log_config_module $modules/mod_log_config.so
       </IfModule>
       LoadModule mime_module $modules/mod_mime.so
+      LoadModule mpm_prefork_module $modules/mod_mpm_prefork.so
+      LoadModule unixd_module $modules/mod_unixd.so
+    """
 
+    cfg_template = """
       StartServers 1
       ServerLimit 8
 
@@ -70,9 +75,7 @@ class HTTPDServer(HTTPTestServer):
       <Directory $server_root>
           Options +Indexes
       </Directory>
-
-      $extra_cfg
-    """)
+    """
 
     def __init__(self, proxy_rules=None, extra_cfg='', document_root=None, log_dir=None, **kwargs):
         """ httpd Proxy Server
@@ -89,7 +92,9 @@ class HTTPDServer(HTTPTestServer):
             Server log directory, defaults to $(workspace)/logs
         """
         self.proxy_rules = proxy_rules if proxy_rules is not None else {}
-        self.extra_cfg = extra_cfg
+        self.cfg_template = string.Template(self.cfg_modules_template +
+                                            self.cfg_template +
+                                            extra_cfg)
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
@@ -118,7 +123,6 @@ class HTTPDServer(HTTPTestServer):
             log_dir=self.log_dir,
             listen_addr="{host}:{port}".format(host=self.hostname, port=self.port),
             proxy_rules='\n'.join(rules),
-            extra_cfg=self.extra_cfg,
             modules=CONFIG.httpd_modules,
         )
         self.config.write_text(cfg)
