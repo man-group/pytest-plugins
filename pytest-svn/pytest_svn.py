@@ -1,9 +1,11 @@
 """  Repository fixtures
 """
+import pytest
 from pytest_shutil.workspace import Workspace
 
 
-def pytest_funcarg__svn_repo(request):
+@pytest.yield_fixture()
+def svn_repo():
     """ Function-scoped fixture to create a new svn repo in a temporary workspace.
     
         Attributes
@@ -12,11 +14,9 @@ def pytest_funcarg__svn_repo(request):
         .. also inherits all attributes from the `workspace` fixture 
         
     """
-    return request.cached_setup(
-        setup=SVNRepo,
-        teardown=lambda p: p.teardown(),
-        scope='function',
-    )
+    repo = SVNRepo()
+    yield repo
+    repo.teardown()
 
 
 class SVNRepo(Workspace):
