@@ -48,7 +48,6 @@ class HTTPDServer(HTTPTestServer):
       </IfModule>
       LoadModule mime_module $modules/mod_mime.so
       LoadModule mpm_prefork_module $modules/mod_mpm_prefork.so
-      LoadModule unixd_module $modules/mod_unixd.so
     """
 
     cfg_template = """
