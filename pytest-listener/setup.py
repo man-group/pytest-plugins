@@ -1,6 +1,6 @@
 import os
 from setuptools import setup, find_packages
-from common_setup import common_setup
+from .common_setup import common_setup
 
 classifiers = [
     'License :: OSI Approved :: MIT License',
