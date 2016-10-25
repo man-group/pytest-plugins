@@ -1,6 +1,7 @@
 import os
 import socket
 import string
+import logging
 
 import pytest
 import path
@@ -9,6 +10,8 @@ from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG
 
 from .http import HTTPTestServer
+
+log = logging.getLogger(__name__)
 
 
 @yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
@@ -119,6 +122,7 @@ class HTTPDServer(HTTPTestServer):
             modules=CONFIG.httpd_modules,
         )
         self.config.write_text(cfg)
+        log.debug("=========== HTTPD Server Config =============\n{}".format(cfg))
 
         # This is where it stores PID files
         (self.workspace / 'run').mkdir()
