@@ -47,16 +47,21 @@ class HTTPDServer(HTTPTestServer):
           LoadModule log_config_module $modules/mod_log_config.so
       </IfModule>
       LoadModule mime_module $modules/mod_mime.so
+      LoadModule authz_core_module $modules/mod_authz_core.so
+    """
+
+    cfg_mpm_template = """
       LoadModule mpm_prefork_module $modules/mod_mpm_prefork.so
+      StartServers       1
+      MinSpareServers    1
+      MaxSpareServers   4
+      ServerLimit      4
+      MaxClients       4
+      MaxRequestsPerChild  10000
     """
 
     cfg_template = """
-      StartServers 1
-      ServerLimit 8
-
       TypesConfig /etc/mime.types
-      DefaultType text/plain
-
 
       ServerRoot $server_root
       Listen $listen_addr
@@ -92,6 +97,7 @@ class HTTPDServer(HTTPTestServer):
         """
         self.proxy_rules = proxy_rules if proxy_rules is not None else {}
         self.cfg_template = string.Template(self.cfg_modules_template +
+                                            self.cfg_mpm_template +
                                             self.cfg_template +
                                             extra_cfg)
 
