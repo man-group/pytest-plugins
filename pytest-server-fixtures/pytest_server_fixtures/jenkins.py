@@ -61,7 +61,6 @@ class JenkinsTestServer(HTTPTestServer):
                 '--httpPort=%s' % self.port,
                 '--httpListenAddress=%s' % self.hostname,
                 '--ajp13Port=-1',
-                '--preferredClassLoader=java.net.URLClassLoader',
                 '--webroot={0}'.format(self.workspace / 'run' / 'war')
                 ]
 
