@@ -9,6 +9,7 @@ import os.path
 import shutil
 
 import pytest
+import six
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import yield_requires_config
@@ -44,8 +45,9 @@ class JenkinsTestServer(HTTPTestServer):
         super(JenkinsTestServer, self).__init__(**kwargs)
         self.env = dict(JENKINS_HOME=self.workspace,
                         JENKINS_RUN=self.workspace / 'run',
+                        # Use at most 1GB of RAM for the server
+                        JAVA_ARGS='-Xms1G -Xmx1G',
                         RUN_STANDALONE='true',
-                        JAVA_ARGS='-Xmx1G',
                         JENKINS_LOG=self.workspace / 'jenkins.log',
                         )
         self.api = jenkins.Jenkins(self.uri)
@@ -60,8 +62,7 @@ class JenkinsTestServer(HTTPTestServer):
                 '--httpPort=%s' % self.port,
                 '--httpListenAddress=%s' % self.hostname,
                 '--ajp13Port=-1',
-                '--preferredClassLoader=java.net.URLClassLoader',
-                '--webroot={}'.format(self.workspace / 'run' / 'war')
+                '--webroot={0}'.format(self.workspace / 'run' / 'war'),
                 ]
 
     def load_plugins(self, plugins_repo, plugins=None):
@@ -79,7 +80,7 @@ class JenkinsTestServer(HTTPTestServer):
         if plugins is None:
             plugins = available_plugins.keys()
         else:
-            if isinstance(plugins, basestring):
+            if isinstance(plugins, six.string_types):
                 plugins = [plugins]
 
             errors = []

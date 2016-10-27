@@ -31,7 +31,7 @@ Here's a noddy test case showing the main functionality:
     def test_devpi_server(devpi_server):
         # This is the client API for the server that's bound directly to the 'devpi' command-line tool.
         # Here we list the available indexes
-        print devpi_server.api('use', '-l')
+        print(devpi_server.api('use', '-l'))
         
         # Create and use another index
         devpi_server.api('index', '-c', 'myindex')

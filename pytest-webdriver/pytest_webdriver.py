@@ -38,7 +38,7 @@ def browser_to_use(webdriver, browser):
     b = getattr(webdriver.DesiredCapabilities(), browser, None)
     if not b:
         raise ValueError(
-            "Unknown browser requested '{}'.".format(browser)
+            "Unknown browser requested '{0}'.".format(browser)
         )
     return b
 
@@ -57,7 +57,7 @@ def webdriver(request):
 
     selenium_uri = CONFIG.uri
     if not selenium_uri:
-        selenium_uri = 'http://{}:{}'.format(CONFIG.host, CONFIG.port)
+        selenium_uri = 'http://{0}:{1}'.format(CONFIG.host, CONFIG.port)
 
     # Look for the pyramid server funcarg in the current session, and save away its root uri
     root_uri = []
@@ -85,8 +85,6 @@ def pytest_runtest_makereport(item, call, __multicall__):
     """
     if not 'webdriver' in item.funcargs:
         return
-    # if not item.config.getvalue('screenshot'):
-    #    return
     if not call.excinfo or call.excinfo.errisinstance(pytest.skip.Exception):
         return
     fname = item.nodeid.replace('/', '__') + '.png'

@@ -85,7 +85,7 @@ def test_run_in_runtimeout():
         chan = gw.remote_exec.return_value
         chan.receive.assert_called_with(sentinel.timeout)
 
-
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runpickleable_function():
     def fn(*args, **kwargs):
         return args, kwargs
@@ -141,6 +141,7 @@ def test_run_in_runnested_function():
         chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runbound_method():
     class C(tuple):  # for equality of instances
         def fn(self, *args, **kwargs):
@@ -169,6 +170,7 @@ def test_run_in_runbound_method():
             chan.send.assert_called_with(cPickle.dumps((c, (ARG,), {'kw': KW}), protocol=0))
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runbound_method_on_unpickleable_class():
     class C(object):
         def fn(self, *args, **kwargs):
@@ -178,6 +180,7 @@ def test_run_in_runbound_method_on_unpickleable_class():
             run.run_in_subprocess(C().fn, python='sentinel.python')(ARG, kw=KW)
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_rununbound_method():
     class C(tuple):  # for equality of instances
         def fn(self, *args, **kwargs):
@@ -199,6 +202,7 @@ def test_run_in_rununbound_method():
             chan.send.assert_called_with(cPickle.dumps((c, (ARG,), {'kw': KW}), protocol=0))
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_rununbound_method_on_unpickleable_class():
     class C(object):
         def fn(self, *args, **kwargs):
@@ -208,6 +212,7 @@ def test_run_in_rununbound_method_on_unpickleable_class():
             run.run_in_subprocess(C.fn, python='sentinel.python')(C(), ARG, kw=KW)
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runstaticmethod():
     class C(object):
         @staticmethod
@@ -229,6 +234,7 @@ def test_run_in_runstaticmethod():
             chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runstaticmethod_on_unpickleable_class():
     class C(object):
         @staticmethod
@@ -254,6 +260,7 @@ def fn(*args, **kwargs):
             chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runclassmethod():
     class C(object):
         @classmethod
@@ -281,6 +288,7 @@ def test_run_in_runclassmethod():
             chan.send.assert_called_with(cPickle.dumps((C, (ARG,), {'kw': KW}), protocol=0))
 
 
+@pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
 def test_run_in_runclassmethod_on_unpickleable_class():
     class C(object):
         @classmethod

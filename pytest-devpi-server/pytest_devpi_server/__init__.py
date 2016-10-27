@@ -7,16 +7,16 @@ import os
 import sys
 import zipfile
 import logging
-import cStringIO
+from six.moves import cStringIO
 
 import pkg_resources
-from pytest import yield_fixture
-from path import Path
+from pytest import yield_fixture, fixture
 import devpi_server as _devpi_server
 from devpi.main import main as devpi_client
 from pytest_server_fixtures.http import HTTPTestServer
 
 log = logging.getLogger(__name__)
+
 
 @yield_fixture(scope='session')
 def devpi_server(request):
@@ -49,6 +49,16 @@ def devpi_server(request):
         yield server
 
 
+@fixture
+def devpi_function_index(request, devpi_server):
+    """ Creates and activates an index for your current test function. 
+    """
+    index_name = '/'.join((devpi_server.user, request.function.__name__))
+    devpi_server.api('index', '-c', index_name)
+    devpi_server.api('use', index_name)
+    return index_name
+
+
 class DevpiServer(HTTPTestServer):
 
     def __init__(self, offline=True, debug=False, data=None, user="testuser", password="", index='dev', **kwargs):
@@ -66,7 +76,7 @@ class DevpiServer(HTTPTestServer):
         self.debug = debug
         if os.getenv('DEBUG') in (True, '1', 'Y', 'y'):
             self.debug = True
-        super(DevpiServer, self).__init__(**kwargs)
+        super(DevpiServer, self).__init__(preserve_sys_path=True, **kwargs)
 
         self.offline = offline
         self.data = data
@@ -78,12 +88,11 @@ class DevpiServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        res = [Path(sys.exec_prefix) / 'bin' / 'python',
-               Path(sys.exec_prefix) / 'bin' / 'devpi-server',
-               '--serverdir', self.server_dir,
-               '--host', self.hostname,
-               '--port', str(self.port)
-               ]
+        res = [sys.executable, '-c', 'import sys; from devpi_server.main import main; sys.exit(main())',
+                '--serverdir', self.server_dir,
+                '--host', self.hostname,
+                '--port', str(self.port)
+                ]
         if self.offline:
             res.append('--offline-mode')
         if self.debug:
@@ -97,7 +106,7 @@ class DevpiServer(HTTPTestServer):
         client_args.extend(args)
         client_args.extend(['--clientdir', self.client_dir])
         log.info(' '.join(client_args))
-        captured = cStringIO.StringIO()
+        captured = cStringIO()
         stdout = sys.stdout
         sys.stdout = captured
         try:
@@ -122,3 +131,7 @@ class DevpiServer(HTTPTestServer):
         # Create and use stand-alone index
         self.api('index', '-c', self.index, 'bases=')
         self.api('use', self.index)
+        log.info("=" * 60)
+        log.info(" Started DevPI server at {}".format(self.uri))
+        log.info(" Created initial index at {}/{}".format(self.user, self.index))
+        log.info("=" * 60)

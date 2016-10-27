@@ -1,6 +1,7 @@
 import os
 import socket
 import string
+import logging
 
 import pytest
 import path
@@ -9,6 +10,8 @@ from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG
 
 from .http import HTTPTestServer
+
+log = logging.getLogger(__name__)
 
 
 @yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
@@ -31,7 +34,8 @@ def httpd_server():
 
 class HTTPDServer(HTTPTestServer):
     port_seed = 65531
-    cfg_template = string.Template("""
+
+    cfg_modules_template = """
       LoadModule headers_module $modules/mod_headers.so
       LoadModule proxy_module $modules/mod_proxy.so
       LoadModule proxy_http_module $modules/mod_proxy_http.so
@@ -43,13 +47,21 @@ class HTTPDServer(HTTPTestServer):
           LoadModule log_config_module $modules/mod_log_config.so
       </IfModule>
       LoadModule mime_module $modules/mod_mime.so
+      LoadModule authz_core_module $modules/mod_authz_core.so
+    """
 
-      StartServers 1
-      ServerLimit 8
+    cfg_mpm_template = """
+      LoadModule mpm_prefork_module $modules/mod_mpm_prefork.so
+      StartServers       1
+      MinSpareServers    1
+      MaxSpareServers   4
+      ServerLimit      4
+      MaxClients       4
+      MaxRequestsPerChild  10000
+    """
 
+    cfg_template = """
       TypesConfig /etc/mime.types
-      DefaultType text/plain
-
 
       ServerRoot $server_root
       Listen $listen_addr
@@ -67,9 +79,7 @@ class HTTPDServer(HTTPTestServer):
       <Directory $server_root>
           Options +Indexes
       </Directory>
-
-      $extra_cfg
-    """)
+    """
 
     def __init__(self, proxy_rules=None, extra_cfg='', document_root=None, log_dir=None, **kwargs):
         """ httpd Proxy Server
@@ -86,7 +96,10 @@ class HTTPDServer(HTTPTestServer):
             Server log directory, defaults to $(workspace)/logs
         """
         self.proxy_rules = proxy_rules if proxy_rules is not None else {}
-        self.extra_cfg = extra_cfg
+        self.cfg_template = string.Template(self.cfg_modules_template +
+                                            self.cfg_mpm_template +
+                                            self.cfg_template +
+                                            extra_cfg)
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
@@ -107,18 +120,18 @@ class HTTPDServer(HTTPTestServer):
         self.config = self.workspace / 'httpd.conf'
         rules = []
         for source in self.proxy_rules:
-            rules.append("ProxyPass {} {}".format(source, self.proxy_rules[source]))
-            rules.append("ProxyPassReverse {} {} \n".format(source, self.proxy_rules[source]))
+            rules.append("ProxyPass {0} {1}".format(source, self.proxy_rules[source]))
+            rules.append("ProxyPassReverse {0} {1} \n".format(source, self.proxy_rules[source]))
         cfg = self.cfg_template.substitute(
             server_root=self.workspace,
             document_root=self.document_root,
             log_dir=self.log_dir,
             listen_addr="{host}:{port}".format(host=self.hostname, port=self.port),
             proxy_rules='\n'.join(rules),
-            extra_cfg=self.extra_cfg,
             modules=CONFIG.httpd_modules,
         )
         self.config.write_text(cfg)
+        log.debug("=========== HTTPD Server Config =============\n{}".format(cfg))
 
         # This is where it stores PID files
         (self.workspace / 'run').mkdir()
