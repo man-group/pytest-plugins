@@ -126,10 +126,12 @@ dist: venv copyfiles
 upload: dist
 	for package in $(CHANGED_PACKAGES); do                     \
 	    cd $$package;                                  \
-            $(VENV_PYTHON) setup.py register $(UPLOAD_OPTS) || exit 1;   \
-            for format in $(DIST_FORMATS); do          \
-                 $(VENV_PYTHON) setup.py $$format upload $(UPLOAD_OPTS) || exit 1;   \
-            done;                                      \
+            if [ -f common_setup.py ]; then  \
+                $(VENV_PYTHON) setup.py register $(UPLOAD_OPTS) || exit 1;   \
+                for format in $(DIST_FORMATS); do          \
+                     $(VENV_PYTHON) setup.py $$format upload $(UPLOAD_OPTS) || exit 1;   \
+                done;                                      \
+            fi; \
 	    cd ..;                                         \
     done
 
