@@ -115,9 +115,11 @@ test: test_nocheck
 dist: venv copyfiles
 	for package in $(CHANGED_PACKAGES); do                     \
 	    cd $$package;                                  \
-            for format in $(DIST_FORMATS); do          \
-                 $(VENV_PYTHON) setup.py $$format || exit 1;   \
-            done;                                      \
+            if [ -f common_setup.py ]; then  \
+                for format in $(DIST_FORMATS); do          \
+                     $(VENV_PYTHON) setup.py $$format || exit 1;   \
+                done;                                      \
+            fi; \
 	    cd ..;                                         \
     done
 
