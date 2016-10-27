@@ -45,6 +45,8 @@ class JenkinsTestServer(HTTPTestServer):
         super(JenkinsTestServer, self).__init__(**kwargs)
         self.env = dict(JENKINS_HOME=self.workspace,
                         JENKINS_RUN=self.workspace / 'run',
+                        # Use at most 1GB of RAM for the server
+                        JAVA_ARGS='-Xms1G -Xmx1G',
                         RUN_STANDALONE='true',
                         JENKINS_LOG=self.workspace / 'jenkins.log',
                         )
@@ -61,9 +63,6 @@ class JenkinsTestServer(HTTPTestServer):
                 '--httpListenAddress=%s' % self.hostname,
                 '--ajp13Port=-1',
                 '--webroot={0}'.format(self.workspace / 'run' / 'war'),
-                # Use at most 1GB of RAM for the server
-                '-Xms1024M',
-                '-Xmx1024M'
                 ]
 
     def load_plugins(self, plugins_repo, plugins=None):
