@@ -169,7 +169,7 @@ circleci_collect:
     done; \
 	$(VENV)/bin/coverage combine pytest-*/.coverage*; \
     $(VENV)/bin/pip install python-coveralls; \
-    $(VENV)/bin/coveralls
+    $(VENV)/bin/coveralls --ignore-errors
 
 #removed: circleci_sip circleci_pyqt
 circleci: clean circleci_setup venv  test_nocheck dist circleci_collect
