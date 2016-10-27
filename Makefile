@@ -18,6 +18,7 @@ VIRTUALENV = virtualenv
 VENV = $(shell dirname $(shell perl -e 'use Cwd "abs_path";print abs_path(shift)' VERSION))/venv
 VENV_PYVERSION = $(shell $(VENV_PYTHON) -c "import sys; print(sys.version[:3])")
 PYVERSION_PACKAGES = $(shell for pkg in $(PACKAGES); do grep -q $(VENV_PYVERSION) $$pkg/setup.py && echo $$pkg; done)
+VENV_PYTHON = $(VENV)/bin/python
 
 
 ifeq ($(CIRCLE_NODE_INDEX),0)
