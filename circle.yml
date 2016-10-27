@@ -10,14 +10,14 @@ dependencies:
     - wget -qO- https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
     - sudo apt-get update
     - sudo apt-get install rethinkdb jenkins redis-server pandoc subversion graphviz
+    # Disable startup of services that will cause the box to run out of memory
+    - sudo service jenkins stop; sudo update-rc.d jenkins disable; 
+    - sudo service postgresql stop; sudo update-rc.d postgresql disable; 
+    - sudo service mysql stop; sudo update-rc.d mysql disable; 
+    - sudo service mongod stop; sudo update-rc.d mongod disable; 
+    - sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable; 
 
 test:
   override:
-    # Turn of system services we don't need to save on memory
-    - sudo service jenkins stop; sleep 2; sudo killall java || true
-    - sudo service postgresql stop
-    - sudo service mysql stop
-    - sudo service mongod stop
-    - sudo service rethinkdb stop
     - make circleci:
         parallel: true
