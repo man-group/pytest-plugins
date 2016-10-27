@@ -137,4 +137,4 @@ class Workspace(object):
             log.debug("pytest_shutil deleting workspace %s" % self.workspace)
             log.debug("=======================================================")
             log.debug("")
-            shutil.rmtree(self.workspace)
+            shutil.rmtree(self.workspace, ignore_errors=True)
