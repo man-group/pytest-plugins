@@ -1,9 +1,15 @@
 
 ## Changelog
 
-### 1.2.2 (2016-10-20)
+### 1.2.2 (2016-10-2r70)
+ * Python 3 compatibility across most of the modules
+ * Fixed deprecated Path.py imports (Thanks to Bryan Moscon)
  * Fixed deprecated multicall in pytest-profiling (Thanks to Paul van der Linden for PR)
+ * Added devpi-server fixture to create an index per test function
  * Added missing licence file
+ * Split up httpd server fixture config so child classes can override loaded modules easier
+ * Added 'preserve_sys_path' argument to TestServer base class which exports the current python sys.path to subprocesses. 
+ * Updated httpd, redis and jenkins runtime args and paths to current Ubuntu spec
 
 ### 1.2.1 (2016-3-1)
  * Fixed pytest-verbose-parametrize for latest version of py.test
