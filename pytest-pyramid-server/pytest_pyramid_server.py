@@ -4,7 +4,7 @@ Created on 25 Apr 2012
 @author: eeaston
 '''
 import os
-import ConfigParser
+from six.moves import configparser
 import sys
 import socket
 import glob
@@ -82,7 +82,7 @@ class PyramidTestServer(HTTPTestServer):
         # Discover externally accessable hostname so selenium can get to it
         kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
 
-        super(PyramidTestServer, self).__init__(**kwargs)
+        super(PyramidTestServer, self).__init__(preserve_sys_path=True, **kwargs)
 
     def pre_setup(self):
         """ Make a copy of at the ini files and set the port number and host in the new testing.ini
@@ -95,9 +95,9 @@ class PyramidTestServer(HTTPTestServer):
 
         Path.copy(self.original_config, self.working_config)
 
-        parser = ConfigParser.ConfigParser()
+        parser = configparser.ConfigParser()
         parser.read(self.original_config)
-        parser.set('server:main', 'port', self.port)
+        parser.set('server:main', 'port', str(self.port))
         parser.set('server:main', 'host', self.hostname)
         [parser.set(section, k, v) for section, cfg in self.extra_config_vars.items() for (k, v) in cfg.items()]
         with open(str(self.working_config), 'w') as fp:
@@ -108,16 +108,14 @@ class PyramidTestServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return [Path(sys.exec_prefix) / 'bin' / 'python', Path(sys.exec_prefix) / 'bin' / 'pserve', self.working_config]
-
-
+        return [sys.executable, '-c', 'import sys; from pyramid.scripts.pserve import main; sys.exit(main())', self.working_config]
 
     def get_config(self):
         """ Convenience method to return our currently running config file as
             an items dictionary, skipping logging sections
         """
         # Use our workspace for %(here) expansion
-        parser = ConfigParser.ConfigParser({'here': self.workspace})
+        parser = configparser.ConfigParser({'here': self.workspace})
         parser.read(self.config)
         return dict([(section, dict(parser.items(section)))
                      for section in parser.sections()

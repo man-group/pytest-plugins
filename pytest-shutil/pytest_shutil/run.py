@@ -136,7 +136,7 @@ def _make_pickleable(fn):
     # could use partial but this is more efficient
     try:
         cPickle.dumps(fn, protocol=0)
-    except (TypeError, cPickle.PickleError):
+    except (TypeError, cPickle.PickleError, AttributeError):
         pass
     else:
         return fn, ()

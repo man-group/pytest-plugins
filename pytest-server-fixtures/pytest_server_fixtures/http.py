@@ -54,7 +54,7 @@ class HTTPTestServer(TestServer):
         """ Check the server is up by polling self.uri
         """
         try:
-            log.debug('accessing URL: {}'.format(self.uri))
+            log.debug('accessing URL: {0}'.format(self.uri))
             with self.handle_proxy():
                 url = urlopen(self.uri)
             return url.getcode() == 200

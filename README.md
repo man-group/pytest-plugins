@@ -46,11 +46,8 @@ To do this for a subset of packages run:
 ```
 
 If you already have a virtualenv and would rather just use that, you can run this to 
-copy all the required files in place so you can do your own setup:
+copy all the required files in place and setup up all the packages using that:
 
 ```bash
-    make copyfiles
-    # Now you can do your own setup
-    cd pytest-shutil
-    python setup.py develop
+    make local_develop
 ```

@@ -7,6 +7,7 @@ import logging
 import subprocess
 
 from path import Path
+import pytest
 from six import string_types
 
 from . import cmdline
@@ -14,7 +15,8 @@ from . import cmdline
 log = logging.getLogger(__name__)
 
 
-def pytest_funcarg__workspace(request):
+@pytest.yield_fixture()
+def workspace():
     """ Function-scoped temporary workspace that cleans up on exit.
     
     Attributes
@@ -26,11 +28,9 @@ def pytest_funcarg__workspace(request):
     ..                        If False, never delete the workspace on teardown.
         
     """
-    return request.cached_setup(
-        setup=Workspace,
-        teardown=lambda p: p.teardown(),
-        scope='function',
-    )
+    ws = Workspace()
+    yield ws
+    ws.teardown()
 
 
 class Workspace(object):
@@ -104,7 +104,7 @@ class Workspace(object):
             cd = self.workspace
 
         with cmdline.chdir(cd):
-            log.debug("run: {}".format(cmd))
+            log.debug("run: {0}".format(cmd))
             if capture:
                 p = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
             else:
