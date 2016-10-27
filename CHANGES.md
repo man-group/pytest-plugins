@@ -10,6 +10,7 @@
  * Split up httpd server fixture config so child classes can override loaded modules easier
  * Added 'preserve_sys_path' argument to TestServer base class which exports the current python sys.path to subprocesses. 
  * Updated httpd, redis and jenkins runtime args and paths to current Ubuntu spec
+ * Ignore errors when tearing down workspaces to avoid race conditions in 'shutil.rmtree' implementation
 
 ### 1.2.1 (2016-3-1)
  * Fixed pytest-verbose-parametrize for latest version of py.test
