@@ -13,6 +13,11 @@ dependencies:
 
 test:
   override:
-    - env
+    # Turn of system services we don't need to save on memory
+    - sudo service jenkins stop 
+    - sudo service postgresql stop
+    - sudo service mysql stop
+    - sudo service mongod stop
+    - sudo service rethinkdb stop
     - make circleci:
         parallel: true
