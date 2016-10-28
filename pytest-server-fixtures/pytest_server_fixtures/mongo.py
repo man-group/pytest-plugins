@@ -5,6 +5,9 @@ import subprocess
 
 import pytest
 
+import pymongo
+from pymongo.errors import AutoReconnect, ConnectionFailure
+
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
 
@@ -62,11 +65,6 @@ class MongoTestServer(TestServer):
     random_port = True
 
     def __init__(self, **kwargs):
-        global pymongo
-        try:
-            import pymongo
-        except ImportError:
-            pytest.skip('pymongo not installed, skipping test')
         mongod_dir = tempfile.mkdtemp(dir=self.get_base_dir())
         super(MongoTestServer, self).__init__(workspace=mongod_dir, delete=True, **kwargs)
 
@@ -100,10 +98,14 @@ class MongoTestServer(TestServer):
         """Test connection to the server."""
         print("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
         try:
+            self.api = pymongo.MongoClient(self.hostname, self.port,
+                                           serverselectiontimeoutms=200)
+            self.api.database_names()
+            # Configure the client with default timeouts in case the server goes slow
             self.api = pymongo.MongoClient(self.hostname, self.port)
             return True
-        except (pymongo.AutoReconnect, pymongo.ConnectionFailure) as e:
-            print(e)
+        except (AutoReconnect, ConnectionFailure) as e:
+            pass
         return False
 
     def kill(self):
@@ -114,6 +116,11 @@ class MongoTestServer(TestServer):
                 self.server.exit = True
                 self.server.p.kill()
                 self.server.p.wait()
+                i = 0
+                while self.check_server_up():
+                    time.sleep(0.1)
+                    if i % 10 == 0:
+                        print("Waiting for MongoServer.kill()")
             except OSError:
                 pass
             self.dead = True
