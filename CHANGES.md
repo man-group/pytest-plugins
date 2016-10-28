@@ -1,7 +1,10 @@
 
 ## Changelog
 
-### 1.2.2 (2016-10-2r70)
+### 1.2.2
+ * Improvements to Mongo fixture
+
+### 1.2.2 (2016-10-27)
  * Python 3 compatibility across most of the modules
  * Fixed deprecated Path.py imports (Thanks to Bryan Moscon)
  * Fixed deprecated multicall in pytest-profiling (Thanks to Paul van der Linden for PR)
