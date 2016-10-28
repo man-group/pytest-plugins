@@ -106,7 +106,7 @@ local_develop: copyfiles
 test_nocheck: install
 	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
-	     $(VENV)/bin/coverage run -p setup.py test -sv -ra || touch ../FAILED-$$package; \
+	     $(VENV)/bin/coverage run -p --source=$(echo $$package | sed 's/-/_/g') setup.py test -sv -ra || touch ../FAILED-$$package; \
 	    )                                               \
     done;                                               \
 
