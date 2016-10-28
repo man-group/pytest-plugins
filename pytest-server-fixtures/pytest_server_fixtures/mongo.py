@@ -92,7 +92,6 @@ class MongoTestServer(TestServer):
                 '--nssize=1',
                 '--nojournal',
                 '--quiet',
-                '--storageEngine=ephemeralForTest'
                 ]
 
     def check_server_up(self):
