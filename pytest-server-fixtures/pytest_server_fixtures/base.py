@@ -220,13 +220,20 @@ class TestServer(Workspace):
     def start_server(self, env=None):
         """ Start the server instance.
         """
-        log.debug("Starting Server on host %s port %s" % (self.hostname, self.port))
-        self.server = self.serverclass(self.hostname, self.port, self.run_cmd, self.run_stdin,
-                                       env=getattr(self, "env", env), cwd=self.cwd)
-        self.server.start()
-        self.wait_for_go()
-        log.debug("Server now awake")
-        self.dead = False
+        retry_count = 0
+        while True:
+            try:
+                log.debug("Starting Server on host %s port %s" % (self.hostname, self.port))
+                self.server = self.serverclass(self.hostname, self.port, self.run_cmd, self.run_stdin,
+                                               env=getattr(self, "env", env), cwd=self.cwd)
+                self.server.start()
+                self.wait_for_go()
+                log.debug("Server now awake")
+                self.dead = False
+            except Exception as e:
+                if retry_count > 4:
+                    raise e
+                self.port = self.get_port()
 
     def kill(self, retries=5):
         """Kill all running versions of this server.
