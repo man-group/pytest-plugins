@@ -117,6 +117,11 @@ class MongoTestServer(TestServer):
                 self.server.exit = True
                 self.server.p.kill()
                 self.server.p.wait()
+                i = 0
+                while self.check_server_up():
+                    time.sleep(0.1)
+                    if i % 10 == 0:
+                        print("Waiting for MongoServer.kill()")
             except OSError:
                 pass
             self.dead = True
