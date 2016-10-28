@@ -1,7 +1,7 @@
 
 ## Changelog
 
-### 1.2.2
+### 1.2.3
  * Improvements to Mongo fixture
 
 ### 1.2.2 (2016-10-27)
