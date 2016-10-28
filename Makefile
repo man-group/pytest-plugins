@@ -106,7 +106,7 @@ local_develop: copyfiles
 test_nocheck: install
 	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
-	     echo $$package | sed s/=/_/g | xargs -Ipysrc $(VENV)/bin/coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$$package; \
+	     $(VENV)/bin/coverage run -p --source=$$package setup.py test -sv -ra || touch ../FAILED-$$package; \
 	    )                                               \
     done;                                               \
 
@@ -169,6 +169,7 @@ circleci_collect:
         sed 's/classname="tests/classname="tests$(CIRCLE_PYVERSION)/g' $$i/junit.xml > $$CIRCLE_TEST_REPORTS/junit/$$i-py$(CIRCLE_PYVERSION).xml; \
     done; \
 	$(VENV)/bin/coverage combine pytest-*/.coverage*; \
+	$(VENV)/bin/coverage report; \
     $(VENV)/bin/pip install python-coveralls; \
     $(VENV)/bin/coveralls --ignore-errors
 
