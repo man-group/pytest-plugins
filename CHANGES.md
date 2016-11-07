@@ -1,8 +1,8 @@
 
 ## Changelog
 
-### 1.2.3
- * Improvements to Mongo fixture
+### 1.2.3 (2016-11-7)
+ * Improve resiliency of Mongo fixture startup checks
 
 ### 1.2.2 (2016-10-27)
  * Python 3 compatibility across most of the modules
