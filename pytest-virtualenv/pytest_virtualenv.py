@@ -170,7 +170,11 @@ class VirtualEnv(Workspace):
         """
         installed = [p for p in working_set if p.project_name == pkg_name]
         if not installed or installed[0].location.endswith('.egg'):
-            installer = str(self.virtualenv / 'bin' / installer)
+            if sys.platform == 'win32':
+                # In virtualenv on windows "Scripts" folder is used instead of "bin".
+                installer = str(self.virtualenv / 'Scripts' / installer + '.exe')
+            else:
+                installer = str(self.virtualenv / 'bin' / installer)
             if not self.debug:
                 installer += ' -q'
             # Note we're running this as 'python easy_install foobar', instead of 'easy_install foobar'
