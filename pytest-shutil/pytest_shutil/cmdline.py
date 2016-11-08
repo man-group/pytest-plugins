@@ -229,16 +229,17 @@ def which(name, flags=os.X_OK):
 
 
 def get_real_python_executable():
+    real_sys_executable = os.path.realpath(sys.executable)
     real_prefix = getattr(sys, "real_prefix", None)
     if not real_prefix:
-        return sys.executable
+        return real_sys_executable
 
-    executable_name = os.path.basename(sys.executable)
+    executable_name = os.path.basename(real_sys_executable)
     bindir = os.path.join(real_prefix, "bin")
     if not os.path.isdir(bindir):
         print("Unable to access bin directory of original Python "
               "installation at: %s" % bindir)
-        return sys.executable
+        return real_sys_executable
 
     executable = os.path.join(bindir, executable_name)
     if not os.path.exists(executable):
@@ -255,6 +256,6 @@ def get_real_python_executable():
         if not executable:
             print("Unable to locate a valid Python executable of original "
                   "Python installation at: %s" % bindir)
-            executable = sys.executable
+            executable = real_sys_executable
 
     return executable
