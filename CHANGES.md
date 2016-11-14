@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.4 (2016-11-14)
+ * Bugfix for pymongo extra dependency
+
 ### 1.2.3 (2016-11-7)
  * Improve resiliency of Mongo fixture startup checks
 
