@@ -6,9 +6,6 @@ import time
 
 import pytest
 
-import pymongo
-from pymongo.errors import AutoReconnect, ConnectionFailure
-
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
 
@@ -97,6 +94,9 @@ class MongoTestServer(TestServer):
 
     def check_server_up(self):
         """Test connection to the server."""
+        import pymongo
+        from pymongo.errors import AutoReconnect, ConnectionFailure
+
         print("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
         try:
             self.api = pymongo.MongoClient(self.hostname, self.port,
