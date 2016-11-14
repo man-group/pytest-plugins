@@ -3,6 +3,8 @@
 
 ### 1.2.4 (2016-11-14)
  * Bugfix for pymongo extra dependency
+ * Windows compatibility fix for pytest-virtualenv (Thanks to Jean-Christophe Fillion-Robin for PR)
+ * Fix symlink handling for pytest-shutil.cmdline.get_real_python_executable
 
 ### 1.2.3 (2016-11-7)
  * Improve resiliency of Mongo fixture startup checks
