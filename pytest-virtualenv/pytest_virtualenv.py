@@ -214,7 +214,7 @@ class VirtualEnv(Workspace):
         res = {}
         code = "from pkg_resources import working_set\n"\
                "for i in working_set: print(i.project_name + ' ' + i.version + ' ' + i.location)"
-        lines = self.run('%s -c "%s"' % (self.python, code), capture=True).split('\n')
+        lines = self.run([self.python, "-c", code], capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
             res[name] = PackageEntry(name, version, location)
