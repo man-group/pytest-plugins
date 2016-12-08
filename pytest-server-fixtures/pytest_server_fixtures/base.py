@@ -61,6 +61,8 @@ def get_ephemeral_port(host=get_ephemeral_host()):
     -------
     Available port to use
     """
+    port = random.randrange(1024, 32768)
+
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
