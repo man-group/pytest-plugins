@@ -20,16 +20,55 @@ from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 
 log = logging.getLogger(__name__)
+_SESSION_HOST
 
 
-def get_ephemeral_port():
-    """ Get an ephemeral socket at random from the kernel
+def get_ephemeral_host():
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('127.0.0.1', 0))
-    port = s.getsockname()[1]
-    s.close()
-    return port
+    Returns a random IP in the 127.0.0.0/8 whcih we will
+    use as the basis for ports in this test-run
+    """
+    global _SESSION_HOST
+    if _SESSION_HOST:
+        return _SESSION_HOST[0]
+
+    # return a host in the 127.x.x.x range
+    while True:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            host = '127.{}.{}.{}'.format(random.randrange(1, 255),
+                                         random.randrange(1, 255),
+                                         random.randrange(2, 255),)
+            s.bind((host, 5000))
+            s.listen(0)
+            _SESSION_HOST = (host, s)
+            return _SESSION_HOST[0]
+        except socket.error:
+            pass
+
+def get_ephemeral_port(host=get_ephemeral_host()):
+    """
+    Get an ephemeral socket at random from the kernel.
+
+    Does this by using a temporary IP in the 127.x.x.x/8 range, which is used
+    for the duration of the application run.
+
+    If port is specified the passed in port will be used as a base and
+    the next free port after that base will be returned.
+
+    Returns
+    -------
+    Available port to use
+    """
+    while True:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.bind((host, port))
+            port = s.getsockname()[1]
+            s.close()
+            return port
+        except socket.error:
+            port = random.randrange(1024, 32768)
 
 
 class ProcessReader(threading.Thread):
@@ -109,8 +148,8 @@ class TestServer(Workspace):
 
     def __init__(self, workspace=None, delete=None, preserve_sys_path=False, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
+        self.hostname = kwargs.get('hostname', get_ephemeral_host())
         self.port = kwargs.get('port', self.get_port())
-        self.hostname = kwargs.get('hostname', CONFIG.fixture_hostname)
         # We don't know if the server is alive or dead at this point, assume alive
         self.dead = False
         self.env = kwargs.get('env')
@@ -143,7 +182,7 @@ class TestServer(Workspace):
         if not self.random_port:
             return self.port_seed - int(hashlib.sha1((os.environ['USER']
                                                       + self.__class__.__name__).encode('utf-8')).hexdigest()[:3], 16)
-        return get_ephemeral_port()
+        return get_ephemeral_port(host=self.hostname)
 
     def pre_setup(self):
         """ This should execute any setup required before starting the server
