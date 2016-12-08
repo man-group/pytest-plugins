@@ -151,8 +151,12 @@ class TestServer(Workspace):
 
     def __init__(self, workspace=None, delete=None, preserve_sys_path=False, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
-        self.hostname = kwargs.get('hostname', get_ephemeral_host())
-        self.port = kwargs.get('port', self.get_port())
+        self.hostname = kwargs.get('hostname')
+        if self.hostname is None:
+            get_ephemeral_host()
+        self.port = kwargs.get('port')
+        if self.port is None:
+            self.get_port()
         # We don't know if the server is alive or dead at this point, assume alive
         self.dead = False
         self.env = kwargs.get('env')
