@@ -20,7 +20,7 @@ from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 
 log = logging.getLogger(__name__)
-_SESSION_HOST
+_SESSION_HOST = None
 
 
 def get_ephemeral_host():
