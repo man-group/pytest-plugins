@@ -18,7 +18,7 @@ def _rethink_server(request):
     """ This does the actual work - there are several versions of this used
         with different scopes.
     """
-    test_server = RethinkDBServer()
+    test_server = RethinkDBServer(hostname=CONFIG.fixture_hostname)
     request.addfinalizer(lambda p=test_server: p.teardown())
     test_server.start()
     return test_server
