@@ -47,7 +47,7 @@ def get_ephemeral_host():
         except socket.error:
             pass
 
-def get_ephemeral_port(host=get_ephemeral_host()):
+def get_ephemeral_port(host=None):
     """
     Get an ephemeral socket at random from the kernel.
 
@@ -61,6 +61,8 @@ def get_ephemeral_port(host=get_ephemeral_host()):
     -------
     Available port to use
     """
+    if host is None:
+        host = get_ephemeral_host()
     port = random.randrange(1024, 32768)
 
     while True:
