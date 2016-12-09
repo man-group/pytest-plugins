@@ -1,6 +1,10 @@
 
 ## Changelog
 
+### 1.2.5 (2016-12-09)
+ * Improvements for server runner host and port generation, now supports random local IPs
+ * Bugfix for RethinkDB fixture config
+
 ### 1.2.4 (2016-11-14)
  * Bugfix for pymongo extra dependency
  * Windows compatibility fix for pytest-virtualenv (Thanks to Jean-Christophe Fillion-Robin for PR)
