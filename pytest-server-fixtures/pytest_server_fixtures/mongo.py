@@ -3,6 +3,8 @@ import tempfile
 import shutil
 import subprocess
 import time
+import errno
+import logging
 
 import pytest
 
@@ -11,20 +13,24 @@ from pytest_fixture_config import requires_config
 
 from .base import TestServer
 
+log = logging.getLogger(__name__)
 
-def _mongo_server(request):
+
+def _mongo_server():
     """ This does the actual work - there are several versions of this used
         with different scopes.
     """
     test_server = MongoTestServer()
-    request.addfinalizer(lambda p=test_server: p.teardown())
-    test_server.start()
-    return test_server
+    try:
+        test_server.start()
+        yield test_server
+    finally:
+        test_server.teardown()
 
 
 @requires_config(CONFIG, ['mongo_bin'])
-@pytest.fixture(scope='function')
-def mongo_server(request):
+@pytest.yield_fixture(scope='function')
+def mongo_server():
     """ Function-scoped MongoDB server started in a local thread.
         This also provides a temp workspace.
         We tear down, and cleanup mongos at the end of the test.
@@ -37,15 +43,17 @@ def mongo_server(request):
         api (`pymongo.MongoClient`)  : PyMongo Client API connected to this server
         .. also inherits all attributes from the `workspace` fixture
     """
-    return _mongo_server(request)
+    for server in _mongo_server():
+        yield server
 
 
 @requires_config(CONFIG, ['mongo_bin'])
 @pytest.fixture(scope='session')
-def mongo_server_sess(request):
+def mongo_server_sess():
     """ Same as mongo_server fixture, scoped as session instead.
     """
-    return _mongo_server(request)
+    for server in _mongo_server():
+        yield server
 
 
 @requires_config(CONFIG, ['mongo_bin'])
@@ -53,9 +61,9 @@ def mongo_server_sess(request):
 def mongo_server_cls(request):
     """ Same as mongo_server fixture, scoped for test classes.
     """
-    svr = _mongo_server(request)
-    request.cls.mongo_server = svr
-    return svr
+    for server in _mongo_server():
+        request.cls.mongo_server = server
+        yield server
 
 
 class MongoTestServer(TestServer):
@@ -74,7 +82,13 @@ class MongoTestServer(TestServer):
 
         candidate_dir = os.path.join(candidate_dir, 'mongo')
         if not os.path.exists(candidate_dir):
-            os.mkdir(candidate_dir)
+            try:
+                os.makedirs(candidate_dir)
+            except OSError as exc:  # Python >2.5
+                if exc.errno == errno.EEXIST and os.path.isdir(candidate_dir):
+                    pass
+                else:
+                    raise
         return candidate_dir
 
     @property
@@ -84,12 +98,11 @@ class MongoTestServer(TestServer):
                 '--port=%s' % self.port,
                 '--dbpath=%s' % self.workspace,
                 '--nounixsocket',
-                '--smallfiles',
                 '--syncdelay', '0',
                 '--nohttpinterface',
-                '--nssize=1',
                 '--nojournal',
                 '--quiet',
+                '--storageEngine=ephemeralForTest'
                 ]
 
     def check_server_up(self):
@@ -97,7 +110,7 @@ class MongoTestServer(TestServer):
         import pymongo
         from pymongo.errors import AutoReconnect, ConnectionFailure
 
-        print("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
+        log.info("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
         try:
             self.api = pymongo.MongoClient(self.hostname, self.port,
                                            serverselectiontimeoutms=200)
@@ -121,7 +134,7 @@ class MongoTestServer(TestServer):
                 while self.check_server_up():
                     time.sleep(0.1)
                     if i % 10 == 0:
-                        print("Waiting for MongoServer.kill()")
+                        log.info("Waiting for MongoServer.kill()")
             except OSError:
                 pass
             self.dead = True
@@ -132,25 +145,25 @@ class MongoTestServer(TestServer):
         on the current host, in the current workspace"""
         base = MongoTestServer.get_base_dir()
 
-        print("======================================")
-        print("Cleaning up previous sessions under " + base)
-        print("======================================")
+        log.info("======================================")
+        log.info("Cleaning up previous sessions under " + base)
+        log.info("======================================")
 
         for mongo in os.listdir(base):
             if mongo.startswith('tmp'):
                 mongo = os.path.join(base, mongo)
-                print("Previous session: " + mongo)
+                log.info("Previous session: " + mongo)
                 lock = os.path.join(mongo, 'mongod.lock')
                 if os.path.exists(lock):
-                    print("Lock file found: " + lock)
+                    log.info("Lock file found: " + lock)
                     p = subprocess.Popen(["/usr/sbin/lsof", "-Fp", "--", lock], stdout=subprocess.PIPE)
                     (out, _) = p.communicate()
                     if out:
                         pid = out[1:].strip()
-                        print("Owned by pid: " + pid + " killing...")
+                        log.info("Owned by pid: " + pid + " killing...")
                         p = subprocess.Popen(["kill -9 %s" % pid], shell=True)
                         p.communicate()
-                print("Removing: " + mongo)
+                log.info("Removing: " + mongo)
                 shutil.rmtree(mongo, True)
 
 

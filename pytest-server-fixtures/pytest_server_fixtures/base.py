@@ -47,7 +47,8 @@ def get_ephemeral_host():
         except socket.error:
             pass
 
-def get_ephemeral_port(host=None):
+
+def get_ephemeral_port(port=0, host=None):
     """
     Get an ephemeral socket at random from the kernel.
 
@@ -63,7 +64,12 @@ def get_ephemeral_port(host=None):
     """
     if host is None:
         host = get_ephemeral_host()
-    port = random.randrange(1024, 32768)
+
+    # Dynamic port-range:
+    # * cat /proc/sys/net/ipv4/ip_local_port_range
+    # 32768   61000
+    if port == 0:
+        port = random.randrange(1024, 32768)
 
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -300,10 +306,15 @@ class TestServer(Workspace):
                 try:
                     pid = int(pid)
                 except ValueError:
-                    # Can't determine process ID, process shutting down or owned by someone else.
-                    pass
+                    print("Can't determine port, process shutting down or owned by someone else")
                 else:
-                    os.kill(pid, self.kill_signal)
+                    try:
+                        os.kill(pid, self.kill_signal)
+                    except OSError as oe:
+                        if oe.args[0] == 3:  # Process doesn't appear to exist.
+                            print("For some reason couldn't find PID {} to kill.".format(p))
+                        else:
+                            raise
 
             time.sleep(self.kill_retry_delay)
         else:
