@@ -16,7 +16,6 @@ dependencies:
     - sudo service jenkins stop; sudo update-rc.d jenkins disable; 
     - sudo service postgresql stop; sudo update-rc.d postgresql disable; 
     - sudo service mysql stop; sudo update-rc.d mysql disable; 
-    - sudo service mongod stop; sudo update-rc.d mongod disable; 
     - sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable; 
 
 test:
