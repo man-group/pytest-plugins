@@ -9,7 +9,7 @@ import logging
 import pytest
 
 from pytest_server_fixtures import CONFIG
-from pytest_fixture_config import requires_config
+from pytest_fixture_config import yield_requires_config
 
 from .base import TestServer
 
@@ -28,7 +28,7 @@ def _mongo_server():
         test_server.teardown()
 
 
-@requires_config(CONFIG, ['mongo_bin'])
+@yield_requires_config(CONFIG, ['mongo_bin'])
 @pytest.yield_fixture(scope='function')
 def mongo_server():
     """ Function-scoped MongoDB server started in a local thread.
@@ -47,8 +47,8 @@ def mongo_server():
         yield server
 
 
-@requires_config(CONFIG, ['mongo_bin'])
-@pytest.fixture(scope='session')
+@yield_requires_config(CONFIG, ['mongo_bin'])
+@pytest.yield_fixture(scope='session')
 def mongo_server_sess():
     """ Same as mongo_server fixture, scoped as session instead.
     """
@@ -56,13 +56,22 @@ def mongo_server_sess():
         yield server
 
 
-@requires_config(CONFIG, ['mongo_bin'])
-@pytest.fixture(scope='class')
+@yield_requires_config(CONFIG, ['mongo_bin'])
+@pytest.yield_fixture(scope='class')
 def mongo_server_cls(request):
     """ Same as mongo_server fixture, scoped for test classes.
     """
     for server in _mongo_server():
         request.cls.mongo_server = server
+        yield server
+
+
+@yield_requires_config(CONFIG, ['mongo_bin'])
+@pytest.yield_fixture(scope='module')
+def mongo_server_module():
+    """ Same as mongo_server fixture, scoped for test modules.
+    """
+    for server in _mongo_server():
         yield server
 
 
@@ -78,7 +87,7 @@ class MongoTestServer(TestServer):
     def get_base_dir():
         candidate_dir = os.environ.get('WORKSPACE', None)
         if not candidate_dir or not os.path.exists(candidate_dir):
-            candidate_dir = os.environ.get('TMDDIR', '/tmp')
+            candidate_dir = os.environ.get('TMPDIR', '/tmp')
 
         candidate_dir = os.path.join(candidate_dir, 'mongo')
         if not os.path.exists(candidate_dir):
