@@ -6,7 +6,11 @@ import shutil
 import logging
 import subprocess
 
-from path import Path
+try:
+    from path import Path
+except ImportError:
+    from path import path as Path
+
 import pytest
 from six import string_types
 
@@ -122,8 +126,8 @@ class Workspace(object):
                 err = subprocess.CalledProcessError(p.returncode, cmd)
                 err.output = out
                 if capture and not self.debug:
-                    log.debug("Stdout/stderr:")
-                    log.debug(out)
+                    log.error("Stdout/stderr:")
+                    log.error(out)
                 raise err
 
         return out
