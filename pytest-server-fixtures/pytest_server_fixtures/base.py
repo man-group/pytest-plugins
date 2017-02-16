@@ -1,7 +1,5 @@
 """ Base classes for all server fixtures.
 """
-from __future__ import print_function
-
 import hashlib
 import os
 import signal
@@ -14,6 +12,7 @@ import traceback
 from datetime import datetime
 import logging
 import random
+import errno
 
 from six import string_types
 
@@ -306,13 +305,13 @@ class TestServer(Workspace):
                 try:
                     pid = int(pid)
                 except ValueError:
-                    print("Can't determine port, process shutting down or owned by someone else")
+                    log.error("Can't determine port, process shutting down or owned by someone else")
                 else:
                     try:
                         os.kill(pid, self.kill_signal)
                     except OSError as oe:
-                        if oe.args[0] == 3:  # Process doesn't appear to exist.
-                            print("For some reason couldn't find PID {} to kill.".format(p))
+                        if oe.errno == errno.ESRCH:  # Process doesn't appear to exist.
+                            log.error("For some reason couldn't find PID {} to kill.".format(p))
                         else:
                             raise
 
