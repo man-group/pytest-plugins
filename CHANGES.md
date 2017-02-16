@@ -1,6 +1,15 @@
 
 ## Changelog
 
+### 1.2.6 (2017-2-16)
+ * Updated devpi server server setup for devpi-server >= 2.0
+ * Improvements for random port picking
+ * HTTPD server now binds to 0.0.0.0 by default to aid Selenium-style testing
+ * Updated mongodb server args for mongodb >= 3.2
+ * Corrections for mongodb fixture config and improve startup logic
+ * Added module-scoped mongodb fixture
+ * Handling for older versions of path.py
+
 ### 1.2.5 (2016-12-09)
  * Improvements for server runner host and port generation, now supports random local IPs
  * Bugfix for RethinkDB fixture config
