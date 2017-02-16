@@ -120,6 +120,11 @@ class DevpiServer(HTTPTestServer):
         if self.data:
             log.info("Extracting initial server data from {}".format(self.data))
             zipfile.ZipFile(self.data, 'r').extractall(self.server_dir)
+        else:
+            self.run([sys.executable, '-c', 'import sys; from devpi_server.main import main; sys.exit(main())',
+                    '--serverdir', self.server_dir,
+                    '--init',
+                    ])
 
 
     def post_setup(self):
