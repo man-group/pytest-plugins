@@ -1,4 +1,5 @@
 from distutils.dir_util import copy_tree
+import shutil
 
 from pkg_resources import resource_filename
 import pytest
@@ -13,6 +14,7 @@ def virtualenv():
         venv.install_package('pytest-cov')
         venv.install_package('pytest-profiling')
         copy_tree(test_dir, venv.workspace)
+        shutil.rmtree(venv.workspace / 'tests' / 'unit' / '__pycache__', ignore_errors=True)
         yield venv
 
 
@@ -40,3 +42,8 @@ def test_profile_long_name(pytestconfig, virtualenv):
                                           pytestconfig, cd=virtualenv.workspace)
     assert (virtualenv.workspace / 'prof/fbf7dc37.prof').isfile()
 
+
+def test_profile_chdir(pytestconfig, virtualenv):
+    output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile',
+                                           'tests/unit/test_chdir.py'],
+                                          pytestconfig, cd=virtualenv.workspace)

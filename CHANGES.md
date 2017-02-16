@@ -9,6 +9,7 @@
  * Corrections for mongodb fixture config and improve startup logic
  * Added module-scoped mongodb fixture
  * Handling for older versions of path.py
+ * Fix for #40 where tests that chdir break pytest-profiling
 
 ### 1.2.5 (2016-12-09)
  * Improvements for server runner host and port generation, now supports random local IPs

@@ -41,11 +41,9 @@ class Profiling(object):
             combined = pstats.Stats(self.profs[0])
             for prof in self.profs[1:]:
                 combined.add(prof)
-            self.combined = os.path.join("prof", "combined.prof")
+            self.combined = os.path.abspath(os.path.join("prof", "combined.prof"))
             combined.dump_stats(self.combined)
             if self.svg:
-                self.svg_name = os.path.join("prof", "combined.svg")
-                t = pipes.Template()
                 t.append("gprof2dot -f pstats $IN", "f-")
                 t.append("dot -Tsvg -o $OUT", "-f")
                 t.copy(self.combined, self.svg_name)
@@ -59,11 +57,11 @@ class Profiling(object):
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_call(self, item):
+        prof_filename = os.path.abspath(os.path.join("prof", clean_filename(item.name) + ".prof"))
         prof = cProfile.Profile()
         prof.enable()
         yield
         prof.disable()
-        prof_filename = os.path.join("prof", clean_filename(item.name) + ".prof")
         try:
             prof.dump_stats(prof_filename)
         except EnvironmentError as err:
