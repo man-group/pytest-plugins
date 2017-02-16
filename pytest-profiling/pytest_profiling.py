@@ -44,6 +44,8 @@ class Profiling(object):
             self.combined = os.path.abspath(os.path.join("prof", "combined.prof"))
             combined.dump_stats(self.combined)
             if self.svg:
+                self.svg_name = os.path.abspath(os.path.join("prof", "combined.svg"))
+                t = pipes.Template()
                 t.append("gprof2dot -f pstats $IN", "f-")
                 t.append("dot -Tsvg -o $OUT", "-f")
                 t.copy(self.combined, self.svg_name)
