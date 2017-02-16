@@ -8,13 +8,14 @@ dependencies:
     - wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
     - source /etc/lsb-release && echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list
     - wget -qO- https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
+    - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+    - echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
     - sudo apt-get update
-    - sudo apt-get install rethinkdb jenkins redis-server pandoc subversion graphviz
+    - sudo apt-get install rethinkdb jenkins redis-server pandoc subversion graphviz mongodb-org mongodb-org-server
     # Disable startup of services that will cause the box to run out of memory
     - sudo service jenkins stop; sudo update-rc.d jenkins disable; 
     - sudo service postgresql stop; sudo update-rc.d postgresql disable; 
     - sudo service mysql stop; sudo update-rc.d mysql disable; 
-    - sudo service mongod stop; sudo update-rc.d mongod disable; 
     - sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable; 
 
 test:

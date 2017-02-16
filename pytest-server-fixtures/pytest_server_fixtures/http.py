@@ -30,6 +30,8 @@ def simple_http_test_server():
 
 
 class HTTPTestServer(TestServer):
+    # Bind to all sockets when creating the web-server, for selenium tests
+    hostname = '0.0.0.0'
 
     def __init__(self, uri=None, **kwargs):
         self._uri = uri
