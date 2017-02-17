@@ -291,6 +291,7 @@ class TestServer(Workspace):
         if self.dead:
             return
 
+        log.debug("Killing server running at {}:{}".format(self.hostname, self.port))
         # Wait for server to die.
         for _ in range(retries):
             netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
