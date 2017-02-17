@@ -106,6 +106,7 @@ local_develop: copyfiles
 test_nocheck: install
 	for package in $(PYVERSION_PACKAGES); do            \
 	    (cd $$package;                                  \
+	     export DEBUG=1; 				    \
 	     echo $$package | sed s/-/_/g | xargs -Ipysrc $(VENV)/bin/coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$$package; \
 	    )                                               \
     done;                                               \
