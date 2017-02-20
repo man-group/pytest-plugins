@@ -1,7 +1,11 @@
 
 ## Changelog
 
-### 1.2.6 (2017-2-16)
+### 1.2.7 (2017-2-20)
+ * More handling for older versions of path.py
+ * Allow virtualenv argument passing in pytest-virtualenv
+
+### 1.2.6 (2017-2-16 )
  * Updated devpi server server setup for devpi-server >= 2.0
  * Improvements for random port picking
  * HTTPD server now binds to 0.0.0.0 by default to aid Selenium-style testing
