@@ -6,8 +6,10 @@ from distutils import sysconfig
 
 from pytest import yield_fixture
 from pkg_resources import working_set
-from path import Path
-
+try:
+    from path import Path
+except ImportError:
+    from path import path as Path
 
 from pytest_shutil.workspace import Workspace
 from pytest_shutil import run, cmdline
@@ -102,9 +104,10 @@ class VirtualEnv(Workspace):
 
     """
     # TODO: update to use pip, remove distribute
-    def __init__(self, env=None, workspace=None, name='.env', python=None):
+    def __init__(self, env=None, workspace=None, name='.env', python=None, args=None):
         Workspace.__init__(self, workspace)
         self.virtualenv = self.workspace / name
+        self.args = args or []
         if sys.platform == 'win32':
             # In virtualenv on windows "Scripts" folder is used instead of "bin".
             self.python = self.virtualenv / 'Scripts' / 'python.exe'
@@ -128,9 +131,12 @@ class VirtualEnv(Workspace):
             del(self.env['PYTHONPATH'])
 
         self.virtualenv_cmd = CONFIG.virtualenv_executable
-        self.run([self.virtualenv_cmd,
-                 '-p', python or cmdline.get_real_python_executable(),
-                 str(self.virtualenv)])
+        cmd = [self.virtualenv_cmd,
+               '-p', python or cmdline.get_real_python_executable()
+               ]
+        cmd.extend(self.args)
+        cmd.append(str(self.virtualenv))
+        self.run(cmd)
 
     def run(self, args, **kwargs):
         """

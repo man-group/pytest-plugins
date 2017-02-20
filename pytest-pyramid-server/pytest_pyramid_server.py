@@ -11,7 +11,11 @@ import glob
 import shutil
 import threading
 
-from path import Path
+try:
+    from path import Path
+except ImportError:
+    from path import path as Path
+
 from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
 from pytest import yield_fixture

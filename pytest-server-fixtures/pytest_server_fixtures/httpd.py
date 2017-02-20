@@ -4,7 +4,10 @@ import string
 import logging
 
 import pytest
-import path
+try:
+    from path import Path
+except ImportError:
+    from path import path as Path
 
 from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG
@@ -110,9 +113,9 @@ class HTTPDServer(HTTPTestServer):
         super(HTTPDServer, self).__init__(**kwargs)
         
         self.document_root = document_root or self.workspace
-        self.document_root = path.Path(self.document_root)
+        self.document_root = Path(self.document_root)
         self.log_dir = log_dir or self.workspace / 'logs'
-        self.log_dir = path.Path(self.log_dir)
+        self.log_dir = Path(self.log_dir)
 
     def pre_setup(self):
         """ Write out the config file
