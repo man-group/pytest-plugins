@@ -96,7 +96,7 @@ def run_as_main(fn, *argv):
     """
     with patch("sys.argv", new=['progname'] + list(argv)):
         log.info("run_as_main: %s" % str(argv))
-        fn()
+        return fn()
 
 
 def run_module_as_main(module, argv=[]):

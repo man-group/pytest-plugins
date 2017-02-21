@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.8 (2017-2-21)
+ * Return function results in shutil.run.run_as_main
+
 ### 1.2.7 (2017-2-20)
  * More handling for older versions of path.py
  * Allow virtualenv argument passing in pytest-virtualenv
