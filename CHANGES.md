@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.9 (2017-2-23)
+ * Add username into mongo server fixture tempdir path to stop collisions on shared multiuser filesystems
+
 ### 1.2.8 (2017-2-21)
  * Return function results in shutil.run.run_as_main
 

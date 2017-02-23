@@ -5,6 +5,7 @@ import subprocess
 import time
 import errno
 import logging
+import getpass
 
 import pytest
 
@@ -89,7 +90,7 @@ class MongoTestServer(TestServer):
         if not candidate_dir or not os.path.exists(candidate_dir):
             candidate_dir = os.environ.get('TMPDIR', '/tmp')
 
-        candidate_dir = os.path.join(candidate_dir, 'mongo')
+        candidate_dir = os.path.join(candidate_dir, getpass.getuser(), 'mongo')
         if not os.path.exists(candidate_dir):
             try:
                 os.makedirs(candidate_dir)
