@@ -79,11 +79,11 @@ def webdriver(request):
     driver.close()
 
 
-@pytest.mark.tryfirst
-def pytest_runtest_makereport(item, call, __multicall__):
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_makereport(item, call):
     """ Screenshot failing tests
     """
-    if not 'webdriver' in item.funcargs:
+    if not hasattr(item, 'funcargs') or not 'webdriver' in item.funcargs:
         return
     if not call.excinfo or call.excinfo.errisinstance(pytest.skip.Exception):
         return

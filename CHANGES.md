@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.10 (2017-2-23)
+ * Handle custom Pytest test items in pytest-webdriver
+
 ### 1.2.9 (2017-2-23)
  * Add username into mongo server fixture tempdir path to stop collisions on shared multiuser filesystems
 
