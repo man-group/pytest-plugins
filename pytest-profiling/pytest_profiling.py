@@ -60,6 +60,10 @@ class Profiling(object):
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_call(self, item):
         prof_filename = os.path.abspath(os.path.join("prof", clean_filename(item.name) + ".prof"))
+        try:
+            os.makedirs(os.path.dirname(prof_filename))
+        except OSError:
+            pass
         prof = cProfile.Profile()
         prof.enable()
         yield
