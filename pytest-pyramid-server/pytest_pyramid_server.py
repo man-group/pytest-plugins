@@ -107,6 +107,11 @@ class PyramidTestServer(HTTPTestServer):
         with open(str(self.working_config), 'w') as fp:
             parser.write(fp)
 
+        try:
+            parser.get('app:main', 'url_prefix')
+        except configparser.NoOptionError:
+            parser.set('app:main', 'url_prefix', '')
+
         # Set the uri to be the external hostname and the url prefix
         self._uri = "http://%s:%s/%s" % (os.uname()[1], self.port, parser.get('app:main', 'url_prefix'))
 
