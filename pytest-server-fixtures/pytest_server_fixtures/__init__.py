@@ -5,7 +5,7 @@ from pytest_fixture_config import Config
 
 
 class FixtureConfig(Config):
-    __slots__ = ('java_executable', 'jenkins_url', 'jenkins_war', 'mongo_bin', 'redis_executable',
+    __slots__ = ('java_executable', 'jenkins_url', 'jenkins_war', 'minio_bin', 'mongo_bin', 'redis_executable',
                  'rethink_executable', 'httpd_executable', 'httpd_modules', 'fixture_hostname',
                  'xvfb_executable', 'disable_proxy')
 
@@ -15,6 +15,7 @@ DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY = True
 DEFAULT_SERVER_FIXTURES_JAVA = "java"
 DEFAULT_SERVER_FIXTURES_JENKINS_URL = 'http://acmejenkins.example.com'
 DEFAULT_SERVER_FIXTURES_JENKINS_WAR = '/usr/share/jenkins/jenkins.war'
+DEFAULT_SERVER_FIXTURES_MINIO_BIN = '/usr/local/bin/minio'
 DEFAULT_SERVER_FIXTURES_MONGO_BIN = '/usr/bin'
 DEFAULT_SERVER_FIXTURES_REDIS = "/usr/bin/redis-server"
 DEFAULT_SERVER_FIXTURES_RETHINK = "/usr/bin/rethinkdb"
@@ -29,6 +30,7 @@ CONFIG = FixtureConfig(
     disable_proxy=os.getenv('SERVER_FIXTURES_DISABLE_HTTP_PROXY', DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY),
     java_executable=os.getenv('SERVER_FIXTURES_JAVA', DEFAULT_SERVER_FIXTURES_JAVA),
     jenkins_war=os.getenv('SERVER_FIXTURES_JENKINS_WAR', DEFAULT_SERVER_FIXTURES_JENKINS_WAR),
+    minio_bin=os.getenv('SERVER_FIXTURES_MINIO_BIN', DEFAULT_SERVER_FIXTURES_MINIO_BIN),
     mongo_bin=os.getenv('SERVER_FIXTURES_MONGO_BIN', DEFAULT_SERVER_FIXTURES_MONGO_BIN),
     redis_executable=os.getenv('SERVER_FIXTURES_REDIS', DEFAULT_SERVER_FIXTURES_REDIS),
     rethink_executable=os.getenv('SERVER_FIXTURES_RETHINK', DEFAULT_SERVER_FIXTURES_RETHINK),

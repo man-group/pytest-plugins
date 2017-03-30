@@ -32,6 +32,7 @@ extras_require = {
     'jenkins':  ["python-jenkins"],
     'rethinkdb':  ["rethinkdb"],
     'redis':  ["redis"],
+    's3': ["boto3"]
 }
 
 tests_require = [
@@ -47,6 +48,7 @@ entry_points = {
         'redis_server = pytest_server_fixtures.redis',
         'rethinkdb_server = pytest_server_fixtures.rethink',
         'xvfb_server = pytest_server_fixtures.xvfb',
+        's3 = pytest_server_fixtures.s3',
     ]
 }
 

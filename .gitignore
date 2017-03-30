@@ -40,3 +40,6 @@ TAGS
 */common_setup.py
 /pyqt
 /sip
+
+# macOS
+.DS_Store
