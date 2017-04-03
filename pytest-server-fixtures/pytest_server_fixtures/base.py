@@ -36,9 +36,7 @@ def get_ephemeral_host():
     while True:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            host = '127.{}.{}.{}'.format(random.randrange(1, 255),
-                                         random.randrange(1, 255),
-                                         random.randrange(2, 255),)
+            host = '127.0.0.1'
             s.bind((host, 5000))
             s.listen(0)
             _SESSION_HOST = (host, s)
