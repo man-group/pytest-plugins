@@ -87,3 +87,8 @@ class MinioServer(TestServer):
 
     def check_server_up(self):
         return True  # TODO do something smarter here
+
+    def kill(self, retries=5):
+        if hasattr(self.server, 'p'):
+            # send SIGTERM to the server process via subprocess.Popen interface
+            self.server.p.terminate()
