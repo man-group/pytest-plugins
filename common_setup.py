@@ -1,5 +1,6 @@
 # Common setup.py code shared between all the projects in this repository
 import sys
+import os
 import logging
 
 from setuptools.command.test import test as TestCommand
@@ -30,9 +31,10 @@ class PyTest(TestCommand):
 
 
 def common_setup(src_dir):
-    readme_file = 'README.md'
-    changelog_file = 'CHANGES.md'
-    version_file = 'VERSION'
+    this_dir = os.path.dirname(__file__)
+    readme_file = os.path.join(this_dir, 'README.md')
+    changelog_file = os.path.join(this_dir, 'CHANGES.md')
+    version_file = os.path.join(this_dir, 'VERSION')
 
     # Convert Markdown to RST for PyPI
     try:
