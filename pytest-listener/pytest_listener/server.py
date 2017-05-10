@@ -17,8 +17,7 @@ TIMEOUT_DEFAULT = 10
 
 DEBUG = False
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.root
+logger = logging.getLogger('pytest-listener')
 
 
 def get_ephemeral_port():
