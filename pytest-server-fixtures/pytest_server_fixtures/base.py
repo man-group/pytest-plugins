@@ -22,6 +22,8 @@ from pytest_shutil.workspace import Workspace
 log = logging.getLogger(__name__)
 _SESSION_HOST = None
 
+OSX = sys.platform == 'darwin'
+
 
 def get_ephemeral_host():
     """
@@ -36,7 +38,14 @@ def get_ephemeral_host():
     while True:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            host = '127.0.0.1'
+            # MacOS / OSX does not support loopback ip addresses other than
+            # 127.0.0.1 unless they are manually configured (unlike linux)
+            if OSX:
+                host = '127.0.0.1'
+            else:
+                host = '127.{}.{}.{}'.format(random.randrange(1, 255),
+                                             random.randrange(1, 255),		
+                                             random.randrange(2, 255))
             s.bind((host, 5000))
             s.listen(0)
             _SESSION_HOST = (host, s)
