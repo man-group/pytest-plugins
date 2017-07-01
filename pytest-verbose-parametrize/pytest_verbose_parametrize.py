@@ -31,5 +31,5 @@ def pytest_generate_tests(metafunc):
         markers.kwargs['ids'] = list_names
         # In pytest versions pre-3.1.0 MarkInfo copies the
         # kwargs into an internal variable as well :/
-        if hasattr(marker, '_arglist'):
+        if hasattr(markers, '_arglist'):
             markers._arglist[0][-1]['ids'] = list_names
