@@ -77,7 +77,7 @@ class Profiling(object):
             if len(item.name) < LARGE_FILENAME_HASH_LEN:
                 raise
 
-            hash_str = md5(item.name).hexdigest()[:LARGE_FILENAME_HASH_LEN]
+            hash_str = md5(item.name.encode('utf-8')).hexdigest()[:LARGE_FILENAME_HASH_LEN]
             prof_filename = os.path.join("prof", hash_str + ".prof")
             prof.dump_stats(prof_filename)
         self.profs.append(prof_filename)
