@@ -20,38 +20,23 @@ from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 
 log = logging.getLogger(__name__)
-_SESSION_HOST = None
 
 OSX = sys.platform == 'darwin'
 
 
-def get_ephemeral_host():
-    """
-    Returns a random IP in the 127.0.0.0/8 whcih we will
-    use as the basis for ports in this test-run
-    """
-    global _SESSION_HOST
-    if _SESSION_HOST:
-        return _SESSION_HOST[0]
+class ServerNotDead(Exception):
+    pass
 
-    # return a host in the 127.x.x.x range
-    while True:
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # MacOS / OSX does not support loopback ip addresses other than
-            # 127.0.0.1 unless they are manually configured (unlike linux)
-            if OSX:
-                host = '127.0.0.1'
-            else:
-                host = '127.{}.{}.{}'.format(random.randrange(1, 255),
-                                             random.randrange(1, 255),		
-                                             random.randrange(2, 255))
-            s.bind((host, 5000))
-            s.listen(0)
-            _SESSION_HOST = (host, s)
-            return _SESSION_HOST[0]
-        except socket.error:
-            pass
+
+def get_ephemeral_host():
+    """ Returns a random IP in the 127.0.0.0/24. This decreases the likelihood of races for ports by 255^3. """
+    # MacOS / OSX does not support loopback ip addresses other than 
+    #  127.0.0.1 unless they are manually configured (unlike linux)
+    if OSX:
+        return '127.0.0.1'
+    return '127.{}.{}.{}'.format(random.randrange(1, 255),
+                                 random.randrange(1, 255),
+                                 random.randrange(2, 255),)
 
 
 def get_ephemeral_port(port=0, host=None):
@@ -284,22 +269,8 @@ class TestServer(Workspace):
         log.debug("Server now awake")
         self.dead = False
 
-    def kill(self, retries=5):
-        """Kill all running versions of this server.
-
-        Just killing the thread.server pid isn't good enough, it may
-        have spawned children.
-
-        """
-        # Prevent traceback printed when the server goes away as we kill it
-        if self.server:
-            self.server.exit = True
-
-        if self.dead:
-            return
-
-        log.debug("Killing server running at {}:{}".format(self.hostname, self.port))
-        # Wait for server to die.
+    def _find_and_kill(self, retries, signal):
+        log.debug("Killing server running at {}:{} using signal {}".format(self.hostname, self.port, signal))
         for _ in range(retries):
             netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
                            "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
@@ -316,16 +287,37 @@ class TestServer(Workspace):
                     log.error("Can't determine port, process shutting down or owned by someone else")
                 else:
                     try:
-                        os.kill(pid, self.kill_signal)
+                        os.kill(pid, signal)
                     except OSError as oe:
                         if oe.errno == errno.ESRCH:  # Process doesn't appear to exist.
                             log.error("For some reason couldn't find PID {} to kill.".format(p))
                         else:
                             raise
-
             time.sleep(self.kill_retry_delay)
         else:
-            raise ValueError("Server not dead after %d retries" % retries)
+            raise ServerNotDead("Server not dead after %d retries" % retries)
+
+    def kill(self, retries=5):
+        """Kill all running versions of this server.
+
+        Just killing the thread.server pid isn't good enough, it may have spawned children.
+
+        """
+        # Prevent traceback printed when the server goes away as we kill it
+        if self.server:
+            self.server.exit = True
+
+        if self.dead:
+            return
+
+        try:
+            self._find_and_kill(retries, self.kill_signal)
+        except ServerNotDead:
+            log.error("Server not dead after %d retries, trying with SIGKILL" % retries)
+        try:
+            self._find_and_kill(retries, signal.SIGKILL)
+        except ServerNotDead:
+            log.error("Server still not dead, giving up")
 
     def teardown(self):
         """ Called when tearing down this instance, eg in a context manager
