@@ -1,14 +1,15 @@
 from __future__ import absolute_import
 
-import pytest
+import sys
 import os
 import cProfile
 import pstats
 import pipes
-import six
 import errno
 from hashlib import md5
 
+import six
+import pytest
 
 LARGE_FILENAME_HASH_LEN = 8
 
@@ -29,6 +30,10 @@ class Profiling(object):
     def __init__(self, svg):
         self.svg = svg
         self.profs = []
+        self.gprof2dot = os.path.abspath(os.path.join(os.path.dirname(sys.executable), 'gprof2dot'))
+        if os.path.isfile(self.gprof2dot):
+            # Can't see gprof in the local bin dir, we'll just have to hope it's on the path somewhere
+            self.gprof2dot = 'gprof2dot'
 
     def pytest_sessionstart(self, session):  # @UnusedVariable
         try:
@@ -46,7 +51,7 @@ class Profiling(object):
             if self.svg:
                 self.svg_name = os.path.abspath(os.path.join("prof", "combined.svg"))
                 t = pipes.Template()
-                t.append("gprof2dot -f pstats $IN", "f-")
+                t.append("{} -f pstats $IN".format(self.gprof2dot), "f-")
                 t.append("dot -Tsvg -o $OUT", "-f")
                 t.copy(self.combined, self.svg_name)
 
