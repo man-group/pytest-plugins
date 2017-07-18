@@ -23,6 +23,7 @@ classifiers = [
 install_requires = ['six',
                     'execnet',
                     'contextlib2',
+                    'pytest',
                     'path.py',
                     'mock'
                     ]
