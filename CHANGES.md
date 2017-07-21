@@ -1,6 +1,12 @@
 
 ## Changelog
 
+### 1.2.11 (2017-7-21)
+ * Fix for OSX binding to illegal local IP range (Thanks to Gavin Bisesi)
+ * Setup and Py3k fixes for pytest-profiling (Thanks to xoviat)
+ * We no longer try and bind port 5000 when reserving a local IP host, as someone could have bound it to 0.0.0.0
+ * Fix for #46 sourcing gprof2dot when the local venv has not been activated
+
 ### 1.2.10 (2017-2-23)
  * Handle custom Pytest test items in pytest-webdriver
 
