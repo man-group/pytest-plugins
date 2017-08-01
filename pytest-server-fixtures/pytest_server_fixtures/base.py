@@ -23,38 +23,62 @@ log = logging.getLogger(__name__)
 
 OSX = sys.platform == 'darwin'
 
+_SESSION_HOST = None
 
 class ServerNotDead(Exception):
     pass
 
 
-def get_ephemeral_host():
-    """ Returns a random IP in the 127.0.0.0/24. This decreases the likelihood of races for ports by 255^3. """
+def get_ephemeral_host(cached=True, regen_cache=False):
+    """ 
+    Returns a random IP in the 127.0.0.0/24. This decreases the likelihood of races for ports by 255^3. 
+    
+    Parameters
+    ----------
+    cached : ``bool``
+        if True, use a cached return value. This is to preserve behaviour as many clients rely on the hostname 
+        to remain the same during a test session. 
+    
+    regen_cache: ``bool``
+        if True, regenerate the cached value.
+    """
+    global _SESSION_HOST
+
+    if cached and not regen_cache and _SESSION_HOST:
+        return _SESSION_HOST
+
     # MacOS / OSX does not support loopback ip addresses other than 
     #  127.0.0.1 unless they are manually configured (unlike linux)
     if OSX:
-        return '127.0.0.1'
-    return '127.{}.{}.{}'.format(random.randrange(1, 255),
-                                 random.randrange(1, 255),
-                                 random.randrange(2, 255),)
+        res = '127.0.0.1'
+    else:
+        res = '127.{}.{}.{}'.format(random.randrange(1, 255),
+                                    random.randrange(1, 255),
+                                    random.randrange(2, 255),)
+    if regen_cache or not _SESSION_HOST:
+        _SESSION_HOST = res
+    return res
 
 
-def get_ephemeral_port(port=0, host=None):
+def get_ephemeral_port(port=0, host=None, cache_host=True):
     """
     Get an ephemeral socket at random from the kernel.
-
-    Does this by using a temporary IP in the 127.x.x.x/8 range, which is used
-    for the duration of the application run.
-
-    If port is specified the passed in port will be used as a base and
-    the next free port after that base will be returned.
+    
+    Parameters
+    ----------
+    port: `str`
+        If specified, use this port as a base and the next free port after that base will be returned.
+    host: `str`
+        If specified, use this host. Otherwise it will use a temporary IP in the 127.0.0.0/24 range
+    cache_host: `bool`
+        If True, the generated host is cached. This has no effect if you specify the host.
 
     Returns
     -------
     Available port to use
     """
     if host is None:
-        host = get_ephemeral_host()
+        host = get_ephemeral_host(cached=cache_host)
 
     # Dynamic port-range:
     # * cat /proc/sys/net/ipv4/ip_local_port_range
@@ -135,8 +159,16 @@ class ServerThread(threading.Thread):
 
 
 class TestServer(Workspace):
-    """ Abstract class for creating a working dir and
-        setting up a server instance in a thread,
+    """ 
+    Abstract class for creating a working dir and setting up a server instance in a thread.
+    
+    Parameters
+    ----------
+    preserve_sys_path: `bool`
+        Preserve our full sys.path in PYTHONPATH to make sure the child process can still import dependencies
+        installed during tests_require
+    cache_host: `bool`
+        Use cached ephemeral hostnames
     """
     server = None
     serverclass = ServerThread  # Child classes can set this to a different serverthread class
@@ -148,9 +180,9 @@ class TestServer(Workspace):
     # Number of seconds to wait between kill retries. Increase if the service takes a while to die
     kill_retry_delay = 1
 
-    def __init__(self, workspace=None, delete=None, preserve_sys_path=False, **kwargs):
+    def __init__(self, workspace=None, delete=None, preserve_sys_path=False, cache_host=True, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
-        self.hostname = kwargs.get('hostname') or get_ephemeral_host()
+        self.hostname = kwargs.get('hostname') or get_ephemeral_host(cached=cache_host)
         self.port = kwargs.get('port') or self.get_port()
         # We don't know if the server is alive or dead at this point, assume alive
         self.dead = False
