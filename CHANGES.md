@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.2.12 (2017-8-1)
+ * Fixed regression on cacheing ephemeral hostname, some clients were relying on this. This is now optional.
+
 ### 1.2.11 (2017-7-21)
  * Fix for OSX binding to illegal local IP range (Thanks to Gavin Bisesi)
  * Setup and Py3k fixes for pytest-profiling (Thanks to xoviat)
