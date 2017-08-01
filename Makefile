@@ -53,7 +53,7 @@ DIST_FORMATS = sdist bdist_wheel bdist_egg
 UPLOAD_OPTS =
 
 # Used for determining which packages get released
-LAST_TAG := $(shell git tag -l v\* | tail -1)
+LAST_TAG := $(shell git tag -l v\* | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -1)
 CHANGED_PACKAGES := $(shell git diff --name-only $(LAST_TAG) | grep pytest- | cut -d'/' -f1 | sort | uniq)
 
 # removed from PHONY:  circleci_sip circleci_pyqt
