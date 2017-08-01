@@ -42,6 +42,8 @@ def get_ephemeral_host(cached=True, regen_cache=False):
     regen_cache: ``bool``
         if True, regenerate the cached value.
     """
+    global _SESSION_HOST
+
     if cached and not regen_cache and _SESSION_HOST:
         return _SESSION_HOST
 
@@ -54,7 +56,6 @@ def get_ephemeral_host(cached=True, regen_cache=False):
                                     random.randrange(1, 255),
                                     random.randrange(2, 255),)
     if regen_cache or not _SESSION_HOST:
-        global _SESSION_HOST
         _SESSION_HOST = res
     return res
 
@@ -181,7 +182,7 @@ class TestServer(Workspace):
 
     def __init__(self, workspace=None, delete=None, preserve_sys_path=False, cache_host=True, **kwargs):
         super(TestServer, self).__init__(workspace=workspace, delete=delete)
-        self.hostname = kwargs.get('hostname') or get_ephemeral_host(cache=cache_host)
+        self.hostname = kwargs.get('hostname') or get_ephemeral_host(cached=cache_host)
         self.port = kwargs.get('port') or self.get_port()
         # We don't know if the server is alive or dead at this point, assume alive
         self.dead = False
