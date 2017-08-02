@@ -134,7 +134,7 @@ class Workspace(object):
         return out
 
     def teardown(self):
-        if not self.delete:
+        if self.delete is not None and not self.delete:
             return
         if self.workspace.isdir():
             log.debug("")

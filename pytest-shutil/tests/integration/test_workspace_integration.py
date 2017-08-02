@@ -1,5 +1,7 @@
+import os
 import subprocess
 import sys
+import textwrap
 
 
 def test_workspace_run_displays_output_on_failure():
@@ -18,3 +20,17 @@ else:
     assert p.returncode == 0
     assert 'stdout\n'.encode('utf-8') in out
     assert 'stderr\n'.encode('utf-8') in out
+
+
+def test_workspace_fixture_autodelete(monkeypatch, tmpdir):
+    workspace = (tmpdir / 'tmp').mkdir()
+    monkeypatch.setenv('WORKSPACE', workspace)
+    testsuite = tmpdir.join('test.py')
+    with testsuite.open('w') as fp:
+        fp.write(textwrap.dedent(
+        """
+        def test(workspace):
+            pass
+        """))
+    subprocess.check_call([sys.executable, '-m', 'pytest', testsuite])
+    assert os.listdir(workspace) == []
