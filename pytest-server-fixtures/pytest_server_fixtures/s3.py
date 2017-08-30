@@ -6,6 +6,7 @@ Pytest fixtures to launch a minio S3 server and get a bucket for it.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import uuid
+from collections import namedtuple
 
 import boto3
 import botocore.client
@@ -24,20 +25,30 @@ def _s3_server(request):
     return server
 
 
-@requires_config(CONFIG, ['minio_bin'])
+@requires_config(CONFIG, ['minio_executable'])
 @pytest.fixture(scope="session")
 def s3_server(request):
+    """
+    Creates a session-scoped temporary S3 server using the 'minio' tool.
+
+    The primary method on the server object is `s3_server.get_s3_client()`, which returns a boto3 `Resource`
+    (`boto3.resource('s3', ...)`)
+    """
     return _s3_server(request)
 
-
+BucketInfo = namedtuple('BucketInfo', ['client', 'name'])
 # Minio is a little too slow to start for each function call
 # Start it once per session and get a new bucket for each function instead.
 @pytest.fixture(scope="function")
 def s3_bucket(s3_server):  # pylint: disable=redefined-outer-name
+    """
+    Creates a function-scoped s3 bucket,
+    returning a BucketInfo namedtuple with `s3_bucket.client` and `s3_bucket.name` fields
+    """
     client = s3_server.get_s3_client()
     bucket_name = text_type(uuid.uuid4())
     client.create_bucket(Bucket=bucket_name)
-    return client, bucket_name
+    return BucketInfo(client, bucket_name)
 
 
 class MinioServer(TestServer):
@@ -77,7 +88,7 @@ class MinioServer(TestServer):
     @property
     def run_cmd(self):
         cmdargs = [
-            CONFIG.minio_bin,
+            CONFIG.minio_executable,
             "server",
             "--address",
             ":{}".format(self.port),
@@ -86,9 +97,16 @@ class MinioServer(TestServer):
         return cmdargs
 
     def check_server_up(self):
-        return True  # TODO do something smarter here
+        client = self.get_s3_client()
+        try:
+            client.list_buckets()
+            return True
+        except Exception:
+            return False
 
     def kill(self, retries=5):
+        # TODO law of demeter violation, better to add a `.terminate`
+        # method to the `server` class that offers this behavior
         if hasattr(self.server, 'p'):
             # send SIGTERM to the server process via subprocess.Popen interface
             self.server.p.terminate()
