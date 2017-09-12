@@ -59,6 +59,7 @@ entry points):
     pytest_plugins = ['pytest_server_fixtures.httpd',
                       'pytest_server_fixtures.jenkins',
                       'pytest_server_fixtures.mongo',
+                      'pytest_server_fixtures.postgres',
                       'pytest_server_fixtures.redis',
                       'pytest_server_fixtures.rethink',
                       'pytest_server_fixtures.xvfb',
@@ -120,6 +121,34 @@ def test_mongo(mongo_server):
     collection = db.test_coll
     test_coll.insert({'foo': 'bar'})
     assert test_coll.find_one()['foo'] == 'bar'
+```
+
+## Postgres
+The `postgres` module contains the following fixture:
+
+| Fixture Name | Description 
+| ------------ | ----------- 
+| `postgres_server_sess` | Session-scoped Postgres server
+
+The Postgres server fixture has the following properties:
+
+| Property | Description 
+| -------- | ----------- 
+| `connect()` | Returns a raw `psycopg2` connection object connected to the server
+| `connection_config` | Returns a dict containing all the data needed for another db library to connect with.
+
+You may wish to build another fixture on top of the session-scoped fixture; for example:
+```python
+def create_full_schema(connection):
+    """Create the database schema"""
+    pass
+
+@pytest.fixture(scope='session')
+def db_config_sess(postgres_server_sess: PostgresServer) -> PostgresServer:
+    """Returns a DbConfig pointing at a fully-created db schema"""
+    server_cfg = postgres_server_sess.connection_config
+    create_full_schema(postgres_server_sess.connect())
+    return postgres_server_sess
 ```
 
 ## Redis
