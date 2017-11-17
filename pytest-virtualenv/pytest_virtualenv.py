@@ -46,8 +46,9 @@ def virtualenv():
         easy_install (`path.path`)  : Path to this virtualenv's easy_install executable
         .. also inherits all attributes from the `workspace` fixture
     """
-    with VirtualEnv() as venv:
-        yield venv
+    venv = VirtualEnv()
+    yield venv
+    venv.teardown()
 
 
 class PackageEntry(object):
