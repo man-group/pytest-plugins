@@ -18,6 +18,7 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
 ]
 
 install_requires = ['pytest',
@@ -28,8 +29,9 @@ install_requires = ['pytest',
                     ]
 
 extras_require = {
-    'mongodb':  ["pymongo"],
     'jenkins':  ["python-jenkins"],
+    'mongodb':  ["pymongo"],
+    'postgres': ["psycopg2"],
     'rethinkdb':  ["rethinkdb"],
     'redis':  ["redis"],
 }
@@ -44,6 +46,7 @@ entry_points = {
         'httpd_server = pytest_server_fixtures.httpd',
         'jenkins_server = pytest_server_fixtures.jenkins',
         'mongodb_server = pytest_server_fixtures.mongo',
+        'postgres_server = pytest_server_fixtures.postgres',
         'redis_server = pytest_server_fixtures.redis',
         'rethinkdb_server = pytest_server_fixtures.rethink',
         'xvfb_server = pytest_server_fixtures.xvfb',
