@@ -46,9 +46,11 @@ EXTRA_DEPS = pypandoc       \
              python-jenkins \
              redis          \
              pymongo        \
+             psycopg2       \
+             boto3          \
              rethinkdb
 
-COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in
+COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in LICENSE
 DIST_FORMATS = sdist bdist_wheel bdist_egg
 UPLOAD_OPTS =
 
@@ -112,7 +114,7 @@ test_nocheck: install
     done;                                               \
 
 test: test_nocheck
-	[ -f FAILED-* ] && exit 1  || true
+	compgen -G 'FAILED-*' && exit 1
 
 dist: venv copyfiles
 	for package in $(CHANGED_PACKAGES); do                     \
@@ -176,7 +178,7 @@ circleci_collect:
 
 #removed: circleci_sip circleci_pyqt
 circleci: clean circleci_setup venv  test_nocheck dist circleci_collect
-	[ -f FAILED-* ] && exit 1  || true
+	compgen -G 'FAILED-*' && exit 1
 
 
 all: test

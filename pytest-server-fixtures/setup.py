@@ -25,6 +25,7 @@ install_requires = ['pytest',
                     'pytest-shutil',
                     'pytest-fixture-config',
                     'six',
+                    'future',
                     'requests',
                     ]
 
