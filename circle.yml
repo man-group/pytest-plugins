@@ -13,10 +13,11 @@ dependencies:
     - sudo apt-get update
     - sudo apt-get install rethinkdb jenkins redis-server pandoc subversion graphviz mongodb-org mongodb-org-server
     # Disable startup of services that will cause the box to run out of memory
-    - sudo service jenkins stop; sudo update-rc.d jenkins disable; 
-    - sudo service postgresql stop; sudo update-rc.d postgresql disable; 
-    - sudo service mysql stop; sudo update-rc.d mysql disable; 
-    - sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable; 
+    - sudo service jenkins stop; sudo update-rc.d jenkins disable;
+    - sudo service postgresql stop; sudo update-rc.d postgresql disable;
+    - sudo service mysql stop; sudo update-rc.d mysql disable;
+    - sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable;
+    - wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /usr/local/bin/minio; chmod +x /usr/local/bin/minio
 
 test:
   override:
