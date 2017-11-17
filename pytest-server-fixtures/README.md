@@ -181,6 +181,7 @@ def test_redis(redis_server):
 ## S3 Minio
 
 The `s3` module contains the following fixtures:
+
 | Fixture Name | Description 
 | ------------ | ----------- 
 | `s3_server`  | Session-scoped S3 server using the 'minio' tool.
