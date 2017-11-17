@@ -1,6 +1,13 @@
 
 ## Changelog
 
+### 1.3.0 (2017-11-17)
+ * Fixed workspace deletion when teardown is None
+ * Fixed squash of root logger in pytest-listener
+ * Added S3 Minio fixture (many thanks to Gavin Bisesi)
+ * Added Postgres fixture (many thanks to Gavin Bisesi)
+ * Use requests for server fixtures http gets as it handles redirects and proxies properly
+
 ### 1.2.12 (2017-8-1)
  * Fixed regression on cacheing ephemeral hostname, some clients were relying on this. This is now optional.
 
