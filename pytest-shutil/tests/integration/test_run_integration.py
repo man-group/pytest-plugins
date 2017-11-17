@@ -240,3 +240,9 @@ run_in_subprocess(%r)(%r)
         p = subprocess.Popen([sys.executable, '-c', cmd], stderr=subprocess.PIPE)
     (_, err) = p.communicate()
     assert guid in err.decode('ascii')
+
+
+def test_workspace_autodelete():
+    ws = workspace.Workspace()
+    ws.teardown()
+    assert not ws.workspace.exists()
