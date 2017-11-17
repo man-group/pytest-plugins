@@ -10,8 +10,10 @@ and databases.
 * [Configuration](#configuration)
 * [Common fixture properties](#common-fixture-properties)
 * [MongoDB](#mongodb)
+* [Postgres](#postgres)
 * [Redis](#redis)
 * [RethinkDB](#rethinkdb)
+* [S3 Minio](#s3-minio)
 * [Apache httpd](#apache-httpd)
 * [Simple HTTP Server](#simple-http-server)
 * [Xvfb](#xvfp)
@@ -26,8 +28,10 @@ and databases.
 | Fixture | Extra Dependency Name 
 | - | - 
 | MongoDB | mongodb 
+| Postgres   | postgres
 | Redis   | redis
 | RethinkDB | rethinkdb
+| S3 Minio | s3
 | Apache Httpd | <none>
 | Simple HTTP Server | <none>
 | Jenkins  | jenkins
@@ -174,7 +178,39 @@ def test_redis(redis_server):
     assert redis_server.api.get('foo') == 'bar'
 ```
 
+## S3 Minio
+
+The `s3` module contains the following fixtures:
+| Fixture Name | Description 
+| ------------ | ----------- 
+| `s3_server`  | Session-scoped S3 server using the 'minio' tool.
+| `s3_bucket`  | Function-scoped S3 bucket
+
+
+The S3 server has the following properties:
+
+| Property | Description 
+| -------- | ----------- 
+| `get_s3_client()` | Return a boto3 `Resource`: (`boto3.resource('s3', ...)`
+
+The S3 Bucket has the following properties:
+
+| Property | Description 
+| -------- | ----------- 
+| `name`   | Bucket name, a UUID
+| `client` | Boto3 `Resource` from the server
+
+
+Here's an example on how to run up one of these servers:
+
+```python
+def test_connection(s3_bucket):
+    bucket = s3_bucket.client.Bucket(s3_bucket.bucket_name)
+    assert bucket is not None
+```
+
 ## RethinkDB
+
 
 The `rethink` module contains the following fixtures:
 
