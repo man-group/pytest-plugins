@@ -28,5 +28,5 @@ def test_virtualenv_fixture_autodelete(monkeypatch, tmpdir):
         def test(virtualenv):
             pass
         """))
-    subprocess.check_call([sys.executable, '-m', 'pytest', testsuite])
+    subprocess.check_call([sys.executable, '-m', 'pytest', str(testsuite)])
     assert os.listdir(workspace) == []
