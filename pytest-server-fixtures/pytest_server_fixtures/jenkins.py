@@ -32,6 +32,21 @@ def jenkins_server():
         yield p
 
 
+@yield_requires_config(CONFIG, ['jenkins_war', 'java_executable'])
+@pytest.yield_fixture(scope='module')
+def jenkins_server_module():
+    """ Module-scoped Jenkins server instance
+
+        Attributes
+        ----------
+        api (`jenkins.Jenkins`)  : python-jenkins client API connected to this server
+        .. also inherits all attributes from the `workspace` fixture
+    """
+    with JenkinsTestServer() as p:
+        p.start()
+        yield p
+
+
 class JenkinsTestServer(HTTPTestServer):
     port_seed = 65533
     kill_retry_delay = 2
