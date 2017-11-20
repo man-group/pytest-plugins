@@ -32,5 +32,5 @@ def test_workspace_fixture_autodelete(monkeypatch, tmpdir):
         def test(workspace):
             pass
         """))
-    subprocess.check_call([sys.executable, '-m', 'pytest', str(testsuite)])
+    subprocess.check_call([sys.executable, '-m', 'pytest', testsuite.strpath])
     assert os.listdir(workspace) == []
