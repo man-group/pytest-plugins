@@ -22,7 +22,7 @@ dependencies:
     - wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
     - sudo mv /tmp/minio /usr/local/bin/minio
     - sudo chmod a+x /usr/local/bin/minio
-    - sudo rm /bin/sh; sudo ln -s /bin/sh /bin/bash
+    - sudo rm /bin/sh; sudo ln -s /bin/bash /bin/sh
 
 test:
   override:
