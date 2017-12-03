@@ -35,6 +35,12 @@ class Profiling(object):
         if not os.path.isfile(self.gprof2dot):
             # Can't see gprof in the local bin dir, we'll just have to hope it's on the path somewhere
             self.gprof2dot = 'gprof2dot'
+        elif sys.version_info.major == 2:
+            # We hope gprof2dot installed as python2 pip package
+            self.gprof2dot = 'python -m gprof2dot'
+        elif sys.version_info.major == 3:
+            # We hope gprof2dot installed as python3 pip package
+            self.gprof2dot = 'python3 -m gprof2dot'
 
     def pytest_sessionstart(self, session):  # @UnusedVariable
         try:
