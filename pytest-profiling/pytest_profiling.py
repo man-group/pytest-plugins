@@ -31,7 +31,7 @@ class Profiling(object):
         self.svg = svg
         self.profs = []
         self.gprof2dot = os.path.abspath(os.path.join(os.path.dirname(sys.executable), 'gprof2dot'))
-        if os.path.isfile(self.gprof2dot):
+        if not os.path.isfile(self.gprof2dot):
             # Can't see gprof in the local bin dir, we'll just have to hope it's on the path somewhere
             self.gprof2dot = 'gprof2dot'
 
