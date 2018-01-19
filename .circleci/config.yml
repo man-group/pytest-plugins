@@ -16,6 +16,9 @@ job-tmpl: &job-tmpl
           if [[ $PYTHON == "python3.4" ]]; then 
             sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.4"
           fi
+          if [[ $PYTHON == "python3.5" ]]; then 
+            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.5"
+          fi
           curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $PYTHON
           sudo $PYTHON -m pip install --upgrade pip
           sudo $PYTHON -m pip install --upgrade virtualenv
