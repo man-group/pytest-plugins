@@ -1,4 +1,5 @@
 import os
+import glob
 import subprocess
 import sys
 import textwrap
@@ -30,7 +31,8 @@ def test_workspace_fixture_autodelete(monkeypatch, tmpdir):
         fp.write(textwrap.dedent(
         """
         def test(workspace):
-            pass
+            (workspace.workspace / 'foo').touch()
         """))
     subprocess.check_call([sys.executable, '-m', 'pytest', '-sv', str(testsuite)])
-    assert os.listdir(str(workspace)) == []
+    assert not glob.glob('{}/*/foo'.format(str(workspace)))
+    assert not glob.glob('{}/*tmp*'.format(str(workspace)))
