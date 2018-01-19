@@ -7,14 +7,17 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import uuid
 from collections import namedtuple
+import logging
+import os
 
 import pytest
 from future.utils import text_type
 from pytest_fixture_config import requires_config
 
 from . import CONFIG
-from .base import TestServer
+from .http import HTTPTestServer
 
+log = logging.getLogger(__name__)
 
 def _s3_server(request):
     server = MinioServer()
@@ -49,16 +52,16 @@ def s3_bucket(s3_server):  # pylint: disable=redefined-outer-name
     return BucketInfo(client, bucket_name)
 
 
-class MinioServer(TestServer):
+class MinioServer(HTTPTestServer):
     random_port = True
     aws_access_key_id = "MINIO_TEST_ACCESS"
     aws_secret_access_key = "MINIO_TEST_SECRET"
 
     def __init__(self, workspace=None, delete=None, preserve_sys_path=False, **kwargs):
-        env = kwargs.get('env', {})
+        env = kwargs.get('env', os.environ.copy())
         env.update({"MINIO_ACCESS_KEY": self.aws_access_key_id, "MINIO_SECRET_KEY": self.aws_secret_access_key})
         kwargs['env'] = env
-        super(MinioServer, self).__init__(workspace, delete, preserve_sys_path, **kwargs)
+        super(MinioServer, self).__init__(workspace=workspace, delete=delete, preserve_sys_path=preserve_sys_path, **kwargs)
 
     def get_s3_client(self):
         # Region name and signature are to satisfy minio
@@ -80,7 +83,7 @@ class MinioServer(TestServer):
 
     @property
     def boto_endpoint_url(self):
-        return "http://localhost:{port}".format(port=self.port)
+        return self.uri
 
     def pre_setup(self):
         self.datadir.mkdir()  # pylint: disable=no-value-for-parameter
@@ -95,24 +98,3 @@ class MinioServer(TestServer):
             text_type(self.datadir),
         ]
         return cmdargs
-
-    def check_server_up(self):
-        client = self.get_s3_client()
-        try:
-            client.list_buckets()
-            return True
-        except Exception:
-            return False
-
-    def kill(self, retries=5):
-        # TODO law of demeter violation, better to add a `.terminate`
-        # method to the `server` class that offers this behavior
-        if hasattr(self.server, 'p'):
-            # send SIGTERM to the server process via subprocess.Popen interface
-            try:
-                self.server.p.terminate()
-            except Exception as e:
-                if 'No such process' in e.args:
-                    pass
-                else:
-                    raise
