@@ -304,8 +304,11 @@ class TestServer(Workspace):
     def _find_and_kill(self, retries, signal):
         log.debug("Killing server running at {}:{} using signal {}".format(self.hostname, self.port, signal))
         for _ in range(retries):
-            netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
-                           "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
+            if OSX:
+                netstat_cmd = "lsof -n -i:{} | grep LISTEN | awk '{{ print $2 }}'".format(self.port)
+            else:
+                netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
+                            "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
             pids = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
 
             if not pids:
