@@ -15,15 +15,37 @@ job-tmpl: &job-tmpl
     - run:
         name: Install Python 
         command: | 
-          if [[ $PYTHON == "python3.6" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6"
+          set -x 
+
+          if [[ $PYTHON == "python2.7" ]]; then 
+            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python2.7 python2.7-dev"
           fi
+
           if [[ $PYTHON == "python3.4" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.4"
+            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.4 python3.4-dev"
           fi
+
           if [[ $PYTHON == "python3.5" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.5"
+            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.5 python3.5-dev"
           fi
+
+          if [[ $PYTHON == "python3.6" ]]; then 
+            sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6 python3.6-dev"
+          fi
+
+          rm -rf /opt/circleci/.pyenv
+
+          which $PYTHON
+
+          sudo which $PYTHON
+
+          ls -la /usr/bin
+
+          ls -la /usr/local/bin
+
+    - run: 
+        name: Install Pip and Virtualenv
+        command: | 
           curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $PYTHON
           sudo $PYTHON -m pip install --upgrade pip
           sudo $PYTHON -m pip install --upgrade virtualenv
