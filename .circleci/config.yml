@@ -106,10 +106,6 @@ job-tmpl: &job-tmpl
           wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
           sudo mv /tmp/minio /usr/local/bin/minio
           sudo chmod a+x /usr/local/bin/minio
-          # Server wont start up if it cant find 'sh' for some reason
-          if [ ! -f /bin/sh ]; then
-              sudo ln -s /bin/bash /bin/sh
-          fi
 
     - run: 
         name: Build and install dists
@@ -166,15 +162,22 @@ job-tmpl: &job-tmpl
         working_directory: ~/src/pytest-verbose-parametrize
         <<: *test-tmpl
     - run: 
-        name: Archive tests
+        name: Archive Junit and Coverage
         command: |
           mkdir junit
           ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml'
+          ./foreach.sh 'cp .coverage.* ..'
+          . venv/bin/activate
+          coverage combine
+          coverage report
+          pip install python-coveralls
+          coveralls --ignore-errors
+          
     - store_test_results:
         path: junit
     - run: 
         name: Explode if tests have failed
-        command: compgen -G FAILED-* && exit 1
+        command: compgen -G FAILED-* && exit 1 || true
 
 version: 2
 jobs:
