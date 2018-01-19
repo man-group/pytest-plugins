@@ -8,26 +8,13 @@ from time import sleep
 
 from six import string_types
 from six.moves import cPickle
+from pytest_server_fixtures.base import get_ephemeral_port, get_ephemeral_host
 
 TERMINATOR = json.dumps(['STOP']).encode('utf-8')
 CLEAR = json.dumps(['CLEAR']).encode('utf-8')
-HOST = 'localhost'
-
 TIMEOUT_DEFAULT = 10
-
 DEBUG = False
-
 logger = logging.getLogger('pytest-listener')
-
-
-def get_ephemeral_port():
-    """ Get an ephemeral socket at random from the kernel
-    """
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('127.0.0.1', 0))
-    port = s.getsockname()[1]
-    s.close()
-    return port
 
 
 def stop_listener(listener):
@@ -56,15 +43,15 @@ class TimedMsg(object):
 
 class Listener(Thread):
 
-    def __init__(self, host=HOST):
+    def __init__(self, host=None):
         super(Listener, self).__init__()
-        self.host = host
+        self.host = host or get_ephemeral_host()
+        self.port = get_ephemeral_port(host=self.host)
         self._stop_event = Event()
         self.clear_time = None
 
         self.s = socket.socket()
         self.queue = collections.deque()
-        self.port = get_ephemeral_port()
         self.s.bind((self.host, self.port))
 
     def run(self):
@@ -179,7 +166,10 @@ class Listener(Thread):
         time.sleep(.05)
 
     def stop(self):
-        self.s.shutdown(socket.SHUT_WR)
+        try:
+            self.s.shutdown(socket.SHUT_WR)
+        except OSError:
+            pass
         self.s.close()
         self._stop_event.set()
 

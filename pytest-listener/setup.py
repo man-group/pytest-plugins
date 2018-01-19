@@ -21,7 +21,9 @@ classifiers = [
 ]
 
 install_requires = ['six',
-                    'pytest']
+                    'pytest',
+                    'pytest-server-fixtures'
+                    ]
 
 tests_require = []
 
