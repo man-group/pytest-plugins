@@ -8,8 +8,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import uuid
 from collections import namedtuple
 
-import boto3
-import botocore.client
 import pytest
 from future.utils import text_type
 from pytest_fixture_config import requires_config
@@ -64,6 +62,8 @@ class MinioServer(TestServer):
 
     def get_s3_client(self):
         # Region name and signature are to satisfy minio
+        import boto3
+        import botocore.client
         s3 = boto3.resource(
             's3',
             endpoint_url=self.boto_endpoint_url,
