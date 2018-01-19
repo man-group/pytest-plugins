@@ -1,3 +1,8 @@
+test-tmpl: &test-tmpl
+  command: |
+    . ../venv/bin/activate
+    export DEBUG=1
+    cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
   machine: true
@@ -40,22 +45,6 @@ job-tmpl: &job-tmpl
               rethinkdb
 
     - run: 
-        name: Build and install dists
-        command: |
-          . venv/bin/activate
-          ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
-          ./foreach.sh 'pip install -e .[tests]; pip list'
-
-    - run: 
-        name: Run Tests
-        command: |
-          . venv/bin/activate
-          export DEBUG=1
-          ./foreach.sh 'python setup.py test'
-          ./foreach.sh 'echo $PKG | sed s/-/_/g | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$PKG'
-          compgen -G 'FAILED-*' && exit 1
-                     
-    - run: 
         name: Update Apt-Sources
         command: | 
           source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
@@ -68,7 +57,7 @@ job-tmpl: &job-tmpl
     - run: 
         name: Install System Dependencies
         command: | 
-          sudo apt-get install svn graphviz
+          sudo apt-get install subversion graphviz
     - run: 
         name: Install Postgresql
         command: | 
@@ -98,6 +87,71 @@ job-tmpl: &job-tmpl
           wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
           sudo mv /tmp/minio /usr/local/bin/minio
           sudo chmod a+x /usr/local/bin/minio
+
+    - run: 
+        name: Build and install dists
+        command: |
+          . venv/bin/activate
+          ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
+          ./foreach.sh 'pip install -e .[tests]; pip list'
+    - run: 
+        name: Run Tests - pytest--fixture-config 
+        working_directory: ~/src/pytest-fixture-config
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-shutil
+        working_directory: ~/src/pytest-shutil
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-server-fixtures
+        working_directory: ~/src/pytest-server-fixtures
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-pyramid-server
+        working_directory: ~/src/pytest-pyramid-server
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-devpi-server
+        working_directory: ~/src/pytest-devpi-server
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-listener
+        working_directory: ~/src/pytest-listener
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-svn
+        working_directory: ~/src/pytest-svn
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-git
+        working_directory: ~/src/pytest-git
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-virtualenv
+        working_directory: ~/src/pytest-virtualenv
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-webdriver
+        working_directory: ~/src/pytest-webdriver
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-profiling
+        working_directory: ~/src/pytest-profiling
+        <<: *test-tmpl
+    - run: 
+        name: Run Tests - pytest-verbose-parametrize
+        working_directory: ~/src/pytest-verbose-parametrize
+        <<: *test-tmpl
+    - run: 
+        name: Archive tests
+        command: |
+          mkdir junit
+          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml'
+    - store_test_results:
+        path: junit
+    - run: 
+        name: Explode if tests have failed
+        command: compgen -G FAILED-* && exit 1
 
 version: 2
 jobs:
