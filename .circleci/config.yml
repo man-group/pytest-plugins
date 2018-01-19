@@ -35,14 +35,6 @@ job-tmpl: &job-tmpl
 
           rm -rf /opt/circleci/.pyenv
 
-          which $PYTHON
-
-          sudo which $PYTHON
-
-          ls -la /usr/bin
-
-          ls -la /usr/local/bin
-
     - run: 
         name: Install Pip and Virtualenv
         command: | 
@@ -104,18 +96,27 @@ job-tmpl: &job-tmpl
         command: | 
           sudo apt-get install mongodb-org mongodb-org-server
     - run: 
+        name: Install Apache
+        command: | 
+          sudo apt-get install apache2
+          sudo service apache2 stop; sudo update-rc.d apache2 disable;
+    - run: 
         name: Install Minio
         command: | 
           wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
           sudo mv /tmp/minio /usr/local/bin/minio
           sudo chmod a+x /usr/local/bin/minio
+          # Server wont start up if it cant find 'sh' for some reason
+          if [ ! -f /bin/sh ]; then
+              sudo ln -s /bin/bash /bin/sh
+          fi
 
     - run: 
         name: Build and install dists
         command: |
           . venv/bin/activate
           ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
-          ./foreach.sh 'pip install -e .[tests]; pip list'
+          ./foreach.sh 'pip install -e .[tests]'
     - run: 
         name: Run Tests - pytest--fixture-config 
         working_directory: ~/src/pytest-fixture-config

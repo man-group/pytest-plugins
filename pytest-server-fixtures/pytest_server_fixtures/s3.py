@@ -109,4 +109,10 @@ class MinioServer(TestServer):
         # method to the `server` class that offers this behavior
         if hasattr(self.server, 'p'):
             # send SIGTERM to the server process via subprocess.Popen interface
-            self.server.p.terminate()
+            try:
+                self.server.p.terminate()
+            except Exception as e:
+                if 'No such process' in e.args:
+                    pass
+                else:
+                    raise
