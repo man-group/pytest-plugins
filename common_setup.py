@@ -4,6 +4,7 @@ import os
 import logging
 
 from setuptools.command.test import test as TestCommand
+from setuptools.command.egg_info import egg_info as EggInfoCommand
 
 
 class PyTest(TestCommand):
@@ -28,6 +29,17 @@ class PyTest(TestCommand):
         self.pytest_args.extend(['--junitxml', 'junit.xml'])
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
+
+
+class EggInfo(EggInfoCommand):
+    """ Customisation of the package metadata creation. Changes are:
+         - Save the test requirements into an extra called 'tests'
+    """
+    def run(self):
+        if self.distribution.extras_require is None:
+            self.distribution.extras_require = {}
+        self.distribution.extras_require['tests'] = self.distribution.tests_require
+        EggInfoCommand.run(self)
 
 
 def common_setup(src_dir):
@@ -59,7 +71,7 @@ def common_setup(src_dir):
             url='https://github.com/manahl/pytest-plugins',
             license='MIT license',
             platforms=['unix', 'linux'],
-            cmdclass={'test': PyTest},
+            cmdclass={'test': PyTest, 'egg_info': EggInfo},
             setup_requires=['setuptools-git'],
             include_package_data=True
             )

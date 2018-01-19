@@ -41,7 +41,7 @@ job-tmpl: &job-tmpl
         command: |
           . venv/bin/activate
           ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
-          ./foreach.sh 'pip install -e .'
+          ./foreach.sh 'pip install -e .[tests]'
 
     - run: 
         name: Run Tests
