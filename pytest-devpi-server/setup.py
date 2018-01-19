@@ -32,12 +32,12 @@ tests_require = []
 
 entry_points = {
     'pytest11': [
-        'devpi_server = pytest_devpi_server',
+        'devpi_server = _pytest_devpi_server',
     ],
 }
 
 if __name__ == '__main__':
-    kwargs = common_setup('pytest_devpi_server')
+    kwargs = common_setup('_pytest_devpi_server')
     kwargs.update(dict(
         name='pytest-devpi-server',
         description='DevPI server fixture for py.test',
