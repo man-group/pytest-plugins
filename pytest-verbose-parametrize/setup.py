@@ -26,6 +26,7 @@ install_requires = ['pytest',
 
 tests_require = ['mock',
                  'pytest-virtualenv',
+                 'coverage',
                  ]
 
 entry_points = {

@@ -193,7 +193,7 @@ def test_run_in_subprocess_cd():
     with workspace.Workspace() as ws:
         with no_cov():
             cwd = run.run_in_subprocess(os.getcwd, cd=ws.workspace)()
-    assert cwd == ws.workspace
+    assert os.path.realpath(cwd) == os.path.realpath(ws.workspace)
 
 
 def test_run_in_subprocess_timeout():
