@@ -28,26 +28,34 @@ automate process of setting them up for test and development.
 
 ### Pre-requisites
 
-You have `python` installed on your path as well as `virtualenv`
+You have `python` installed on your path, preferably using a `virtualenv`
 
 ### Makefile targets
 
-To create a local virtualenv called `venv`, install all extra dependencies and set up all
-of the packages for development simply run:
+To install all dependencies and set up all of the packages for development simply run:
 
 ```bash
     make develop
 ```
 
-To do this for a subset of packages run:
+To install all the packages as wheel distributions:
 
 ```bash
-    make develop PACKAGES="pytest-profiling pytest-devpi"
+    make install
 ```
 
-If you already have a virtualenv and would rather just use that, you can run this to 
-copy all the required files in place and setup up all the packages using that:
+To run all the tests:
 
 ```bash
-    make local_develop
+    make test
 ```
+
+## `foreach.sh` 
+
+To run a command in each of the package directories, use the `foreach.sh` script.
+This example will build all the wheel distributions:
+
+```bash
+    ./foreach.sh python setup.py bdist_wheel
+```
+
