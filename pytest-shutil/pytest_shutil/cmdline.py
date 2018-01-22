@@ -37,13 +37,16 @@ def chdir(dirname):
     """
     Context Manager to change to a dir then change back
     """
-    here = os.getcwd()
+    try:
+        here = os.getcwd()
+    except FileNotFoundError:
+        get_log().warn("CWD has gone away, will chdir to back to '/'")
+        here = '/'
     try:
         os.chdir(dirname)
         yield
     finally:
         os.chdir(here)
-
 
 
 class PrettyFormatter(object):

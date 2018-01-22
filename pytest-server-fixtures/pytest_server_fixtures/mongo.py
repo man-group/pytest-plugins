@@ -81,7 +81,16 @@ class MongoTestServer(TestServer):
     random_port = True
 
     def __init__(self, **kwargs):
-        mongod_dir = tempfile.mkdtemp(dir=self.get_base_dir())
+        base_dir = self.get_base_dir()
+        if not os.path.exists(base_dir):
+            try:
+                os.makedirs(base_dir)
+            except OSError as exc:  # Python >2.5
+                if exc.errno == errno.EEXIST and os.path.isdir(base_dir):
+                    pass
+                else:
+                    raise
+        mongod_dir = tempfile.mkdtemp(dir=base_dir)
         super(MongoTestServer, self).__init__(workspace=mongod_dir, delete=True, **kwargs)
 
     @staticmethod
@@ -89,17 +98,7 @@ class MongoTestServer(TestServer):
         candidate_dir = os.environ.get('WORKSPACE', None)
         if not candidate_dir or not os.path.exists(candidate_dir):
             candidate_dir = os.environ.get('TMPDIR', '/tmp')
-
-        candidate_dir = os.path.join(candidate_dir, getpass.getuser(), 'mongo')
-        if not os.path.exists(candidate_dir):
-            try:
-                os.makedirs(candidate_dir)
-            except OSError as exc:  # Python >2.5
-                if exc.errno == errno.EEXIST and os.path.isdir(candidate_dir):
-                    pass
-                else:
-                    raise
-        return candidate_dir
+        return os.path.join(candidate_dir, getpass.getuser(), 'mongo')
 
     @property
     def run_cmd(self):
@@ -154,6 +153,8 @@ class MongoTestServer(TestServer):
         """Helper method which will ensure that there are no running mongos
         on the current host, in the current workspace"""
         base = MongoTestServer.get_base_dir()
+        if not os.path.isdir(base):
+            return
 
         log.info("======================================")
         log.info("Cleaning up previous sessions under " + base)

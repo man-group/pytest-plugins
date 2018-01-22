@@ -6,9 +6,7 @@ import os
 import subprocess
 
 import errno
-import psycopg2
 import pytest
-from psycopg2 import OperationalError
 from six import text_type
 
 from .base import TestServer
@@ -97,6 +95,7 @@ class PostgresServer(TestServer):
         return cmd
 
     def check_server_up(self):
+        from psycopg2 import OperationalError
         try:
             print("Connecting to Postgres at localhost:{}".format(self.port))
             with self.connect('postgres') as conn:
@@ -112,6 +111,7 @@ class PostgresServer(TestServer):
         return False
 
     def connect(self, database=None):
+        import psycopg2
         cfg = self.connection_config
         if database is not None:
             cfg[u'database'] = database

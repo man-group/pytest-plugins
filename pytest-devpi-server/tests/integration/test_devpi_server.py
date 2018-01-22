@@ -2,6 +2,7 @@ import json
 
 NEW_INDEX = {
     'result': {
+        'acl_toxresult_upload': [':ANONYMOUS:'], 
         'acl_upload': ['testuser'], 
         'bases': [], 
         'mirror_whitelist': [], 
@@ -9,9 +10,10 @@ NEW_INDEX = {
         'pypi_whitelist': [], 
         'type': 'stage', 
         'volatile': True
-    },
+    }, 
     'type': 'indexconfig'
 }
+
 
 
 def test_server(devpi_server):

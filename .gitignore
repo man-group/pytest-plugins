@@ -22,6 +22,7 @@ lib64
 junit.xml
 coverage.xml
 htmlcov
+FAILED-*
 
 # IDEs 
 .project
@@ -32,11 +33,13 @@ TAGS
 /pip-log.txt
 .idea
 *.swp
+.vscode
 
 # Copied files
 */MANIFEST.in
 */CHANGES.md
 */VERSION
+*/LICENSE
 */common_setup.py
 /pyqt
 /sip

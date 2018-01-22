@@ -60,7 +60,7 @@ def test_handles_unexpected_server_num_collision():
 
 
 def test_handles_unexpected_failure_to_start():
-    with patch('pytest_server_fixtures.xvfb.XvfbServer.xvfb_command', '/bin/false'):
+    with patch('pytest_server_fixtures.xvfb.XvfbServer.xvfb_command', 'false'):
         with raises(RuntimeError) as ex:
             XvfbServer()
         assert 'Failed to start Xvfb' in str(ex)
