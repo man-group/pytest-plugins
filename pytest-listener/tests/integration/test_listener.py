@@ -1,4 +1,4 @@
-import pytest_listener.server as li
+import pytest_listener as li
 
 RECEIVE_TIMEOUT = 10
 

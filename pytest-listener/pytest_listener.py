@@ -6,6 +6,7 @@ import time
 from threading import Thread, Event
 from time import sleep
 
+import pytest
 from six import string_types
 from six.moves import cPickle
 from pytest_server_fixtures.base import get_ephemeral_port, get_ephemeral_host
@@ -15,6 +16,24 @@ CLEAR = json.dumps(['CLEAR']).encode('utf-8')
 TIMEOUT_DEFAULT = 10
 DEBUG = False
 logger = logging.getLogger('pytest-listener')
+
+
+@pytest.yield_fixture(scope='module')
+def listener(request):
+    """ Simple module-scoped network listener. 
+    
+    Methods
+    -------
+    send(data, timeout):  Send data to the listener
+    recieve(timeout):     Recieve data from the listener
+    clear_queue():        Clear the listener queue
+    """
+    res = Listener()
+    res.start()
+    # Wait for socket to become available
+    time.sleep(1)
+    yield res
+    stop_listener(res)
 
 
 def stop_listener(listener):

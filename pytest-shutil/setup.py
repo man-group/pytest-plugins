@@ -26,7 +26,8 @@ install_requires = ['six',
                     'contextlib2',
                     'pytest',
                     'path.py',
-                    'mock'
+                    'mock',
+                    'termcolor'
                     ]
 
 tests_require = ['pytest',
