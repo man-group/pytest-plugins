@@ -23,6 +23,7 @@ junit.xml
 coverage.xml
 htmlcov
 FAILED-*
+*.log
 
 # IDEs 
 .project

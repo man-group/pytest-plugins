@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+import logging
 import subprocess
 
 import errno
@@ -10,6 +11,8 @@ import pytest
 from six import text_type
 
 from .base import TestServer
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='session')

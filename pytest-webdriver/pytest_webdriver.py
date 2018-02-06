@@ -11,13 +11,14 @@ log = logging.getLogger(__name__)
 
 
 class FixtureConfig(Config):
-    __slots__ = ('host', 'port', 'uri', 'browser')
+    __slots__ = ('host', 'port', 'uri', 'browser', 'phantomjs')
 
 CONFIG = FixtureConfig(
     host=os.getenv('SELENIUM_HOST', socket.gethostname()),
     port=os.getenv('SELENIUM_PORT', '4444'),
     uri=os.getenv('SELENIUM_URI'),
     browser=os.getenv('SELENIUM_BROWSER', 'chrome'),
+    phantomjs=os.getenv('PHANTOMJS_BINARY', 'phantomjs'),
 )
 
 
@@ -55,10 +56,6 @@ def webdriver(request):
     """
     from selenium import webdriver
 
-    selenium_uri = CONFIG.uri
-    if not selenium_uri:
-        selenium_uri = 'http://{0}:{1}'.format(CONFIG.host, CONFIG.port)
-
     # Look for the pyramid server funcarg in the current session, and save away its root uri
     root_uri = []
     try:
@@ -66,10 +63,16 @@ def webdriver(request):
     except LookupError:
         pass
 
-    driver = webdriver.Remote(
-        selenium_uri,
-        browser_to_use(webdriver, CONFIG.browser)
-    )
+    if CONFIG.browser.lower() == 'phantomjs':
+        driver = webdriver.PhantomJS(executable_path=CONFIG.phantomjs)
+    else:
+        selenium_uri = CONFIG.uri
+        if not selenium_uri:
+            selenium_uri = 'http://{0}:{1}'.format(CONFIG.host, CONFIG.port)
+        driver = webdriver.Remote(
+            selenium_uri,
+            browser_to_use(webdriver, CONFIG.browser)
+        )
 
     if root_uri:
         driver.__dict__['root_uri'] = root_uri[0]

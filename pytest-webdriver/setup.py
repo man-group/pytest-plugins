@@ -27,7 +27,7 @@ install_requires = ['py',
                     'selenium',
                     ]
 
-tests_require = [
+tests_require = ['mock',
                  ]
 
 entry_points = {

@@ -2,6 +2,7 @@ test-tmpl: &test-tmpl
   command: |
     . ../venv/bin/activate
     export DEBUG=1
+    export SELENIUM_BROWSER=phantomjs
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
@@ -75,7 +76,7 @@ job-tmpl: &job-tmpl
     - run: 
         name: Install Postgresql
         command: | 
-          sudo apt-get install postgresql postgresql-contrib
+          sudo apt-get install postgresql postgresql-contrib libpq-dev
           sudo service postgresql stop; sudo update-rc.d postgresql disable;
     - run: 
         name: Install Redis
@@ -106,7 +107,12 @@ job-tmpl: &job-tmpl
           wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
           sudo mv /tmp/minio /usr/local/bin/minio
           sudo chmod a+x /usr/local/bin/minio
-
+    - run: 
+        name: Install PhantomJS
+        command: | 
+          curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          sudo $(which npm) install --shared phantomjs
     - run: 
         name: Build and install dists
         command: |
@@ -201,6 +207,14 @@ jobs:
     environment:
       PYTHON: "python3.6"
 
+  coveralls:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - run: 
+          name: Complete Coveralls
+          command: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$BUILD_NUMBER&payload[status]=done"
+  
 workflows:
   version: 2
   pytest-plugins:
@@ -209,3 +223,9 @@ workflows:
       - py34
       - py35
       - py36
+      - coveralls:
+          requires:
+            - py27
+            - py34
+            - py35
+            - py36
