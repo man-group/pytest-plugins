@@ -39,7 +39,7 @@ def chdir(dirname):
     """
     try:
         here = os.getcwd()
-    except FileNotFoundError:
+    except OSError:
         get_log().warn("CWD has gone away, will chdir to back to '/'")
         here = '/'
     try:
