@@ -78,7 +78,7 @@ The fixtures are configured using the following evironment variables:
 | ------- | ----------- | -------
 | `SERVER_FIXTURES_HOSTNAME`      | Hostname that servers will listen on | Current default hostname
 | `SERVER_FIXTURES_DISABLE_HTTP_PROXY` | Disable any HTTP proxies set up in the shell environment when making HTTP requests | True
-| `SERVER_FIXTURES_MONGO_BIN`     | Directory containing the `mongodb` executable | `/usr/bin`
+| `SERVER_FIXTURES_MONGO_BIN`     | Directory containing the `mongodb` executable | "" (relies on `$PATH`)
 | `SERVER_FIXTURES_REDIS`         | Redis server executable | `/usr/sbin/redis-server`
 | `SERVER_FIXTURES_RETHINK`       | RethinkDB server executable |  `/usr/bin/rethinkdb`
 | `SERVER_FIXTURES_HTTPD`         | Httpd server executable | `/usr/sbin/apache2`
