@@ -108,7 +108,6 @@ class MongoTestServer(TestServer):
                 '--dbpath=%s' % self.workspace,
                 '--nounixsocket',
                 '--syncdelay', '0',
-                '--nohttpinterface',
                 '--nojournal',
                 '--quiet',
                 '--storageEngine=ephemeralForTest'
