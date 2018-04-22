@@ -102,7 +102,7 @@ class MongoTestServer(TestServer):
 
     @property
     def run_cmd(self):
-        return ['%s/mongod' % CONFIG.mongo_bin,
+        return ['%s' % os.path.join(CONFIG.mongo_bin, 'mongod'),
                 '--bind_ip=%s' % self.hostname,
                 '--port=%s' % self.port,
                 '--dbpath=%s' % self.workspace,
