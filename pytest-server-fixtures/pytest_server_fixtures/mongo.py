@@ -122,7 +122,7 @@ class MongoTestServer(TestServer):
         try:
             self.api = pymongo.MongoClient(self.hostname, self.port,
                                            serverselectiontimeoutms=200)
-            self.api.database_names()
+            self.api.list_database_names()
             # Configure the client with default timeouts in case the server goes slow
             self.api = pymongo.MongoClient(self.hostname, self.port)
             return True
