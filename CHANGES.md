@@ -1,6 +1,9 @@
 
 ## Changelog
 
+### 1.3.1
+ * Use pymongo list_database_names() instead of the deprecated database_names(), added pymongo>=3.6.0 dependency
+
 ### 1.3.0 (2017-11-17)
  * Fixed workspace deletion when teardown is None
  * Fixed squash of root logger in pytest-listener
