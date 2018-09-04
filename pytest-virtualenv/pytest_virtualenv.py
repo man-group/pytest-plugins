@@ -20,7 +20,8 @@ class FixtureConfig(Config):
     __slots__ = ('virtualenv_executable')
 
 # Default values for system resource locations - patch this to change defaults
-DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE = (cmdline.which('virtualenv') + ['virtualenv'])[0]
+# Can be a string or list of them
+DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE = [sys.executable, '-m', 'virtualenv']
 
 CONFIG = FixtureConfig(
     virtualenv_executable=os.getenv('VIRTUALENV_FIXTURE_EXECUTABLE', DEFAULT_VIRTUALENV_FIXTURE_EXECUTABLE),
@@ -132,9 +133,11 @@ class VirtualEnv(Workspace):
             del(self.env['PYTHONPATH'])
 
         self.virtualenv_cmd = CONFIG.virtualenv_executable
-        cmd = [self.virtualenv_cmd,
-               '-p', python or cmdline.get_real_python_executable()
-               ]
+        if isinstance(self.virtualenv_cmd, str):
+            cmd = [self.virtualenv_cmd]
+        else:
+            cmd = list(self.virtualenv_cmd)
+        cmd.extend(['-p', python or cmdline.get_real_python_executable()])
         cmd.extend(self.args)
         cmd.append(str(self.virtualenv))
         self.run(cmd)
