@@ -27,9 +27,10 @@ class Profiling(object):
     profs = []
     combined = None
 
-    def __init__(self, svg, dir):
+    def __init__(self, svg, dir, element_number):
         self.svg = svg
         self.dir = 'prof' if dir is None else dir[0]
+        self.element_number = element_number
         self.profs = []
         self.gprof2dot = os.path.abspath(os.path.join(os.path.dirname(sys.executable), 'gprof2dot'))
         if not os.path.isfile(self.gprof2dot):
@@ -59,7 +60,7 @@ class Profiling(object):
     def pytest_terminal_summary(self, terminalreporter):
         if self.combined:
             terminalreporter.write("Profiling (from {prof}):\n".format(prof=self.combined))
-            pstats.Stats(self.combined, stream=terminalreporter).strip_dirs().sort_stats('cumulative').print_stats(20)
+            pstats.Stats(self.combined, stream=terminalreporter).strip_dirs().sort_stats('cumulative').print_stats(self.element_number)
         if self.svg_name:
             terminalreporter.write("SVG profile in {svg}.\n".format(svg=self.svg_name))
 
@@ -98,6 +99,8 @@ def pytest_addoption(parser):
                     help="generate profiling graph (using gprof2dot and dot -Tsvg)")
     group.addoption("--pstats-dir", nargs=1,
                     help="configure the dump directory of profile data files")
+    group.addoption("--element-number", action="store", type="int", default=20,
+                    help="defines how many elements will display in a result")
 
 
 def pytest_configure(config):
@@ -105,4 +108,5 @@ def pytest_configure(config):
     profile_enable = any(config.getvalue(x) for x in ('profile', 'profile_svg'))
     if profile_enable:
         config.pluginmanager.register(Profiling(config.getvalue('profile_svg'),
-                                                config.getvalue('pstats_dir')))
+                                                config.getvalue('pstats_dir'),
+                                                element_number=config.getvalue('element_number')))
