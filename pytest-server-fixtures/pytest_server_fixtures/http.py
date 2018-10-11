@@ -4,6 +4,7 @@ import os
 import socket
 import logging
 import time
+import sys
 
 import pytest
 import requests
@@ -131,7 +132,8 @@ class SimpleHTTPTestServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return ["python", "-m", "SimpleHTTPServer", str(self.port)]
+        http_server = 'http.server' if sys.version_info >= (3,0) else 'SimpleHTTPServer'
+        return ["python", "-m", http_server, str(self.port)]
 
     @property
     def document_root(self):
