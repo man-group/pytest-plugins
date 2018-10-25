@@ -51,17 +51,62 @@ class Profiling(object):
             combined.dump_stats(self.combined)
             if self.svg:
                 self.svg_name = os.path.abspath(os.path.join(self.dir, "combined.svg"))
-                t = pipes.Template()
-                t.append("{} -f pstats $IN".format(self.gprof2dot), "f-")
-                t.append("dot -Tsvg -o $OUT", "-f")
-                t.copy(self.combined, self.svg_name)
+
+                # convert file <self.combined> into file <self.svg_name> using a pipe of gprof2dot | dot
+
+                # A/ Legacy: python pipes: does not seem to work on windows targets :(
+                # t = pipes.Template()
+                # t.append("{} -f pstats $IN".format(self.gprof2dot), "f-")
+                # t.append("dot -Tsvg -o $OUT", "-f")
+                # t.copy(self.combined, self.svg_name)
+
+                # B/ More surprising: POpen pipes do not work as well ! OSError: [WinError 6] invalid descriptor
+                # from subprocess import Popen, PIPE
+                # with Popen(["dot", "-Tsvg", "-o", self.svg_name], stdin=PIPE, shell=True) as p:
+                #     Popen([self.gprof2dot, "-f", "pstats", self.combined], stdout=p.stdout, shell=True)
+
+                # C/ Safest and most portable is to simply write a temporary file and delete it afterwards
+                from subprocess import Popen
+                self.tmp_file_name = "tmp"
+
+                # gprof2dot -f pstats prof/combined.prof > prof/tmp
+                gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined, ">", self.tmp_file_name]
+                self.gprof2dot_cmd = " ".join(gprof2dot_args)
+                p = Popen(gprof2dot_args, shell=True)
+                p.wait()
+                if os.path.exists(self.tmp_file_name):
+                    # dot -Tsvg -o prof/combined.svg prof/tmp
+                    dot_args = ["dot", "-Tsvg", "-o", self.svg_name, self.tmp_file_name]
+                    self.dot_cmd = " ".join(dot_args)
+                    p2 = Popen(dot_args, shell=True)
+                    p2.wait()
+                    if os.path.exists(self.svg_name):
+                        self.svg_err = 0  # SUCCESS
+                        os.remove(self.tmp_file_name)  # remove tmp file
+                    else:
+                        self.svg_err = 2  # error: dot
+                else:
+                    self.svg_err = 1  # error: gprof2dot
 
     def pytest_terminal_summary(self, terminalreporter):
         if self.combined:
             terminalreporter.write("Profiling (from {prof}):\n".format(prof=self.combined))
             pstats.Stats(self.combined, stream=terminalreporter).strip_dirs().sort_stats('cumulative').print_stats(20)
         if self.svg_name:
-            terminalreporter.write("SVG profile in {svg}.\n".format(svg=self.svg_name))
+            if not self.svg_err:
+                # 0 - SUCCESS
+                terminalreporter.write("SVG profile created in {svg}.\n".format(svg=self.svg_name))
+            else:
+                if self.svg_err == 1:
+                    # 1 - GPROF2DOT ERROR
+                    terminalreporter.write("Error creating SVG profile in {svg}.\n"
+                                           "Command failed: {cmd}".format(svg=self.svg_name, cmd=self.gprof2dot_cmd))
+                elif self.svg_err == 2:
+                    # 2 - DOT ERROR
+                    terminalreporter.write("Error creating SVG profile in {svg}.\n"
+                                           "Command succeeded: {cmd} \n"
+                                           "Command failed: {cmd2}".format(svg=self.svg_name, cmd=self.gprof2dot_cmd,
+                                                                           cmd2=self.dot_cmd))
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_call(self, item):
