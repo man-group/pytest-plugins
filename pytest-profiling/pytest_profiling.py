@@ -4,7 +4,6 @@ import sys
 import os
 import cProfile
 import pstats
-import pipes
 import errno
 from hashlib import md5
 
@@ -59,6 +58,7 @@ class Profiling(object):
                 # gprof2dot -f pstats prof/combined.prof | dot -Tsvg -o prof/combined.svg
 
                 # A/ Legacy: python pipes: does not seem to work on windows targets :(
+                # import pipes
                 # t = pipes.Template()
                 # t.append("{} -f pstats $IN".format(self.gprof2dot), "f-")
                 # t.append("dot -Tsvg -o $OUT", "-f")
