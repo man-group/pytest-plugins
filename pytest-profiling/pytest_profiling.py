@@ -27,7 +27,7 @@ class Profiling(object):
     profs = []
     combined = None
 
-    def __init__(self, svg, dir):
+    def __init__(self, svg, dir=None):
         self.svg = svg
         self.dir = 'prof' if dir is None else dir[0]
         self.profs = []
