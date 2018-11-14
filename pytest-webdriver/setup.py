@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 install_requires = ['py',
-                    'pytest',
+                    'pytest==3.10.1',
                     'pytest-fixture-config',
                     'selenium',
                     ]

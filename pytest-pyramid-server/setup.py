@@ -24,7 +24,7 @@ classifiers = [
 
 
 install_requires = ['pytest-server-fixtures',
-                    'pytest',
+                    'pytest==3.10.1',
                     'pyramid',
                     'waitress',
                     'six',

@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 install_requires = ['six',
-                    'pytest',
+                    'pytest==3.10.1',
                     'pytest-server-fixtures'
                     ]
 

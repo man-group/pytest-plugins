@@ -21,7 +21,7 @@ classifiers = [
     'Programming Language :: Python :: 3.6',
 ]
 
-install_requires = ['pytest',
+install_requires = ['pytest==3.10.1',
                     'pytest-shutil',
                     'gitpython',
                     ]
