@@ -55,9 +55,11 @@ To setup test environment in Vagrant (requires virtualbox):
 ```bash
     $ vagrant up
     $ vagrant ssh
+
     # ..... inside vagrant ....
-    vagrant$ . venv/bin/activate
+    . venv/bin/activate
     make develop
+    export SELENIUM_BROWSER=phantomjs
     make test
 ```
 
