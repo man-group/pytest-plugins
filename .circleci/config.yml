@@ -120,7 +120,7 @@ job-tmpl: &job-tmpl
           ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
           ./foreach.sh 'pip install -e .[tests]'
     - run: 
-        name: Run Tests - pytest--fixture-config 
+        name: Run Tests - pytest-fixture-config 
         working_directory: ~/src/pytest-fixture-config
         <<: *test-tmpl
     - run: 
