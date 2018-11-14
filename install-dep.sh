@@ -41,7 +41,11 @@ apt-get install -y \
 wget -q https://dl.minio.io/server/minio/release/linux-amd64/minio -O /usr/local/bin/minio
 chmod a+x /usr/local/bin/minio
 
-curl -sL https://deb.nodesource.com/setup_6.x | bash -
-apt-get install -y nodejs
-$(which npm) install -g phantomjs
-apt-get install -y libfontconfig
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome-stable_current_amd64.deb
+dpkg -i --force-depends /tmp/google-chrome-stable_current_amd64.deb
+apt-get install -f -y
+apt-get install -y unzip
+wget https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+unzip /tmp/chromedriver_linux64.zip
+mv chromedriver /usr/local/bin/
+chmod +x /usr/local/bin/chromedriver
