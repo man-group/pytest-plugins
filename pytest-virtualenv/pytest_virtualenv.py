@@ -13,7 +13,7 @@ except ImportError:
 
 from pytest_shutil.workspace import Workspace
 from pytest_shutil import run, cmdline
-from pytest_fixture_config import Config, yield_requires_config
+from pytest_fixture_config import Config
 
 
 class FixtureConfig(Config):
@@ -28,7 +28,6 @@ CONFIG = FixtureConfig(
 )
 
 
-@yield_requires_config(CONFIG, ['virtualenv_executable'])
 @yield_fixture(scope='function')
 def virtualenv():
     """ Function-scoped virtualenv in a temporary workspace.
