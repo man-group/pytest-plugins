@@ -43,7 +43,7 @@ develop: copyfiles extras
 test:
 	rm -f FAILED-*
 	./foreach.sh 'DEBUG=1 python setup.py test || touch ../FAILED-$$PKG'
-	compgen -G 'FAILED-*' && exit 1
+	bash -c "! compgen -G 'FAILED-*'"
 
 upload: 
 	pip install twine
@@ -58,7 +58,9 @@ upload:
 clean:
 	./foreach.sh 'rm -rf build dist *.xml *.egg-info .eggs htmlcov .cache $(COPY_FILES)'
 	rm -rf pytest-pyramid-server/vx pip-log.txt
-	find . -name *.pyc -name .coverage -name .coverage.* -delete
+	find . -name *.pyc -delete
+	find . -name .coverage -delete
+	find . -name .coverage.* -delete
 	rm -f FAILED-*
 
 all: extras develop test
