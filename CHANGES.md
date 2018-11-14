@@ -5,6 +5,7 @@
  * Fixing python 3 compatibility in Simple HTTP Server fixture
  * Fixed broken tests in pytest-profiling
  * Removed pytest-fixture-config decorator 'requires_config' and 'yield_requires_config' (due to incompatibility with pytest>=3.7.1)
+ * Pinned pytest==3.10.1 until all deprecation warnings are fixed.
 
 ### 1.3.1 (2018-06-28)
  * Use pymongo list_database_names() instead of the deprecated database_names(), added pymongo>=3.6.0 dependency
