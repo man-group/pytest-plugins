@@ -6,6 +6,7 @@
  * Fixed broken tests in pytest-profiling
  * Removed pytest-fixture-config decorator 'requires_config' and 'yield_requires_config' (due to incompatibility with pytest>=3.7.1)
  * Pinned pytest<4.0.0 until all deprecation warnings are fixed.
+ * pytest-webdriver: replaced deprecated phantomjs with headless Google Chrome.
 
 ### 1.3.1 (2018-06-28)
  * Use pymongo list_database_names() instead of the deprecated database_names(), added pymongo>=3.6.0 dependency
