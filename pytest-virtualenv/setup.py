@@ -23,7 +23,7 @@ classifiers = [
 
 install_requires = ['pytest-fixture-config',
                     'pytest-shutil',
-                    'pytest',
+                    'pytest<4.0.0',
                     ]
 
 tests_require = [

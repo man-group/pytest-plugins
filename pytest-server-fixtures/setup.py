@@ -21,7 +21,7 @@ classifiers = [
     'Programming Language :: Python :: 3.6',
 ]
 
-install_requires = ['pytest',
+install_requires = ['pytest<4.0.0',
                     'pytest-shutil',
                     'pytest-fixture-config',
                     'six',

@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 install_requires = ['six',
-                    'pytest',
+                    'pytest<4.0.0',
                     'gprof2dot',
                     ]
 
