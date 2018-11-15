@@ -2,7 +2,6 @@ test-tmpl: &test-tmpl
   command: |
     . ../venv/bin/activate
     export DEBUG=1
-    export SELENIUM_BROWSER=phantomjs
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
@@ -108,11 +107,17 @@ job-tmpl: &job-tmpl
           sudo mv /tmp/minio /usr/local/bin/minio
           sudo chmod a+x /usr/local/bin/minio
     - run: 
-        name: Install PhantomJS
+        name: Install Chrome Headless
         command: | 
-          curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          sudo $(which npm) install --shared phantomjs
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i --force-depends /tmp/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -f -y
+          sudo apt-get install -y unzip
+          wget https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+          unzip /tmp/chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
+
     - run: 
         name: Build and install dists
         command: |
