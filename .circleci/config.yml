@@ -16,107 +16,43 @@ job-tmpl: &job-tmpl
         name: Install Python 
         command: | 
           set -x 
-
-          if [[ $PYTHON == "python2.7" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python2.7 python2.7-dev"
-          fi
-
-          if [[ $PYTHON == "python3.4" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.4 python3.4-dev"
-          fi
-
-          if [[ $PYTHON == "python3.5" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.5 python3.5-dev"
-          fi
-
-          if [[ $PYTHON == "python3.6" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6 python3.6-dev"
-          fi
-
+          sudo bash -c ". install.sh && install_python_ppa && install_python $PYTHON"
           rm -rf /opt/circleci/.pyenv
 
     - run: 
-        name: Install Pip and Virtualenv
-        command: | 
-          curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $PYTHON
-          sudo $PYTHON -m pip install --upgrade pip
-          sudo $PYTHON -m pip install --upgrade virtualenv
- 
-    - run: 
         name: Create venv and install extras
-        command: | 
-          $PYTHON -m virtualenv venv
-          . venv/bin/activate
-          pip install       \
-              pypandoc       \
-              wheel          \
-              coverage       \
-              python-jenkins \
-              redis          \
-              pymongo        \
-              psycopg2       \
-              boto3          \
-              rethinkdb
+        command: bash -c ". install.sh && init_venv $PYTHON"
 
     - run: 
         name: Update Apt-Sources
-        command: | 
-          source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
-          wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
-          source /etc/lsb-release && echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list
-          wget -qO- https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-          echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
-          sudo apt-get update
+        command: sudo bash -c ". install.sh && update_apt_sources"
     - run: 
         name: Install System Dependencies
-        command: | 
-          sudo apt-get install subversion graphviz
+        command: sudo bash -c ". install.sh && install_system_deps"
     - run: 
         name: Install Postgresql
-        command: | 
-          sudo apt-get install postgresql postgresql-contrib libpq-dev
-          sudo service postgresql stop; sudo update-rc.d postgresql disable;
+        command: sudo bash -c ". install.sh && install_postgresql"
     - run: 
         name: Install Redis
-        command: | 
-          sudo apt-get install redis-server pandoc subversion graphviz
+        command: sudo bash -c ". install.sh && install_redis"
     - run: 
         name: Install Rethinkdb
-        command: | 
-          sudo apt-get install rethinkdb
-          sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable;
+        command: sudo bash -c ". install.sh && install_rethinkdb"
     - run: 
         name: Install Jenkins
-        command: | 
-          sudo apt-get install jenkins
-          sudo service jenkins stop; sudo update-rc.d jenkins disable;
+        command: sudo bash -c ". install.sh && install_jenkins"
     - run: 
         name: Install Mongodb
-        command: | 
-          sudo apt-get install mongodb-org mongodb-org-server
+        command: sudo bash -c ". install.sh && install_mongodb"
     - run: 
         name: Install Apache
-        command: | 
-          sudo apt-get install apache2
-          sudo service apache2 stop; sudo update-rc.d apache2 disable;
+        command: sudo bash -c ". install.sh && install_apache"
     - run: 
         name: Install Minio
-        command: | 
-          wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
-          sudo mv /tmp/minio /usr/local/bin/minio
-          sudo chmod a+x /usr/local/bin/minio
+        command: sudo bash -c ". install.sh && install_minio"
     - run: 
         name: Install Chrome Headless
-        command: | 
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i --force-depends /tmp/google-chrome-stable_current_amd64.deb
-          sudo apt-get install -f -y
-          sudo apt-get install -y unzip
-          wget https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
-          unzip /tmp/chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
+        command: sudo bash -c ". install.sh && install_chrome_headless"
 
     - run: 
         name: Build and install dists
