@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eo pipefail
 
 # Suppress the "dpkg-preconfigure: unable to re-open stdin: No such file or directory" error
 export DEBIAN_FRONTEND=noninteractive
@@ -31,7 +32,7 @@ function install_python {
 function init_venv {
   local py=$1
   virtualenv venv/$py --python=$py
-  . venv/bin/activate
+  . venv/$py/bin/activate
   pip install \
     pypandoc \
     coverage
