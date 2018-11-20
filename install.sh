@@ -33,9 +33,6 @@ function init_venv {
   local py=$1
   virtualenv venv --python=$py
   . venv/bin/activate
-  pip install \
-    pypandoc \
-    coverage
 }
 
 function update_apt_sources {

@@ -58,8 +58,7 @@ job-tmpl: &job-tmpl
         name: Build and install dists
         command: |
           . venv/bin/activate
-          ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
-          ./foreach.sh 'pip install -e .[tests]'
+          make develop
     - run: 
         name: Run Tests - pytest-fixture-config 
         working_directory: ~/src/pytest-fixture-config
