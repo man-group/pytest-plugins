@@ -59,7 +59,6 @@ To setup test environment in Vagrant (requires virtualbox):
     # ..... inside vagrant ....
     . venv/bin/activate
     make develop
-    export SELENIUM_BROWSER=phantomjs
     make test
 ```
 
