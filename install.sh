@@ -31,8 +31,8 @@ function install_python {
 
 function init_venv {
   local py=$1
-  virtualenv venv/$py --python=$py
-  . venv/$py/bin/activate
+  virtualenv venv --python=$py
+  . venv/bin/activate
   pip install \
     pypandoc \
     coverage
