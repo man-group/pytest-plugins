@@ -2,7 +2,7 @@
 # Run a command for each of our packages
 set -x
 
-if [ $1 = '--changed' ]; then
+if [ "$1" = '--changed' ]; then
     shift
     # Package list, filtered to ones changed since last tag
     LAST_TAG=$(git tag -l v\* | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -1)
