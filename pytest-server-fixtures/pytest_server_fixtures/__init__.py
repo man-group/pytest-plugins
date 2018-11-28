@@ -9,7 +9,7 @@ class FixtureConfig(Config):
         'java_executable',
         'jenkins_url',
         'jenkins_war',
-        'jenkins_image'
+        'jenkins_image',
         'minio_executable',
         'minio_image',
         'mongo_bin',
