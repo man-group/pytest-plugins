@@ -20,6 +20,10 @@ class ServerClass(threading.Thread):
         """Initialise the server class.
         Server fixture will be started here.
         """
+
+        # set serverclass thread to a daemon thread
+        self.daemon = True
+
         self._hostname = None
         self._port = port
         self._workspace = None
@@ -28,7 +32,7 @@ class ServerClass(threading.Thread):
         """In a new thread, wait for the server to return."""
         pass
 
-    def start_server(self):
+    def launch(self):
         """Start the server."""
         pass
 
@@ -50,32 +54,21 @@ class ServerClass(threading.Thread):
         """Get server's port."""
         return self._port
 
-    @property
-    def workspace(self):
-        """Get server's workspace."""
-        if self._workspace:
-            return self._workspace.workspace
-
-        return None
-
 
 class ThreadServer(ServerClass):
     """Thread server class."""
 
-    def __init__(self, run_cmd, port, env=None, random_port=True, pre_setup=None, post_setup=None, kill=None):
+    def __init__(self, run_cmd, port, cwd, env=None, random_port=True, pre_setup=None, post_setup=None, kill=None):
         super(ThreadServer, self).__init__(port, env)
 
         self._hostname = get_ephemeral_host()
         self._port = get_ephemeral_port(host=self._hostname) if random_port else port
-        self._workspace = Workspace(delete=True)
 
-        self.run_stdin = run_stdin
-        self.daemon = True
         self.exit = False
         self.env = env or dict(os.environ)
-        self.cwd = cwd or os.getcwd()
+        self.cwd = cwd
 
-    def start_server(self):
+    def launch(self):
         if 'DEBUG' in os.environ:
             self.p = subprocess.Popen(self.run_cmd, env=self.env, cwd=self.cwd,
                                       stdin=subprocess.PIPE if run_stdin else None)
@@ -104,15 +97,51 @@ class ThreadServer(ServerClass):
             if not self.exit:
                 traceback.print_exc()
 
+    def teardown(self):
+        pass
+
 
 class DockerServer(ServerClass):
     """Docker server class."""
 
-    def __init__(self, image, env=None):
-        pass
+    client = docker.from_env()
 
-    def start_server(self):
-        pass
+    def __init__(self, image, port, labels={}, env={}):
+        self._image = image
+        self._env = env
+        self._labels = labels
+        self._container = None
+
+    def launch(self):
+        try:
+            self._container = DockerServer.client.containers.run(
+                self.image,
+                environment=self._env,
+                labels=self._labels,
+                detach=True,
+            )
+        except docker.errors.ImageNotFound:
+            log.warn("Failed to start container, image %s not found", self.image)
+        except docker.errors.APIError:
+            log.warn("Failed to start container")
+
+        self.start()
+
+    def run(self):
+        try:
+            self._container.wait()
+        except docker.errors.APIError:
+            log.warn("Error while waiting for container.")
+            log.debug(self._container.logs())
+
+    def teardown(self):
+        if not self._container:
+            return
+
+        try:
+            self._container.stop()
+        except docker.errors.APIError:
+            log.warn("Error when stopping the container.")
 
     def hostname(self):
         if not self._is_running():
@@ -124,7 +153,15 @@ class DockerServer(ServerClass):
         pass
 
     def _is_running(self):
-        return self._container && self._container.status == 'running'
+        if not self._container:
+            return False
+
+        try:
+            self._container.reload()
+            return self._container.status == 'running'
+        except docker.errors.APIError:
+            log.warn("Failed when getting container status, container might have been removed.")
+            return False
 
 
 class KubernetesServer(ServerClass):
