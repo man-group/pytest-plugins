@@ -35,6 +35,7 @@ class TestServerV2(Workspace):
             self._server = self._create_server(server_class)
 
             if server_class == 'thread':
+                # set run_cmd after self._server is set as we are reading host/port from there
                 self._server.run_cmd = self.run_cmd
                 self.pre_setup()
 

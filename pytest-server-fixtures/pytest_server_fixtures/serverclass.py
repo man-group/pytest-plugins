@@ -90,6 +90,7 @@ class ThreadServer(ServerClass):
         self._env = env or dict(os.environ)
         self._cwd = cwd
         self._proc = None
+        self._dead = False
 
     @property
     def run_cmd(self):
@@ -128,6 +129,11 @@ class ThreadServer(ServerClass):
                 traceback.print_exc()
 
     def teardown(self):
+        if self._dead:
+            log.debug("Already teardown, skip")
+            return
+        self._dead = True
+
         if not self._proc:
             log.warning("No process is running, skip teardown.")
             return
@@ -146,8 +152,9 @@ class ThreadServer(ServerClass):
             self._proc.terminate()
             if self._wait_for_process():
                 return True
-        except OSError:
+        except OSError as err:
             log.warning("Failed to terminate server.")
+            log.debug(err)
             return False
 
     def _kill(self):
@@ -156,8 +163,9 @@ class ThreadServer(ServerClass):
             self._proc.kill()
             if self._wait_for_process():
                 return True
-        except OSError:
+        except OSError as err:
             log.warning("Failed to kill server.")
+            log.debug(err)
             return False
 
     def _cleanup_all(self):
@@ -173,17 +181,16 @@ class ThreadServer(ServerClass):
         try:
             pgid = os.getpgid(self._proc.pid)
             os.killpg(pgid, signal.SIGKILL)
-        except OSError:
+        except OSError as err:
+            log.debug(err)
             log.warning("Failed to cleanup processes. Giving up...")
 
     def _wait_for_process(self, interval=1, max_retries=10):
-        if not self._proc:
-            return True
-
         retries = 0
+        log.debug("Wait for process")
         while self._proc.poll() is None:
             retries+=1
-            log.debug("Waiting for server to die (retries: %d)", retries)
+            log.debug("Still waiting for server to die (retries: %d)", retries)
             time.sleep(interval)
             if retries > max_retries:
                 return False
