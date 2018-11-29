@@ -7,10 +7,18 @@ import subprocess
 import logging
 import docker
 
+from pytest_server_fixtures import CONFIG`
 from pytest_shutil.workspace import Workspace
 from .base import get_ephemeral_host, get_ephemeral_port, ProcessReader
 
 log = logging.getLogger(__name__)
+
+
+def _merge_dicts(x, y):
+    """Given two dicts, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
 
 
 class ServerClass(threading.Thread):
@@ -106,10 +114,12 @@ class DockerServer(ServerClass):
 
     client = docker.from_env()
 
-    def __init__(self, image, port, labels={}, env={}):
+    def __init__(self, port, image, labels={}, env={}):
+        super(DockerServer, self).__init__(port, env)
+
         self._image = image
+        self._labels = _merge_dicts(labels, dict(test_session_id=CONFIG.test_session_id))
         self._env = env
-        self._labels = labels
         self._container = None
 
     def launch(self):
@@ -140,17 +150,14 @@ class DockerServer(ServerClass):
 
         try:
             self._container.stop()
+            self._container.remove()
         except docker.errors.APIError:
             log.warn("Error when stopping the container.")
 
     def hostname(self):
         if not self._is_running():
             return None
-        else:
-            return self._container.attrs['NetworkSettings']['IPAddress']
-
-    def get_workspace(self):
-        pass
+        return self._container.attrs['NetworkSettings']['IPAddress']
 
     def _is_running(self):
         if not self._container:

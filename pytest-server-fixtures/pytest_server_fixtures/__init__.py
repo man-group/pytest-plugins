@@ -1,5 +1,6 @@
 import socket
 import os
+import uuid
 
 from pytest_fixture_config import Config
 
@@ -26,6 +27,7 @@ class FixtureConfig(Config):
         'xvfb_executable',
         'disable_proxy',
         'server_class',
+        'session_id',
     )
 
 # Default values for system resource locations - patch this to change defaults
@@ -57,6 +59,7 @@ CONFIG = FixtureConfig(
     fixture_hostname=os.getenv('SERVER_FIXTURES_HOSTNAME', DEFAULT_SERVER_FIXTURES_HOSTNAME),
     disable_proxy=os.getenv('SERVER_FIXTURES_DISABLE_HTTP_PROXY', DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY),
     server_class=os.getenv('SERVER_FIXTURES_SERVER_CLASS', DEFAULT_SERVER_FIXTURES_SERVER_CLASS),
+    session_id=os.getenv('SERVER_FIXTURES_SESSION_ID', uuid.uuid4()),
     java_executable=os.getenv('SERVER_FIXTURES_JAVA', DEFAULT_SERVER_FIXTURES_JAVA),
     jenkins_war=os.getenv('SERVER_FIXTURES_JENKINS_WAR', DEFAULT_SERVER_FIXTURES_JENKINS_WAR),
     jenkins_image=os.getenv('SERVER_FIXTURES_JENKINS_IMAGE', DEFAULT_SERVER_FIXTURES_JENKINS_IMAGE),

@@ -4,13 +4,6 @@ from pytest_server_fixtures import CONFIG
 from .serverclass import ThreadServer, DockerServer, KubernetesServer
 
 
-def _merge_dicts(x, y):
-    """Given two dicts, merge them into a new dict as a shallow copy."""
-    z = x.copy()
-    z.update(y)
-    return z
-
-
 class TestServerV2(Workspace):
     """Base class of a v2 test server."""
 
