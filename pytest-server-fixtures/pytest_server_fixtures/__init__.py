@@ -33,7 +33,7 @@ class FixtureConfig(Config):
 # Default values for system resource locations - patch this to change defaults
 DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostname()
 DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY = True
-DEFAULT_SERVER_FIXTURES_SERVER_CLASS = 'docker'
+DEFAULT_SERVER_FIXTURES_SERVER_CLASS = 'thread'
 DEFAULT_SERVER_FIXTURES_JAVA = 'java'
 DEFAULT_SERVER_FIXTURES_JENKINS_URL = 'http://acmejenkins.example.com'
 DEFAULT_SERVER_FIXTURES_JENKINS_WAR = '/usr/share/jenkins/jenkins.war'
