@@ -12,7 +12,7 @@ import pytest
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import yield_requires_config
 
-from .base import TestServer
+from .base2 import TestServerV2
 
 log = logging.getLogger(__name__)
 
@@ -76,29 +76,12 @@ def mongo_server_module():
         yield server
 
 
-class MongoTestServer(TestServer):
+class MongoTestServer(TestServerV2):
     # Use a random port for Mongo, as we run tests in parallel
     random_port = True
 
-    def __init__(self, **kwargs):
-        base_dir = self.get_base_dir()
-        if not os.path.exists(base_dir):
-            try:
-                os.makedirs(base_dir)
-            except OSError as exc:  # Python >2.5
-                if exc.errno == errno.EEXIST and os.path.isdir(base_dir):
-                    pass
-                else:
-                    raise
-        mongod_dir = tempfile.mkdtemp(dir=base_dir)
-        super(MongoTestServer, self).__init__(workspace=mongod_dir, delete=True, **kwargs)
-
-    @staticmethod
-    def get_base_dir():
-        candidate_dir = os.environ.get('WORKSPACE', None)
-        if not candidate_dir or not os.path.exists(candidate_dir):
-            candidate_dir = os.environ.get('TMPDIR', '/tmp')
-        return os.path.join(candidate_dir, getpass.getuser(), 'mongo')
+    def __init__(self, delete=True, **kwargs):
+        super(MongoTestServer, self).__init__(delete=delete, **kwargs)
 
     @property
     def run_cmd(self):
@@ -112,6 +95,14 @@ class MongoTestServer(TestServer):
                 '--quiet',
                 '--storageEngine=ephemeralForTest'
                 ]
+
+    @property
+    def image(self):
+        return CONFIG.mongo_image
+
+    @property
+    def default_port(self):
+        return 27017
 
     def check_server_up(self):
         """Test connection to the server."""
@@ -147,45 +138,3 @@ class MongoTestServer(TestServer):
                 pass
             self.dead = True
 
-    @staticmethod
-    def cleanup_all():
-        """Helper method which will ensure that there are no running mongos
-        on the current host, in the current workspace"""
-        base = MongoTestServer.get_base_dir()
-        if not os.path.isdir(base):
-            return
-
-        log.info("======================================")
-        log.info("Cleaning up previous sessions under " + base)
-        log.info("======================================")
-
-        for mongo in os.listdir(base):
-            if mongo.startswith('tmp'):
-                mongo = os.path.join(base, mongo)
-                log.info("Previous session: " + mongo)
-                lock = os.path.join(mongo, 'mongod.lock')
-                if os.path.exists(lock):
-                    log.info("Lock file found: " + lock)
-                    p = subprocess.Popen(["/usr/sbin/lsof", "-Fp", "--", lock], stdout=subprocess.PIPE)
-                    (out, _) = p.communicate()
-                    if out:
-                        pid = out[1:].strip()
-                        log.info("Owned by pid: " + pid + " killing...")
-                        p = subprocess.Popen(["kill -9 %s" % pid], shell=True)
-                        p.communicate()
-                log.info("Removing: " + mongo)
-                shutil.rmtree(mongo, True)
-
-
-# Cleanup any old mongo sessions for this workspace when run in Jenkins
-# We do this here rather than doing:
-#    request.cached_setup(MongoTestServer.kill_all, scope='session')
-# as with pytest-xidst, the per-session setups appear to be run for each worker
-
-# We don't do this for users (who don't have the WORKSPACE env variable set)
-# as they may legitimately be running a test suite more than once.
-
-# TODO: check that with the latest py.test this is still the case, work has
-#       been done to improve fixtures with xdist
-if 'WORKSPACE' in os.environ:
-    MongoTestServer.cleanup_all()

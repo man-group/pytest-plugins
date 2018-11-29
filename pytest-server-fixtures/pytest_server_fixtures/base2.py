@@ -1,7 +1,13 @@
 import os
+import logging
+import time
+from datetime import datetime
 
 from pytest_server_fixtures import CONFIG
+from pytest_shutil.workspace import Workspace
 from .serverclass import ThreadServer, DockerServer, KubernetesServer
+
+log = logging.getLogger(__name__)
 
 
 class TestServerV2(Workspace):
@@ -15,7 +21,7 @@ class TestServerV2(Workspace):
         @param workspace: where all files will be stored
         @param delete: whether to delete the workspace after teardown or not
         """
-        super(TestServerV2, self).__init__(workspace=worksapce, delete=delete)
+        super(TestServerV2, self).__init__(workspace=workspace, delete=delete)
         self._cwd = cwd or os.getcwd()
         self._server = None
         self._dead = False
@@ -27,13 +33,13 @@ class TestServerV2(Workspace):
         server_class = CONFIG.server_class
 
         try:
-            self.server = self._create_server(server_class)
+            self._server = self._create_server(server_class)
 
             if (server_class == 'thread'):
                 self.pre_setup()
 
-            self.server.launch()
-            self.server._wait_for_go()
+            self._server.launch()
+            self._wait_for_go()
             log.debug("Server now awake")
             self._dead = False
 
@@ -46,8 +52,8 @@ class TestServerV2(Workspace):
         """
         Stop the server and clean up all resources.
         """
-        if self.server:
-            self.server.teardown()
+        if self._server:
+            self._server.teardown()
 
     def check_server_up(self):
         """
@@ -88,6 +94,11 @@ class TestServerV2(Workspace):
         pass
 
     @property
+    def default_port(self):
+        """Get the default port."""
+        return -1
+
+    @property
     def default_env(self):
         """
         Get the default environment variables.
@@ -116,11 +127,11 @@ class TestServerV2(Workspace):
         """
 
         if server_class == 'thread':
-            return ThreadServer(self.run_cmd, default_port, self.pre_setup, self.kill)
+            return ThreadServer(self.run_cmd, self.default_port, self.pre_setup, self.kill)
         elif server_class == 'docker':
-            return DockerServer(self.image, self.default_env)
+            return DockerServer(self.default_port, self.image, env=self.default_env)
         elif server_class == 'kubernetes':
-            return KubernetesServer(self.image, self.default_env)
+            return KubernetesServer(self.default_port, self.image, env=self.default_env)
         else:
             raise "Invalid server class: {}".format(server_class)
 

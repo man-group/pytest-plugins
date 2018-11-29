@@ -7,7 +7,7 @@ import subprocess
 import logging
 import docker
 
-from pytest_server_fixtures import CONFIG`
+from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 from .base import get_ephemeral_host, get_ephemeral_port, ProcessReader
 
@@ -28,6 +28,7 @@ class ServerClass(threading.Thread):
         """Initialise the server class.
         Server fixture will be started here.
         """
+        super(ServerClass, self).__init__()
 
         # set serverclass thread to a daemon thread
         self.daemon = True
@@ -118,22 +119,35 @@ class DockerServer(ServerClass):
         super(DockerServer, self).__init__(port, env)
 
         self._image = image
-        self._labels = _merge_dicts(labels, dict(test_session_id=CONFIG.test_session_id))
+        self._labels = _merge_dicts(labels, dict(session_id=CONFIG.session_id))
         self._env = env
         self._container = None
 
     def launch(self):
         try:
+            log.debug('launching container')
             self._container = DockerServer.client.containers.run(
-                self.image,
+                self._image,
                 environment=self._env,
                 labels=self._labels,
                 detach=True,
             )
-        except docker.errors.ImageNotFound:
+
+            while not self.is_running():
+                log.debug('waiting for container to start')
+                time.sleep(5)
+
+            log.debug('container is running at %s:%d', self.hostname, self.port)
+
+
+        except docker.errors.ImageNotFound as err:
             log.warn("Failed to start container, image %s not found", self.image)
-        except docker.errors.APIError:
+            log.debug(err)
+            raise
+        except docker.errors.APIError as err:
             log.warn("Failed to start container")
+            log.debug(err)
+            raise
 
         self.start()
 
@@ -154,12 +168,13 @@ class DockerServer(ServerClass):
         except docker.errors.APIError:
             log.warn("Error when stopping the container.")
 
+    @property
     def hostname(self):
-        if not self._is_running():
+        if not self.is_running():
             return None
         return self._container.attrs['NetworkSettings']['IPAddress']
 
-    def _is_running(self):
+    def is_running(self):
         if not self._container:
             return False
 
