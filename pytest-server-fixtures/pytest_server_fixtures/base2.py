@@ -24,7 +24,6 @@ class TestServerV2(Workspace):
         super(TestServerV2, self).__init__(workspace=workspace, delete=delete)
         self._cwd = cwd or os.getcwd()
         self._server = None
-        self._dead = False
 
     def start(self):
         """
@@ -35,16 +34,18 @@ class TestServerV2(Workspace):
         try:
             self._server = self._create_server(server_class)
 
-            if (server_class == 'thread'):
+            if server_class == 'thread':
+                self._server.run_cmd = self.run_cmd
                 self.pre_setup()
 
             self._server.launch()
             self._wait_for_go()
             log.debug("Server now awake")
-            self._dead = False
 
             self.post_setup()
-        except:
+        except OSError as err :
+            log.warn("Error when starting the test server.")
+            log.debug(err)
             self.teardown()
             raise
 
@@ -66,8 +67,6 @@ class TestServerV2(Workspace):
         """
         Get the IP address of the server.
         """
-        if not self._server:
-            return None
         return self._server.hostname
 
     @property
@@ -75,8 +74,6 @@ class TestServerV2(Workspace):
         """
         Get the port number of the server.
         """
-        if not self._server:
-            return -1
         return self._server.port
 
     @property
@@ -117,17 +114,13 @@ class TestServerV2(Workspace):
     def post_setup(self):
         pass
 
-    def kill(self, retries=5):
-        """DEPRECATED: only used if serverclass=thread"""
-        pass
-
     def _create_server(self, server_class):
         """
         Initialise a server class instance
         """
 
         if server_class == 'thread':
-            return ThreadServer(self.run_cmd, self.default_port, self.pre_setup, self.kill)
+            return ThreadServer()
         elif server_class == 'docker':
             return DockerServer(self.default_port, self.image, env=self.default_env)
         elif server_class == 'kubernetes':

@@ -121,20 +121,3 @@ class MongoTestServer(TestServerV2):
             pass
         return False
 
-    def kill(self):
-        """ We override kill, as the parent kill does way too much.  We are single process
-            and simply want to kill the underlying mongod process. """
-        if self.server:
-            try:
-                self.server.exit = True
-                self.server.p.kill()
-                self.server.p.wait()
-                i = 0
-                while self.check_server_up():
-                    time.sleep(0.1)
-                    if i % 10 == 0:
-                        log.info("Waiting for MongoServer.kill()")
-            except OSError:
-                pass
-            self.dead = True
-

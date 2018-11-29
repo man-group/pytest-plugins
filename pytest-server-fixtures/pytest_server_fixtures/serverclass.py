@@ -2,14 +2,21 @@
 Implementation of how a server fixture will run.
 """
 
+import os
+import signal
+import hashlib
 import threading
+import time
 import subprocess
 import logging
 import docker
+import socket
+import traceback
+import errno
 
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
-from .base import get_ephemeral_host, get_ephemeral_port, ProcessReader
+from .base import get_ephemeral_host, get_ephemeral_port, ProcessReader, ServerNotDead, OSX
 
 log = logging.getLogger(__name__)
 
@@ -21,10 +28,14 @@ def _merge_dicts(x, y):
     return z
 
 
+def _is_debug():
+    return 'DEBUG' in os.environ and os.environ['DEBUG'] == '1'
+
+
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
 
-    def __init__(self, port, env=None):
+    def __init__(self):
         """Initialise the server class.
         Server fixture will be started here.
         """
@@ -34,8 +45,7 @@ class ServerClass(threading.Thread):
         self.daemon = True
 
         self._hostname = None
-        self._port = port
-        self._workspace = None
+        self._port = -1
 
     def run(self):
         """In a new thread, wait for the server to return."""
@@ -67,47 +77,123 @@ class ServerClass(threading.Thread):
 class ThreadServer(ServerClass):
     """Thread server class."""
 
-    def __init__(self, run_cmd, port, cwd, env=None, random_port=True, pre_setup=None, post_setup=None, kill=None):
-        super(ThreadServer, self).__init__(port, env)
+    port_seed = 65535
+
+    def __init__(self, cwd=None, env=None, random_port=True):
+        super(ThreadServer, self).__init__()
 
         self._hostname = get_ephemeral_host()
-        self._port = get_ephemeral_port(host=self._hostname) if random_port else port
+        self._port = get_ephemeral_port(host=self._hostname) if random_port else self._get_pesudo_random_port()
 
         self.exit = False
-        self.env = env or dict(os.environ)
-        self.cwd = cwd
+        self._run_cmd = []
+        self._env = env or dict(os.environ)
+        self._cwd = cwd
+        self._proc = None
+
+    @property
+    def run_cmd(self):
+        return _run_cmd
+
+    @run_cmd.setter
+    def run_cmd(self, val):
+        self._run_cmd = val
 
     def launch(self):
-        if 'DEBUG' in os.environ:
-            self.p = subprocess.Popen(self.run_cmd, env=self.env, cwd=self.cwd,
-                                      stdin=subprocess.PIPE if run_stdin else None)
-        else:
-            self.p = subprocess.Popen(self.run_cmd, env=self.env, cwd=self.cwd,
-                                      stdin=subprocess.PIPE if run_stdin else None,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-            ProcessReader(self.p, self.p.stdout, False).start()
-            ProcessReader(self.p, self.p.stderr, True).start()
+        log.debug("Launching thread server.")
+
+        debug = _is_debug()
+
+        args = dict(env=self._env, cwd=self._cwd, preexec_fn=os.setsid)
+        if debug:
+            args['stdout'] = subprocess.PIPE
+            args['stderr'] = subprocess.PIPE
+
+        self._proc = subprocess.Popen(self._run_cmd, **args)
+
+        if debug:
+            ProcessReader(self._proc, self._proc.stdout, False).start()
+            ProcessReader(self._proc, self._proc.stderr, True).start()
 
         self.start()
 
     def run(self):
         """Run in thread"""
-        log.debug("Running server: %s" % ' '.join(self.run_cmd))
-        log.debug("CWD: %s" % self.cwd)
+        log.debug("Running server: %s" % ' '.join(self._run_cmd))
+        log.debug("CWD: %s" % self._cwd)
         try:
-            if self.run_stdin:
-                log.debug("STDIN: %s" % self.run_stdin)
-                self.p.stdin.write(self.run_stdin.encode('utf-8'))
-            if self.p.stdin:
-                self.p.stdin.close()
-            self.p.wait()
+            self._proc.wait()
         except OSError:
             if not self.exit:
                 traceback.print_exc()
 
     def teardown(self):
-        pass
+        if not self._proc:
+            log.warn("No process is running, skip teardown.")
+            return
+
+        if self._terminate():
+            return
+
+        if self._kill():
+            return
+
+        self._cleanup_all()
+
+    def _terminate(self):
+        log.debug("Terminating process")
+        try:
+            self._proc.terminate()
+            if self._wait_for_process():
+                return True
+        except OSError:
+            log.warn("Failed to terminate server.")
+            return False
+
+    def _kill(self):
+        log.debug("Killing process")
+        try:
+            self._proc.kill()
+            if self._wait_for_process():
+                return True
+        except OSError:
+            log.warn("Failed to kill server.")
+            return False
+
+    def _cleanup_all(self):
+        """
+        Kill all child processes spawned with the same PGID
+        """
+
+        log.debug("Killing process group.")
+
+        # Prevent traceback printed when the server goes away as we kill it
+        self.exit = True
+
+        try:
+            pgid = os.getpgid(self._proc.pid)
+            os.killpg(pgid, signal.SIGKILL)
+        except OSError:
+            log.warn("Failed to cleanup processes. Giving up...")
+
+    def _wait_for_process(self, interval=1, max_retries=10):
+        if not self._proc:
+            return True
+
+        retries = 0
+        while self._proc.poll() is None:
+            retries+=1
+            log.debug("Waiting for server to die (retries: %d)", retries)
+            time.sleep(interval)
+            if retries > max_retries:
+                return False
+
+        return True
+
+    def _get_pesudo_random_port(self):
+        sig = (os.environ['USER'] + self.__class__.__name__).encode('utf-8')
+        return ThreadServer.port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)
+
 
 
 class DockerServer(ServerClass):
@@ -116,7 +202,7 @@ class DockerServer(ServerClass):
     client = docker.from_env()
 
     def __init__(self, port, image, labels={}, env={}):
-        super(DockerServer, self).__init__(port, env)
+        super(DockerServer, self).__init__()
 
         self._image = image
         self._labels = _merge_dicts(labels, dict(session_id=CONFIG.session_id))
