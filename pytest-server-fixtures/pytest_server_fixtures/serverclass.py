@@ -128,6 +128,11 @@ class ThreadServer(ServerClass):
             if not self.exit:
                 traceback.print_exc()
 
+    def is_running(self):
+        if not self._proc:
+            return False
+        return self._proc.poll() is None
+
     def teardown(self):
         if self._dead:
             log.debug("Already teardown, skip")
@@ -188,7 +193,7 @@ class ThreadServer(ServerClass):
     def _wait_for_process(self, interval=1, max_retries=10):
         retries = 0
         log.debug("Wait for process")
-        while self._proc.poll() is None:
+        while self.is_running():
             retries+=1
             log.debug("Still waiting for server to die (retries: %d)", retries)
             time.sleep(interval)
@@ -200,7 +205,6 @@ class ThreadServer(ServerClass):
     def _get_pesudo_random_port(self):
         sig = (os.environ['USER'] + self.__class__.__name__).encode('utf-8')
         return ThreadServer.port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)
-
 
 
 class DockerServer(ServerClass):
