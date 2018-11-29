@@ -129,7 +129,7 @@ class ThreadServer(ServerClass):
 
     def teardown(self):
         if not self._proc:
-            log.warn("No process is running, skip teardown.")
+            log.warning("No process is running, skip teardown.")
             return
 
         if self._terminate():
@@ -147,7 +147,7 @@ class ThreadServer(ServerClass):
             if self._wait_for_process():
                 return True
         except OSError:
-            log.warn("Failed to terminate server.")
+            log.warning("Failed to terminate server.")
             return False
 
     def _kill(self):
@@ -157,7 +157,7 @@ class ThreadServer(ServerClass):
             if self._wait_for_process():
                 return True
         except OSError:
-            log.warn("Failed to kill server.")
+            log.warning("Failed to kill server.")
             return False
 
     def _cleanup_all(self):
@@ -174,7 +174,7 @@ class ThreadServer(ServerClass):
             pgid = os.getpgid(self._proc.pid)
             os.killpg(pgid, signal.SIGKILL)
         except OSError:
-            log.warn("Failed to cleanup processes. Giving up...")
+            log.warning("Failed to cleanup processes. Giving up...")
 
     def _wait_for_process(self, interval=1, max_retries=10):
         if not self._proc:
@@ -227,11 +227,11 @@ class DockerServer(ServerClass):
 
 
         except docker.errors.ImageNotFound as err:
-            log.warn("Failed to start container, image %s not found", self.image)
+            log.warning("Failed to start container, image %s not found", self.image)
             log.debug(err)
             raise
         except docker.errors.APIError as err:
-            log.warn("Failed to start container")
+            log.warning("Failed to start container")
             log.debug(err)
             raise
 
@@ -241,7 +241,7 @@ class DockerServer(ServerClass):
         try:
             self._container.wait()
         except docker.errors.APIError:
-            log.warn("Error while waiting for container.")
+            log.warning("Error while waiting for container.")
             log.debug(self._container.logs())
 
     def teardown(self):
@@ -252,7 +252,7 @@ class DockerServer(ServerClass):
             self._container.stop()
             self._container.remove()
         except docker.errors.APIError:
-            log.warn("Error when stopping the container.")
+            log.warning("Error when stopping the container.")
 
     @property
     def hostname(self):
@@ -268,7 +268,7 @@ class DockerServer(ServerClass):
             self._container.reload()
             return self._container.status == 'running'
         except docker.errors.APIError:
-            log.warn("Failed when getting container status, container might have been removed.")
+            log.warning("Failed when getting container status, container might have been removed.")
             return False
 
 

@@ -44,7 +44,7 @@ class TestServerV2(Workspace):
 
             self.post_setup()
         except OSError as err :
-            log.warn("Error when starting the test server.")
+            log.warning("Error when starting the test server.")
             log.debug(err)
             self.teardown()
             raise
