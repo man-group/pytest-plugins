@@ -83,18 +83,23 @@ class MongoTestServer(TestServerV2):
     def __init__(self, delete=True, **kwargs):
         super(MongoTestServer, self).__init__(delete=delete, **kwargs)
 
-    @property
-    def run_cmd(self):
-        return [os.path.join(CONFIG.mongo_bin, 'mongod'),
-                '--bind_ip=%s' % self.hostname,
-                '--port=%s' % self.port,
-                '--dbpath=%s' % self.workspace,
-                '--nounixsocket',
-                '--syncdelay', '0',
-                '--nojournal',
-                '--quiet',
-                '--storageEngine=ephemeralForTest'
-                ]
+    def get_cmd(self, **kwargs):
+        cmd = [
+            CONFIG.mongo_executable,
+            '--nounixsocket',
+            '--syncdelay=0',
+            '--nojournal',
+            '--quiet',
+        ]
+
+        if 'hostname' in kwargs:
+            cmd.append('--bind_ip=%s' % kwargs['hostname'])
+        if 'port' in kwargs:
+            cmd.append('--port=%s' % kwargs['port'])
+        if 'workspace' in kwargs:
+            cmd.append('--dbpath=%s' % kwargs['workspace'])
+
+        return cmd
 
     @property
     def image(self):

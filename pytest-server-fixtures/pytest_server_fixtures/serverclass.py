@@ -35,7 +35,7 @@ def _is_debug():
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
 
-    def __init__(self):
+    def __init__(self, get_cmd, env, port, hostname=None):
         """Initialise the server class.
         Server fixture will be started here.
         """
@@ -44,8 +44,10 @@ class ServerClass(threading.Thread):
         # set serverclass thread to a daemon thread
         self.daemon = True
 
-        self._hostname = None
-        self._port = -1
+        self._get_cmd = get_cmd
+        self._env = env
+        self._port = port
+        self._hostname = hostname
 
     def run(self):
         """In a new thread, wait for the server to return."""
@@ -79,33 +81,40 @@ class ThreadServer(ServerClass):
 
     port_seed = 65535
 
-    def __init__(self, cwd=None, env=None, random_port=True):
-        super(ThreadServer, self).__init__()
+    def __init__(self, get_cmd, env, workspace, cwd=None, random_port=True, port_seed=65535):
+        hostname = get_ephemeral_host()
 
-        self._hostname = get_ephemeral_host()
-        self._port = get_ephemeral_port(host=self._hostname) if random_port else self._get_pesudo_random_port()
+        super(ThreadServer, self).__init__(
+            get_cmd,
+            env,
+            get_ephemeral_port(host=hostname) if random_port else self._get_pesudo_random_port(port_seed),
+            hostname,
+        )
 
         self.exit = False
-        self._run_cmd = []
-        self._env = env or dict(os.environ)
+        self._workspace = workspace
         self._cwd = cwd
         self._proc = None
         self._dead = False
-
-    @property
-    def run_cmd(self):
-        return _run_cmd
-
-    @run_cmd.setter
-    def run_cmd(self, val):
-        self._run_cmd = val
+        self._run_cmd = []
 
     def launch(self):
         log.debug("Launching thread server.")
 
+        self._run_cmd = self._get_cmd(
+            hostname=self._hostname,
+            port=self._port,
+            workspace=self._workspace,
+        )
+
+        args = dict(
+            env=self._env,
+            cwd=self._cwd,
+            preexec_fn=os.setsid
+        )
+
         debug = _is_debug()
 
-        args = dict(env=self._env, cwd=self._cwd, preexec_fn=os.setsid)
         if debug:
             args['stdout'] = subprocess.PIPE
             args['stderr'] = subprocess.PIPE
@@ -202,9 +211,9 @@ class ThreadServer(ServerClass):
 
         return True
 
-    def _get_pesudo_random_port(self):
+    def _get_pesudo_random_port(self, port_seed):
         sig = (os.environ['USER'] + self.__class__.__name__).encode('utf-8')
-        return ThreadServer.port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)
+        return port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)
 
 
 class DockerServer(ServerClass):
@@ -212,12 +221,12 @@ class DockerServer(ServerClass):
 
     client = docker.from_env()
 
-    def __init__(self, port, image, labels={}, env={}):
-        super(DockerServer, self).__init__()
+    def __init__(self, get_cmd, env, port, image, labels={}):
+        super(DockerServer, self).__init__(get_cmd, env, port)
 
         self._image = image
         self._labels = _merge_dicts(labels, dict(session_id=CONFIG.session_id))
-        self._env = env
+
         self._container = None
 
     def launch(self):
@@ -286,8 +295,9 @@ class DockerServer(ServerClass):
 class KubernetesServer(ServerClass):
     """Kubernetes server class."""
 
-    def __init__(self, image, env=None):
-        pass
+    def __init__(self, get_cmd, env, port, image):
+        super(KubernetesServer, self).__init__(get_cmd, env, port)
+        self._image = image
 
     def run(self):
         pass

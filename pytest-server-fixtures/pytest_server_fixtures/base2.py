@@ -35,8 +35,6 @@ class TestServerV2(Workspace):
             self._server = self._create_server(server_class)
 
             if server_class == 'thread':
-                # set run_cmd after self._server is set as we are reading host/port from there
-                self._server.run_cmd = self.run_cmd
                 self.pre_setup()
 
             self._server.launch()
@@ -94,18 +92,13 @@ class TestServerV2(Workspace):
     @property
     def default_port(self):
         """Get the default port."""
-        return -1
+        raise NotImplementedError("Concret class should implement this")
 
     @property
-    def default_env(self):
-        """
-        Get the default environment variables.
-        """
-        return []
+    def env(self):
+        return dict()
 
-    @property
-    def run_cmd(self):
-        """DEPRECATED: only used if serverclass=thread"""
+    def get_cmd(self, **kwargs):
         raise NotImplementedError("Concrete class should implement this")
 
     def pre_setup(self):
@@ -121,11 +114,11 @@ class TestServerV2(Workspace):
         """
 
         if server_class == 'thread':
-            return ThreadServer()
+            return ThreadServer(self.get_cmd, self.env, str(self.workspace), port_seed=self.default_port)
         elif server_class == 'docker':
-            return DockerServer(self.default_port, self.image, env=self.default_env)
+            return DockerServer(self.get_cmd, self.env, self.default_port, image=self.image)
         elif server_class == 'kubernetes':
-            return KubernetesServer(self.default_port, self.image, env=self.default_env)
+            return KubernetesServer(self.get_cmd, self.env, self.default_port, image=self.image)
         else:
             raise "Invalid server class: {}".format(server_class)
 
