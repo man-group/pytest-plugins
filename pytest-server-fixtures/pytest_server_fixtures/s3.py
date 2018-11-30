@@ -61,6 +61,7 @@ class MinioServer(HTTPTestServer):
         env = kwargs.get('env', os.environ.copy())
         env.update({"MINIO_ACCESS_KEY": self.aws_access_key_id, "MINIO_SECRET_KEY": self.aws_secret_access_key})
         kwargs['env'] = env
+        kwargs['hostname'] = "0.0.0.0" # minio doesn't seem to allow binding to 127.0.0.0/8
         super(MinioServer, self).__init__(workspace=workspace, delete=delete, preserve_sys_path=preserve_sys_path, **kwargs)
 
     def get_s3_client(self):
@@ -94,7 +95,7 @@ class MinioServer(HTTPTestServer):
             CONFIG.minio_executable,
             "server",
             "--address",
-            ":{}".format(self.port),
+            "{}:{}".format(self.hostname, self.port),
             text_type(self.datadir),
         ]
         return cmdargs
