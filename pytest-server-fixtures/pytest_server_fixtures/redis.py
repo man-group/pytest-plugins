@@ -8,11 +8,12 @@ from __future__ import absolute_import
 import socket
 
 import pytest
+import redis
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
 
-from .base import TestServer
+from .base2 import TestServerV2
 
 
 def _redis_server(request):
@@ -46,28 +47,38 @@ def redis_server_sess(request):
     return _redis_server(request)
 
 
-class RedisTestServer(TestServer):
+class RedisTestServer(TestServerV2):
     """This will look for 'redis_executable' in configuration and use as the
     redis-server to run.
     """
     port_seed = 65532
 
     def __init__(self, db=0, **kwargs):
-        global redis
-        try:
-            import redis
-        except ImportError:
-            pytest.skip('redis not installed, skipping test')
         self.db = db
         super(RedisTestServer, self).__init__(**kwargs)
-        self.api = redis.Redis(host=self.hostname, port=self.port, db=self.db)
+        self._api = None
+
+    @property
+    def _config_file(self):
+        return self.workspace / 'redis.conf'
+
+    @property
+    def api(self):
+        if not self._server.is_running():
+            raise "Redis not ready"
+        if not self._api:
+            self._api = redis.Redis(host=self.hostname, port=self.port, db=self.db)
+        return self._api
 
     @property
     def run_cmd(self):
-        return [CONFIG.redis_executable, '-']
+        return [CONFIG.redis_executable, self._config_file]
 
     @property
-    def run_stdin(self):
+    def image(self):
+        return CONFIG.redis_image
+
+    def pre_setup(self):
         # these don't work on redis-server 2.2.12 on ubuntu precise32.
         # Need to come up with a way of detecting redis server version
         # and setting the appropriate config variant.
@@ -102,7 +113,9 @@ class RedisTestServer(TestServer):
             'maxmemory': "2G",
         }).strip()
         # print "---------------\ncfg:\n%s\n---------------" % cfg
-        return cfg
+
+        f = open(self._config_file, "w")
+        f.write(cfg)
 
     def check_server_up(self):
         """ Ping the server
@@ -111,11 +124,7 @@ class RedisTestServer(TestServer):
             print("pinging Redis at %s:%s db %s" % (
                 self.hostname, self.port, self.db
             ))
-            return redis.Redis(
-                host=self.hostname,
-                port=self.port,
-                db=self.db
-            ).ping()
+            return self.api.ping()
         except redis.ConnectionError as e:
             print("server not up yet (%s)" % e)
             return False
