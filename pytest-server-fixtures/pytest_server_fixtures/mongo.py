@@ -77,15 +77,15 @@ def mongo_server_module():
 
 
 class MongoTestServer(TestServerV2):
-    # Use a random port for Mongo, as we run tests in parallel
-    random_port = True
 
     def __init__(self, delete=True, **kwargs):
         super(MongoTestServer, self).__init__(delete=delete, **kwargs)
+        self._port = self._get_port(27017)
 
     def get_cmd(self, **kwargs):
         cmd = [
             CONFIG.mongo_executable,
+            '--port=%s' % self.port,
             '--nounixsocket',
             '--syncdelay=0',
             '--nojournal',
@@ -94,8 +94,6 @@ class MongoTestServer(TestServerV2):
 
         if 'hostname' in kwargs:
             cmd.append('--bind_ip=%s' % kwargs['hostname'])
-        if 'port' in kwargs:
-            cmd.append('--port=%s' % kwargs['port'])
         if 'workspace' in kwargs:
             cmd.append('--dbpath=%s' % kwargs['workspace'])
 
@@ -106,8 +104,8 @@ class MongoTestServer(TestServerV2):
         return CONFIG.mongo_image
 
     @property
-    def default_port(self):
-        return 27017
+    def port(self):
+        return self._port
 
     def check_server_up(self):
         """Test connection to the server."""

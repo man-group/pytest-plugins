@@ -16,7 +16,7 @@ import errno
 
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
-from .base import get_ephemeral_host, get_ephemeral_port, ProcessReader, ServerNotDead, OSX
+from .base import get_ephemeral_host, ProcessReader, ServerNotDead, OSX
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def _is_debug():
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
 
-    def __init__(self, get_cmd, env, port, hostname=None):
+    def __init__(self, get_cmd, env, hostname=None):
         """Initialise the server class.
         Server fixture will be started here.
         """
@@ -46,7 +46,6 @@ class ServerClass(threading.Thread):
 
         self._get_cmd = get_cmd
         self._env = env
-        self._port = port
         self._hostname = hostname
 
     def run(self):
@@ -70,24 +69,16 @@ class ServerClass(threading.Thread):
         """Get server's hostname."""
         return self._hostname
 
-    @property
-    def port(self):
-        """Get server's port."""
-        return self._port
-
 
 class ThreadServer(ServerClass):
     """Thread server class."""
 
-    port_seed = 65535
-
-    def __init__(self, get_cmd, env, workspace, cwd=None, random_port=True, port_seed=65535):
+    def __init__(self, get_cmd, env, workspace, cwd=None):
         hostname = get_ephemeral_host()
 
         super(ThreadServer, self).__init__(
             get_cmd,
             env,
-            get_ephemeral_port(host=hostname) if random_port else self._get_pesudo_random_port(port_seed),
             hostname,
         )
 
@@ -103,7 +94,6 @@ class ThreadServer(ServerClass):
 
         self._run_cmd = self._get_cmd(
             hostname=self._hostname,
-            port=self._port,
             workspace=self._workspace,
         )
 
@@ -211,18 +201,14 @@ class ThreadServer(ServerClass):
 
         return True
 
-    def _get_pesudo_random_port(self, port_seed):
-        sig = (os.environ['USER'] + self.__class__.__name__).encode('utf-8')
-        return port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)
-
 
 class DockerServer(ServerClass):
     """Docker server class."""
 
     client = docker.from_env()
 
-    def __init__(self, get_cmd, env, port, image, labels={}):
-        super(DockerServer, self).__init__(get_cmd, env, port)
+    def __init__(self, get_cmd, env, image, labels={}):
+        super(DockerServer, self).__init__(get_cmd, env)
 
         self._image = image
         self._labels = _merge_dicts(labels, dict(session_id=CONFIG.session_id))
@@ -243,7 +229,7 @@ class DockerServer(ServerClass):
                 log.debug('waiting for container to start')
                 time.sleep(5)
 
-            log.debug('container is running at %s:%d', self.hostname, self.port)
+            log.debug('container is running at %s', self.hostname)
 
 
         except docker.errors.ImageNotFound as err:
@@ -295,8 +281,10 @@ class DockerServer(ServerClass):
 class KubernetesServer(ServerClass):
     """Kubernetes server class."""
 
-    def __init__(self, get_cmd, env, port, image):
-        super(KubernetesServer, self).__init__(get_cmd, env, port)
+    random_port = False
+
+    def __init__(self, get_cmd, env, image):
+        super(KubernetesServer, self).__init__(get_cmd, env)
         self._image = image
 
     def run(self):

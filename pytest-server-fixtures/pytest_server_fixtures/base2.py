@@ -6,12 +6,15 @@ from datetime import datetime
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 from .serverclass import ThreadServer, DockerServer, KubernetesServer
+from .base import get_ephemeral_port
 
 log = logging.getLogger(__name__)
 
 
 class TestServerV2(Workspace):
     """Base class of a v2 test server."""
+    random_port = True
+    port_seed = 65535
 
     def __init__(self, cwd=None, workspace=None, delete=None):
         """
@@ -23,18 +26,18 @@ class TestServerV2(Workspace):
         """
         super(TestServerV2, self).__init__(workspace=workspace, delete=delete)
         self._cwd = cwd or os.getcwd()
+        self._server_class = CONFIG.server_class
         self._server = None
 
     def start(self):
         """
         Start the test server.
         """
-        server_class = CONFIG.server_class
 
         try:
-            self._server = self._create_server(server_class)
+            self._server = self._create_server()
 
-            if server_class == 'thread':
+            if self._server_class == 'thread':
                 self.pre_setup()
 
             self._server.launch()
@@ -73,7 +76,7 @@ class TestServerV2(Workspace):
         """
         Get the port number of the server.
         """
-        return self._server.port
+        raise NotImplementedError("Concret class should implement this")
 
     @property
     def cwd(self):
@@ -90,11 +93,6 @@ class TestServerV2(Workspace):
         pass
 
     @property
-    def default_port(self):
-        """Get the default port."""
-        raise NotImplementedError("Concret class should implement this")
-
-    @property
     def env(self):
         return dict()
 
@@ -108,17 +106,17 @@ class TestServerV2(Workspace):
     def post_setup(self):
         pass
 
-    def _create_server(self, server_class):
+    def _create_server(self):
         """
         Initialise a server class instance
         """
 
-        if server_class == 'thread':
-            return ThreadServer(self.get_cmd, self.env, str(self.workspace), port_seed=self.default_port)
-        elif server_class == 'docker':
-            return DockerServer(self.get_cmd, self.env, self.default_port, image=self.image)
-        elif server_class == 'kubernetes':
-            return KubernetesServer(self.get_cmd, self.env, self.default_port, image=self.image)
+        if self._server_class == 'thread':
+            return ThreadServer(self.get_cmd, self.env, str(self.workspace))
+        elif self._server_class == 'docker':
+            return DockerServer(self.get_cmd, self.env, image=self.image)
+        elif self._server_class == 'kubernetes':
+            return KubernetesServer(self.get_cmd, self.env, image=self.image)
         else:
             raise "Invalid server class: {}".format(server_class)
 
@@ -165,3 +163,17 @@ class TestServerV2(Workspace):
 
         raise ValueError("Server failed to start up after waiting %s. Giving up!"
                          % str(datetime.now() - start_time))
+
+    def _get_port(self, default_port):
+        """
+        Get a random or pseudo-random port based on config.
+        """
+        if self._server_class != 'thread':
+            return default_port
+
+        return get_ephemeral_port() if self.random_port else self._get_pseudo_random_port(self.port_seed)
+
+
+    def _get_pseudo_random_port(self):
+        sig = (os.environ['USER'] + self.__class__.__name__).encode('utf-8')
+        return self.port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)

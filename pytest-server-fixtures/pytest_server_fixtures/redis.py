@@ -51,12 +51,14 @@ class RedisTestServer(TestServerV2):
     redis-server to run.
     """
 
-    def __init__(self, db=0, **kwargs):
+    def __init__(self, db=0, delete=True, **kwargs):
         global redis
         import redis
+
+        super(RedisTestServer, self).__init__(delete=delete, **kwargs)
         self.db = db
-        super(RedisTestServer, self).__init__(**kwargs)
         self._api = None
+        self._port = self._get_port(6379)
 
     @property
     def api(self):
@@ -69,6 +71,7 @@ class RedisTestServer(TestServerV2):
     def get_cmd(self, **kwargs):
         cmd = [
             CONFIG.redis_executable,
+            "--port", str(self.port),
             "--timeout", "0",
             "--loglevel", "notice",
             "--databases", "1",
@@ -81,8 +84,6 @@ class RedisTestServer(TestServerV2):
 
         if 'hostname' in kwargs:
             cmd += ["--bind", "%s" % kwargs['hostname']]
-        if 'port' in kwargs:
-            cmd += ["--port", "%s" % kwargs['port']]
 
         return cmd
 
@@ -91,8 +92,8 @@ class RedisTestServer(TestServerV2):
         return CONFIG.redis_image
 
     @property
-    def default_port(self):
-        return 6379
+    def port(self):
+        return self._port
 
     def check_server_up(self):
         """ Ping the server
