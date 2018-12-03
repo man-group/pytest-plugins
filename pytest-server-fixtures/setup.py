@@ -27,8 +27,7 @@ install_requires = ['pytest<4.0.0',
                     'six',
                     'future',
                     'requests',
-                    'kubernetes',
-                    'docker',
+                    'retry',
                     ]
 
 extras_require = {
@@ -37,7 +36,9 @@ extras_require = {
     'postgres': ["psycopg2"],
     'rethinkdb':  ["rethinkdb"],
     'redis':  ["redis"],
-    's3': ["boto3"]
+    's3': ["boto3"],
+    'docker': ["docker"],
+    'kubernetes': ["kubernetes"],
 }
 
 tests_require = [

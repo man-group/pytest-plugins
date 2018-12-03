@@ -137,6 +137,9 @@ class RethinkDBServer(TestServerV2):
 
         if 'hostname' in kwargs:
             cmd += ['--bind', kwargs['hostname']]
+        else:
+            cmd += ['--bind', 'all']
+
         if 'workspace' in kwargs:
             cmd += ['--directory', str(kwargs['workspace'] / 'db')]
 

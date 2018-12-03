@@ -12,7 +12,10 @@ import logging
 import socket
 import traceback
 import errno
+import uuid
+import yaml
 
+from retry import retry
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 from .base import get_ephemeral_host, ProcessReader, ServerNotDead, OSX
@@ -57,11 +60,6 @@ class ServerClass(threading.Thread):
 
     def teardown(self):
         """Kill the server."""
-        pass
-
-    def is_running(self):
-        """Check if the server is running."""
-        pass
 
     @property
     def hostname(self):
@@ -202,7 +200,6 @@ class ThreadServer(ServerClass):
 class DockerServer(ServerClass):
     """Docker server class."""
 
-
     def __init__(self, get_cmd, env, image, labels={}):
         # defer import of docker
         global docker
@@ -211,9 +208,11 @@ class DockerServer(ServerClass):
         super(DockerServer, self).__init__(get_cmd, env)
 
         self._image = image
-        self._labels = _merge_dicts(labels, dict(
-            server_fixtures_session_id=CONFIG.session_id,
-        ))
+        self._labels = _merge_dicts(labels, {
+            'server-fixture': 'docker-server-fixtures',
+            'server-fixtures/session-id': CONFIG.session_id,
+        })
+        self._run_cmd = get_cmd()
 
         self._client = docker.from_env()
         self._container = None
@@ -222,7 +221,8 @@ class DockerServer(ServerClass):
         try:
             log.debug('launching container')
             self._container = self._client.containers.run(
-                self._image,
+                image=self._image,
+                command=self._run_cmd,
                 environment=self._env,
                 labels=self._labels,
                 detach=True,
@@ -233,8 +233,6 @@ class DockerServer(ServerClass):
                 time.sleep(5)
 
             log.debug('container is running at %s', self.hostname)
-
-
         except docker.errors.ImageNotFound as err:
             log.warning("Failed to start container, image %s not found", self.image)
             log.debug(err)
@@ -284,29 +282,129 @@ class DockerServer(ServerClass):
             log.warning("Failed when getting container status, container might have been removed.")
             return False
 
+class KubernetesPodNotRunningException(Exception):
+    """Thrown when a kubernetes pod is not in running state."""
+    pass
+
+class KubernetesPodNotTerminatedException(Exception):
+    """Thrown when a kubernetes pod is still running."""
+    pass
 
 class KubernetesServer(ServerClass):
     """Kubernetes server class."""
 
-    random_port = False
-
     def __init__(self, get_cmd, env, image, labels={}):
-        global kubernetes
-        import kubernetes
+        global ApiException
+        global k8sclient
+        from kubernetes import config
+        from kubernetes import client as k8sclient
+        from kubernetes.client.rest import ApiException
+
+        config.load_kube_config()
 
         super(KubernetesServer, self).__init__(get_cmd, env)
-        self._image = image
-        self._labels = _merge_dicts(labels, dict(
-            server_fixtures_session_id=CONFIG.session_id,
-        ))
 
-        self._pod = None
+        self._namespace = 'default'
+        self._name = 'server-fixtures-%s' % uuid.uuid4()
+
+        self._image = image
+        self._run_cmd = get_cmd()
+        self._labels = _merge_dicts(labels, {
+            'server-fixtures': 'kubernetes-server-fixtures',
+            'server-fixtures/session-id': CONFIG.session_id,
+        })
+
+        self._v1api = k8sclient.CoreV1Api()
 
     def launch(self):
         try:
-            log.debug('launching pod')
+            log.debug('%s Launching pod' % self._log_prefix)
+            self._create_pod()
+            self._wait_until_running()
+            log.debug('%s Pod is running' % self._log_prefix)
         except:
-            log.warning('Error when launching pod')
+            log.warning('%s Error while launching pod', self._log_prefix)
+            raise
 
     def run(self):
         pass
+
+    def teardown(self):
+        self._delete_pod()
+        # TODO: provide an flag to skip the wait to speed up the tests?
+        self._wait_until_teardown()
+
+    @property
+    def image(self):
+        return self._image
+
+    @property
+    def hostname(self):
+        return self._get_pod_status().pod_ip
+
+    @property
+    def namespace(self):
+        return self._namespace
+
+    @property
+    def name(self):
+        return self._name
+
+    def _get_pod_spec(self):
+        container = k8sclient.V1Container(
+            name='fixture',
+            image=self.image,
+            command=self._run_cmd
+        )
+
+        return k8sclient.V1PodSpec(
+            containers=[container]
+        )
+
+    def _create_pod(self):
+        try:
+            pod = k8sclient.V1Pod()
+            pod.metadata = k8sclient.V1ObjectMeta(name=self.name)
+            pod.spec = self._get_pod_spec()
+            self._v1api.create_namespaced_pod(namespace=self.namespace, body=pod)
+        except ApiException as e:
+            log.error("%s Failed to create pod: %s", self._log_prefix, e.reason)
+            raise
+
+    def _delete_pod(self):
+        try:
+            body = k8sclient.V1DeleteOptions()
+            # delete the pod without waiting
+            body.grace_period_seconds = 1
+            self._v1api.delete_namespaced_pod(namespace=self.namespace, name=self.name, body=body)
+        except ApiException as e:
+            log.error("%s Failed to delete pod: %s", self._log_prefix, e.reason)
+
+    def _get_pod_status(self):
+        try:
+            resp = self._v1api.read_namespaced_pod_status(namespace=self.namespace, name=self.name)
+            return resp.status
+        except ApiException as e:
+            log.error("%s Failed to read pod status: %s", self._log_prefix, e.reason)
+            raise
+
+    @retry(KubernetesPodNotRunningException, tries=28, delay=1, backoff=2, max_delay=10)
+    def _wait_until_running(self):
+        current_phase = self._get_pod_status().phase
+        log.debug("%s Waiting for pod status 'Running' (current='%s')", self._log_prefix, current_phase)
+        if current_phase != 'Running':
+            raise KubernetesPodNotRunningException()
+
+    @retry(KubernetesPodNotTerminatedException, tries=28, delay=1, backoff=2, max_delay=10)
+    def _wait_until_teardown(self):
+        try:
+            self._get_pod_status()
+            raise KubernetesPodNotTerminatedException()
+        except ApiException as e:
+            if e.status == 404:
+                return
+            raise
+
+    @property
+    def _log_prefix(self):
+        return "[K8S %s:%s]" % (self.namespace, self.name)

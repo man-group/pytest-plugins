@@ -8,7 +8,9 @@ EXTRA_DEPS = pypandoc       \
              pymongo        \
              psycopg2       \
              boto3          \
-             rethinkdb
+             rethinkdb      \
+             docker         \
+             kubernetes
 
 COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in LICENSE
 UPLOAD_OPTS =

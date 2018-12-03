@@ -49,7 +49,6 @@ class TestServerV2(Workspace):
         except OSError as err :
             log.warning("Error when starting the test server.")
             log.debug(err)
-            self.teardown()
             raise
 
     def teardown(self):
