@@ -9,7 +9,6 @@ import threading
 import time
 import subprocess
 import logging
-import docker
 import socket
 import traceback
 import errno
@@ -203,20 +202,26 @@ class ThreadServer(ServerClass):
 class DockerServer(ServerClass):
     """Docker server class."""
 
-    client = docker.from_env()
 
     def __init__(self, get_cmd, env, image, labels={}):
+        # defer import of docker
+        global docker
+        import docker
+
         super(DockerServer, self).__init__(get_cmd, env)
 
         self._image = image
-        self._labels = _merge_dicts(labels, dict(session_id=CONFIG.session_id))
+        self._labels = _merge_dicts(labels, dict(
+            server_fixtures_session_id=CONFIG.session_id,
+        ))
 
+        self._client = docker.from_env()
         self._container = None
 
     def launch(self):
         try:
             log.debug('launching container')
-            self._container = DockerServer.client.containers.run(
+            self._container = self._client.containers.run(
                 self._image,
                 environment=self._env,
                 labels=self._labels,
@@ -285,9 +290,23 @@ class KubernetesServer(ServerClass):
 
     random_port = False
 
-    def __init__(self, get_cmd, env, image):
+    def __init__(self, get_cmd, env, image, labels={}):
+        global kubernetes
+        import kubernetes
+
         super(KubernetesServer, self).__init__(get_cmd, env)
         self._image = image
+        self._labels = _merge_dicts(labels, dict(
+            server_fixtures_session_id=CONFIG.session_id,
+        ))
+
+        self._pod = None
+
+    def launch(self):
+        try:
+            log.debug('launching pod')
+        except:
+            log.warning('Error when launching pod')
 
     def run(self):
         pass
