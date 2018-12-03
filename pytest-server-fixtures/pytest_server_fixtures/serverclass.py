@@ -4,7 +4,6 @@ Implementation of how a server fixture will run.
 
 import os
 import signal
-import hashlib
 import threading
 import time
 import subprocess

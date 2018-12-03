@@ -1,4 +1,5 @@
 import os
+import hashlib
 import logging
 import time
 from datetime import datetime
@@ -46,7 +47,7 @@ class TestServerV2(Workspace):
             log.debug("Server now awake")
 
             self.post_setup()
-        except OSError as err :
+        except OSError as err:
             log.warning("Error when starting the test server.")
             log.debug(err)
             raise
@@ -90,13 +91,19 @@ class TestServerV2(Workspace):
         """
         Get the Docker image of the server.
         """
-        pass
+        raise NotImplementedError("Concret class should implement this")
 
     @property
     def env(self):
+        """
+        Get the environment variables for running the server fixture.
+        """
         return dict()
 
     def get_cmd(self, **kwargs):
+        """
+        Get the command to run the server fixtures.
+        """
         raise NotImplementedError("Concrete class should implement this")
 
     def pre_setup(self):
@@ -104,6 +111,9 @@ class TestServerV2(Workspace):
         pass
 
     def post_setup(self):
+        """
+        Set up step to be run after server is up.
+        """
         pass
 
     def _create_server(self):
@@ -118,12 +128,11 @@ class TestServerV2(Workspace):
                 workspace=self.workspace,
                 random_hostname=self.random_hostname,
             )
-        elif self._server_class == 'docker':
+        if self._server_class == 'docker':
             return DockerServer(self.get_cmd, self.env, image=self.image)
-        elif self._server_class == 'kubernetes':
+        if self._server_class == 'kubernetes':
             return KubernetesServer(self.get_cmd, self.env, image=self.image)
-        else:
-            raise "Invalid server class: {}".format(self._server_class)
+        raise "Invalid server class: {}".format(self._server_class)
 
     def _wait_for_go(self, start_interval=0.1, retries_per_interval=3, retry_limit=28, base=2.0):
         """
@@ -176,9 +185,14 @@ class TestServerV2(Workspace):
         if self._server_class != 'thread':
             return default_port
 
-        return get_ephemeral_port() if self.random_port else self._get_pseudo_random_port(self.port_seed)
-
+        return (
+            get_ephemeral_port() if self.random_port
+            else self._get_pseudo_random_port())
 
     def _get_pseudo_random_port(self):
+        """
+        Get a pseudo random port based on port_seed,
+        classname and current username.
+        """
         sig = (os.environ['USER'] + self.__class__.__name__).encode('utf-8')
         return self.port_seed - int(hashlib.sha1(sig).hexdigest()[:3], 16)
