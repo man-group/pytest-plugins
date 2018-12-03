@@ -95,7 +95,7 @@ class MongoTestServer(TestServerV2):
         if 'hostname' in kwargs:
             cmd.append('--bind_ip=%s' % kwargs['hostname'])
         if 'workspace' in kwargs:
-            cmd.append('--dbpath=%s' % kwargs['workspace'])
+            cmd.append('--dbpath=%s' % str(kwargs['workspace']))
 
         return cmd
 

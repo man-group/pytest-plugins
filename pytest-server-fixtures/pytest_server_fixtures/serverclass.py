@@ -73,13 +73,11 @@ class ServerClass(threading.Thread):
 class ThreadServer(ServerClass):
     """Thread server class."""
 
-    def __init__(self, get_cmd, env, workspace, cwd=None):
-        hostname = get_ephemeral_host()
-
+    def __init__(self, get_cmd, env, workspace, cwd=None, random_hostname=True):
         super(ThreadServer, self).__init__(
             get_cmd,
             env,
-            hostname,
+            hostname=(get_ephemeral_host() if random_hostname else CONFIG.fixture_hostname),
         )
 
         self.exit = False
@@ -259,6 +257,10 @@ class DockerServer(ServerClass):
             self._container.remove()
         except docker.errors.APIError:
             log.warning("Error when stopping the container.")
+
+    @property
+    def image(self):
+        return self._image
 
     @property
     def hostname(self):

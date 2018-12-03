@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 class TestServerV2(Workspace):
     """Base class of a v2 test server."""
     random_port = True
+    random_hostname = True
     port_seed = 65535
 
     def __init__(self, cwd=None, workspace=None, delete=None):
@@ -112,7 +113,12 @@ class TestServerV2(Workspace):
         """
 
         if self._server_class == 'thread':
-            return ThreadServer(self.get_cmd, self.env, str(self.workspace))
+            return ThreadServer(
+                self.get_cmd,
+                self.env,
+                workspace=self.workspace,
+                random_hostname=self.random_hostname,
+            )
         elif self._server_class == 'docker':
             return DockerServer(self.get_cmd, self.env, image=self.image)
         elif self._server_class == 'kubernetes':
