@@ -32,6 +32,7 @@ class FixtureConfig(Config):
 
 # Default values for system resource locations - patch this to change defaults
 DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostbyname(socket.gethostname())
+DEFAULT_SERVER_FIXTURES_SESSION_ID = str(uuid.uuid4())
 DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY = True
 DEFAULT_SERVER_FIXTURES_SERVER_CLASS = 'thread'
 DEFAULT_SERVER_FIXTURES_JAVA = 'java'
@@ -59,7 +60,7 @@ CONFIG = FixtureConfig(
     fixture_hostname=os.getenv('SERVER_FIXTURES_HOSTNAME', DEFAULT_SERVER_FIXTURES_HOSTNAME),
     disable_proxy=os.getenv('SERVER_FIXTURES_DISABLE_HTTP_PROXY', DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY),
     server_class=os.getenv('SERVER_FIXTURES_SERVER_CLASS', DEFAULT_SERVER_FIXTURES_SERVER_CLASS),
-    session_id=os.getenv('SERVER_FIXTURES_SESSION_ID', str(uuid.uuid4())),
+    session_id=os.getenv('SERVER_FIXTURES_SESSION_ID', DEFAULT_SERVER_FIXTURES_SESSION_ID),
     java_executable=os.getenv('SERVER_FIXTURES_JAVA', DEFAULT_SERVER_FIXTURES_JAVA),
     jenkins_war=os.getenv('SERVER_FIXTURES_JENKINS_WAR', DEFAULT_SERVER_FIXTURES_JENKINS_WAR),
     jenkins_image=os.getenv('SERVER_FIXTURES_JENKINS_IMAGE', DEFAULT_SERVER_FIXTURES_JENKINS_IMAGE),
