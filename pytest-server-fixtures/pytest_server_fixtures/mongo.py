@@ -126,3 +126,8 @@ class MongoTestServer(TestServerV2):
             pass
         return False
 
+    def teardown(self):
+        if self.api:
+            self.api.close()
+            self.api = None
+        super(MongoTestServer, self).teardown()
