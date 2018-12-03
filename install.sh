@@ -122,6 +122,13 @@ EOF
   kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
   kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
   kubectl get node
+
+  # allow master node to run pods since we are creating a single-node cluster
+  kubectl taint node $(hostname -s) node-role.kubernetes.io/master-
+
+  # copy kubeconfig
+  cp -f /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+  chown -R vagrant: /home/vagrant/.kube
 }
 
 # Install all
