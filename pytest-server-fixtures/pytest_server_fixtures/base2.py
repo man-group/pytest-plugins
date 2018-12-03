@@ -123,7 +123,7 @@ class TestServerV2(Workspace):
         elif self._server_class == 'kubernetes':
             return KubernetesServer(self.get_cmd, self.env, image=self.image)
         else:
-            raise "Invalid server class: {}".format(server_class)
+            raise "Invalid server class: {}".format(self._server_class)
 
     def _wait_for_go(self, start_interval=0.1, retries_per_interval=3, retry_limit=28, base=2.0):
         """
