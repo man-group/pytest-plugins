@@ -226,6 +226,7 @@ class DockerServer(ServerClass):
                 environment=self._env,
                 labels=self._labels,
                 detach=True,
+                auto_remove=True,
             )
 
             while not self.is_running():
