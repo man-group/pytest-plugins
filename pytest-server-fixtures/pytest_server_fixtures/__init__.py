@@ -28,6 +28,7 @@ class FixtureConfig(Config):
         'disable_proxy',
         'server_class',
         'session_id',
+        'k8s_namespace',
     )
 
 # Default values for system resource locations - patch this to change defaults
@@ -35,6 +36,7 @@ DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostbyname(socket.gethostname())
 DEFAULT_SERVER_FIXTURES_SESSION_ID = str(uuid.uuid4())
 DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY = True
 DEFAULT_SERVER_FIXTURES_SERVER_CLASS = 'thread'
+DEFAULT_SERVER_FIXTURES_K8S_NAMESPACE = None
 DEFAULT_SERVER_FIXTURES_JAVA = 'java'
 DEFAULT_SERVER_FIXTURES_JENKINS_URL = 'http://acmejenkins.example.com'
 DEFAULT_SERVER_FIXTURES_JENKINS_WAR = '/usr/share/jenkins/jenkins.war'
@@ -60,6 +62,7 @@ CONFIG = FixtureConfig(
     fixture_hostname=os.getenv('SERVER_FIXTURES_HOSTNAME', DEFAULT_SERVER_FIXTURES_HOSTNAME),
     disable_proxy=os.getenv('SERVER_FIXTURES_DISABLE_HTTP_PROXY', DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY),
     server_class=os.getenv('SERVER_FIXTURES_SERVER_CLASS', DEFAULT_SERVER_FIXTURES_SERVER_CLASS),
+    k8s_namespace=os.getenv('SERVER_FIXTURES_K8S_NAMESPACE', DEFAULT_SERVER_FIXTURES_K8S_NAMESPACE),
     session_id=os.getenv('SERVER_FIXTURES_SESSION_ID', DEFAULT_SERVER_FIXTURES_SESSION_ID),
     java_executable=os.getenv('SERVER_FIXTURES_JAVA', DEFAULT_SERVER_FIXTURES_JAVA),
     jenkins_war=os.getenv('SERVER_FIXTURES_JENKINS_WAR', DEFAULT_SERVER_FIXTURES_JENKINS_WAR),

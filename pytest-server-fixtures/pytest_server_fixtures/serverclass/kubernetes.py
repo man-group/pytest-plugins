@@ -2,6 +2,8 @@
 Kubernetes server class implementation.
 """
 from __future__ import absolute_import
+
+import os
 import logging
 import uuid
 
@@ -17,9 +19,24 @@ from .common import (ServerClass,
 
 log = logging.getLogger(__name__)
 
-# TODO: detect when running in-cluster, and use load_incluster_config()
+# detect when running in-cluster, and use load_incluster_config()
 # load kubernetes config
-config.load_kube_config()
+
+namespace = CONFIG.k8s_namespace
+
+if os.path.exists('/var/run/secrets/kubernetes.io'):
+    log.info("Running tests inside the cluster.")
+    if not namespace:
+        with open('/var/run/secrets/kubernetes.io/namespace', 'r') as f:
+            namespace = f.read().strip()
+            log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using current namespace '%s'", namespace)
+    config.load_incluster_config()
+else:
+    log.info("Running tests on remote cluster.")
+    config.load_kube_config()
+    if not namespace:
+        namespace = 'default'
+        log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using namespace 'default'")
 
 
 class KubernetesServer(ServerClass):
@@ -29,7 +46,6 @@ class KubernetesServer(ServerClass):
         super(KubernetesServer, self).__init__(get_cmd, env)
 
         # TODO: detect when running in-cluster, and use current namespace
-        self._namespace = 'default'
         self._name = 'server-fixtures-%s' % uuid.uuid4()
 
         self._image = image
@@ -72,7 +88,7 @@ class KubernetesServer(ServerClass):
 
     @property
     def namespace(self):
-        return self._namespace
+        return namespace
 
     @property
     def name(self):
