@@ -15,7 +15,7 @@ class FixtureConfig(Config):
         'jenkins_image',
         'minio_executable',
         'minio_image',
-        'mongo_executable',
+        'mongo_bin',
         'mongo_image',
         'postgres_image',
         'redis_executable',
@@ -45,7 +45,7 @@ DEFAULT_SERVER_FIXTURES_JENKINS_WAR = '/usr/share/jenkins/jenkins.war'
 DEFAULT_SERVER_FIXTURES_JENKINS_IMAGE = 'jenkins/jenkins:2.138.3-alpine'
 DEFAULT_SERVER_FIXTURES_MINIO = 'minio'
 DEFAULT_SERVER_FIXTURES_MINIO_IMAGE = 'minio/minio:latest'
-DEFAULT_SERVER_FIXTURES_MONGO_EXECUTABLE = 'mongod'
+DEFAULT_SERVER_FIXTURES_MONGO_BIN = 'mongod'
 DEFAULT_SERVER_FIXTURES_MONGO_IMAGE = 'mongo:3.6'
 DEFAULT_SERVER_FIXTURES_POSTGRES_IMAGE = 'postgres:11.1'
 DEFAULT_SERVER_FIXTURES_REDIS = 'redis-server'
@@ -71,7 +71,7 @@ CONFIG = FixtureConfig(
     jenkins_image=os.getenv('SERVER_FIXTURES_JENKINS_IMAGE', DEFAULT_SERVER_FIXTURES_JENKINS_IMAGE),
     minio_executable=os.getenv('SERVER_FIXTURES_MINIO', DEFAULT_SERVER_FIXTURES_MINIO),
     minio_image=os.getenv('SERVER_FIXTURES_MINIO_IMAGE', DEFAULT_SERVER_FIXTURES_MINIO_IMAGE),
-    mongo_executable=os.getenv('SERVER_FIXTURES_MONGO_EXECUTABLE', DEFAULT_SERVER_FIXTURES_MONGO_EXECUTABLE),
+    mongo_bin=os.getenv('SERVER_FIXTURES_MONGO_BIN', DEFAULT_SERVER_FIXTURES_MONGO_BIN),
     mongo_image=os.getenv('SERVER_FIXTURES_MONGO_IMAGE', DEFAULT_SERVER_FIXTURES_MONGO_IMAGE),
     postgres_image=os.getenv('SERVER_FIXTURES_POSTGRES_IMAGE', DEFAULT_SERVER_FIXTURES_POSTGRES_IMAGE),
     redis_executable=os.getenv('SERVER_FIXTURES_REDIS', DEFAULT_SERVER_FIXTURES_REDIS),
