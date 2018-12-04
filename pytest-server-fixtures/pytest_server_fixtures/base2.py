@@ -130,10 +130,10 @@ class TestServerV2(Workspace):
             )
         if self._server_class == 'docker':
             from .serverclass import DockerServer
-            return DockerServer(self.get_cmd, self.env, image=self.image)
+            return DockerServer(self.__class__.__name__, self.get_cmd, self.env, image=self.image)
         if self._server_class == 'kubernetes':
             from .serverclass import KubernetesServer
-            return KubernetesServer(self.get_cmd, self.env, image=self.image)
+            return KubernetesServer(self.__class__.__name__, self.get_cmd, self.env, image=self.image)
         raise "Invalid server class: {}".format(self._server_class)
 
     def _wait_for_go(self, start_interval=0.1, retries_per_interval=3, retry_limit=28, base=2.0):

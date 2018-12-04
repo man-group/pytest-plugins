@@ -19,12 +19,13 @@ log = logging.getLogger(__name__)
 class DockerServer(ServerClass):
     """Docker server class."""
 
-    def __init__(self, get_cmd, env, image, labels={}):
+    def __init__(self, server_type, get_cmd, env, image, labels={}):
         super(DockerServer, self).__init__(get_cmd, env)
 
         self._image = image
         self._labels = merge_dicts(labels, {
             'server-fixtures': 'docker-server-fixtures',
+            'server-fixtures/server-type': server_type,
             'server-fixtures/session-id': CONFIG.session_id,
         })
         self._run_cmd = get_cmd()
@@ -47,7 +48,7 @@ class DockerServer(ServerClass):
             self._wait_until_running()
             log.debug('Container is running at %s', self.hostname)
         except docker.errors.ImageNotFound as err:
-            log.warning("Failed to start container, image %s not found", self.image)
+            log.warning("Failed to start container, image %s not found", self._image)
             log.debug(err)
             raise
         except docker.errors.APIError as e:
@@ -73,10 +74,6 @@ class DockerServer(ServerClass):
             self._wait_until_terminated()
         except docker.errors.APIError as e:
             log.warning("Error when stopping the container: %s", e)
-
-    @property
-    def image(self):
-        return self._image
 
     @property
     def hostname(self):

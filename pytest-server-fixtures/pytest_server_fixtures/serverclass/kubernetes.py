@@ -42,13 +42,14 @@ else:
 class KubernetesServer(ServerClass):
     """Kubernetes server class."""
 
-    def __init__(self, get_cmd, env, image, labels={}):
+    def __init__(self, server_type, get_cmd, env, image, labels={}):
         super(KubernetesServer, self).__init__(get_cmd, env)
 
         self._image = image
         self._run_cmd = get_cmd()
         self._labels = merge_dicts(labels, {
             'server-fixtures': 'kubernetes-server-fixtures',
+            'server-fixtures/server-type': server_type,
             'server-fixtures/session-id': CONFIG.session_id,
         })
 
@@ -73,10 +74,6 @@ class KubernetesServer(ServerClass):
         self._wait_until_teardown()
 
     @property
-    def image(self):
-        return self._image
-
-    @property
     def hostname(self):
         status = self._get_pod_status()
         if status.phase != 'Running':
@@ -87,10 +84,14 @@ class KubernetesServer(ServerClass):
     def namespace(self):
         return namespace
 
+    @property
+    def labels(self):
+        return self._labels
+
     def _get_pod_spec(self):
         container = k8sclient.V1Container(
             name='fixture',
-            image=self.image,
+            image=self._image,
             command=self._run_cmd
         )
 
@@ -101,7 +102,7 @@ class KubernetesServer(ServerClass):
     def _create_pod(self):
         try:
             pod = k8sclient.V1Pod()
-            pod.metadata = k8sclient.V1ObjectMeta(name=self.name)
+            pod.metadata = k8sclient.V1ObjectMeta(name=self.name, labels=self._labels)
             pod.spec = self._get_pod_spec()
             self._v1api.create_namespaced_pod(namespace=self.namespace, body=pod)
         except ApiException as e:
