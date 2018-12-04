@@ -19,24 +19,20 @@ from .common import (ServerClass,
 
 log = logging.getLogger(__name__)
 
-# detect when running in-cluster, and use load_incluster_config()
-# load kubernetes config
+IN_CLUSTER = os.path.exists('/var/run/secrets/kubernetes.io/namespace')
+NAMESPACE = CONFIG.k8s_namespace
 
-namespace = CONFIG.k8s_namespace
-
-if os.path.exists('/var/run/secrets/kubernetes.io'):
-    log.info("Running tests inside the cluster.")
+if IN_CLUSTER:
+    config.load_incluster_config()
     if not namespace:
         with open('/var/run/secrets/kubernetes.io/namespace', 'r') as f:
             namespace = f.read().strip()
-            log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using current namespace '%s'", namespace)
-    config.load_incluster_config()
-else:
-    log.info("Running tests on remote cluster.")
-    config.load_kube_config()
-    if not namespace:
-        namespace = 'default'
-        log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using namespace 'default'")
+        log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using current namespace '%s'", namespace)
+
+
+class NotRunningInKubernetesException(Exception):
+    """Thrown when code is not running as a Pod inside a Kubernetes cluster."""
+    pass
 
 
 class KubernetesServer(ServerClass):
@@ -44,6 +40,8 @@ class KubernetesServer(ServerClass):
 
     def __init__(self, server_type, get_cmd, env, image, labels={}):
         super(KubernetesServer, self).__init__(get_cmd, env)
+        if not IN_CLUSTER:
+            raise NotRunningInKubernetesException()
 
         self._image = image
         self._run_cmd = get_cmd()
