@@ -6,7 +6,6 @@ from datetime import datetime
 
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
-from .serverclass import ThreadServer, DockerServer, KubernetesServer
 from .base import get_ephemeral_port
 
 log = logging.getLogger(__name__)
@@ -122,6 +121,7 @@ class TestServerV2(Workspace):
         """
 
         if self._server_class == 'thread':
+            from .serverclass import ThreadServer
             return ThreadServer(
                 self.get_cmd,
                 self.env,
@@ -129,8 +129,10 @@ class TestServerV2(Workspace):
                 random_hostname=self.random_hostname,
             )
         if self._server_class == 'docker':
+            from .serverclass import DockerServer
             return DockerServer(self.get_cmd, self.env, image=self.image)
         if self._server_class == 'kubernetes':
+            from .serverclass import KubernetesServer
             return KubernetesServer(self.get_cmd, self.env, image=self.image)
         raise "Invalid server class: {}".format(self._server_class)
 

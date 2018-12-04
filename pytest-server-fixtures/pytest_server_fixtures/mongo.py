@@ -81,6 +81,7 @@ class MongoTestServer(TestServerV2):
     def __init__(self, delete=True, **kwargs):
         super(MongoTestServer, self).__init__(delete=delete, **kwargs)
         self._port = self._get_port(27017)
+        self.api = None
 
     def get_cmd(self, **kwargs):
         cmd = [
