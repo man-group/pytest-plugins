@@ -33,6 +33,14 @@ def _is_debug():
     return 'DEBUG' in os.environ and os.environ['DEBUG'] == '1'
 
 
+class ServerFixtureNotRunningException(Exception):
+    """Thrown when a kubernetes pod is not in running state."""
+    pass
+
+class ServerFixtureNotTerminatedException(Exception):
+    """Thrown when a kubernetes pod is still running."""
+    pass
+
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
 
@@ -218,7 +226,7 @@ class DockerServer(ServerClass):
 
     def launch(self):
         try:
-            log.debug('launching container')
+            log.debug('Launching container')
             self._container = self._client.containers.run(
                 image=self._image,
                 command=self._run_cmd,
@@ -227,19 +235,14 @@ class DockerServer(ServerClass):
                 detach=True,
                 auto_remove=True,
             )
-
-            while not self.is_running():
-                log.debug('waiting for container to start')
-                time.sleep(5)
-
-            log.debug('container is running at %s', self.hostname)
+            self._wait_until_running()
+            log.debug('Container is running at %s', self.hostname)
         except docker.errors.ImageNotFound as err:
             log.warning("Failed to start container, image %s not found", self.image)
             log.debug(err)
             raise
-        except docker.errors.APIError as err:
-            log.warning("Failed to start container")
-            log.debug(err)
+        except docker.errors.APIError as e:
+            log.warning("Failed to start container: %s", e)
             raise
 
         self.start()
@@ -247,8 +250,8 @@ class DockerServer(ServerClass):
     def run(self):
         try:
             self._container.wait()
-        except docker.errors.APIError:
-            log.warning("Error while waiting for container.")
+        except docker.errors.APIError as e:
+            log.warning("Error while waiting for container: %s", e)
             log.debug(self._container.logs())
 
     def teardown(self):
@@ -256,10 +259,11 @@ class DockerServer(ServerClass):
             return
 
         try:
+            # stopping container will also remove it as 'auto_remove' is set
             self._container.stop()
-            self._container.remove()
-        except docker.errors.APIError:
-            log.warning("Error when stopping the container.")
+            self._wait_until_terminated()
+        except docker.errors.APIError as e:
+            log.warning("Error when stopping the container: %s", e)
 
     @property
     def image(self):
@@ -267,28 +271,32 @@ class DockerServer(ServerClass):
 
     @property
     def hostname(self):
-        if not self.is_running():
-            return None
+        if self._get_status() != 'running':
+            raise ServerFixtureNotRunningException()
         return self._container.attrs['NetworkSettings']['IPAddress']
 
-    def is_running(self):
-        if not self._container:
-            return False
-
+    def _get_status(self):
         try:
             self._container.reload()
-            return self._container.status == 'running'
-        except docker.errors.APIError:
-            log.warning("Failed when getting container status, container might have been removed.")
-            return False
+            return self._container.status
+        except docker.errors.APIError as e:
+            log.warning("Failed to get container status: %s", e)
+            raise
 
-class KubernetesPodNotRunningException(Exception):
-    """Thrown when a kubernetes pod is not in running state."""
-    pass
+    @retry(ServerFixtureNotRunningException, tries=28, delay=1, backoff=2, max_delay=10)
+    def _wait_until_running(self):
+        if self._get_status() != 'running':
+            raise ServerFixtureNotRunningException()
 
-class KubernetesPodNotTerminatedException(Exception):
-    """Thrown when a kubernetes pod is still running."""
-    pass
+    @retry(ServerFixtureNotTerminatedException, tries=28, delay=1, backoff=2, max_delay=10)
+    def _wait_until_terminated(self):
+        try:
+            self._get_status()
+        except docker.errors.APIError as e:
+            if e.response.status_code == 404:
+                return
+            raise
+
 
 class KubernetesServer(ServerClass):
     """Kubernetes server class."""
@@ -388,18 +396,18 @@ class KubernetesServer(ServerClass):
             log.error("%s Failed to read pod status: %s", self._log_prefix, e.reason)
             raise
 
-    @retry(KubernetesPodNotRunningException, tries=28, delay=1, backoff=2, max_delay=10)
+    @retry(ServerFixtureNotRunningException, tries=28, delay=1, backoff=2, max_delay=10)
     def _wait_until_running(self):
         current_phase = self._get_pod_status().phase
         log.debug("%s Waiting for pod status 'Running' (current='%s')", self._log_prefix, current_phase)
         if current_phase != 'Running':
-            raise KubernetesPodNotRunningException()
+            raise ServerFixtureNotRunningException()
 
-    @retry(KubernetesPodNotTerminatedException, tries=28, delay=1, backoff=2, max_delay=10)
+    @retry(ServerFixtureNotTerminatedException, tries=28, delay=1, backoff=2, max_delay=10)
     def _wait_until_teardown(self):
         try:
             self._get_pod_status()
-            raise KubernetesPodNotTerminatedException()
+            raise ServerFixtureNotTerminatedException()
         except ApiException as e:
             if e.status == 404:
                 return
