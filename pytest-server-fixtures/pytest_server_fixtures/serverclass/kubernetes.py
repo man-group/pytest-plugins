@@ -45,9 +45,6 @@ class KubernetesServer(ServerClass):
     def __init__(self, get_cmd, env, image, labels={}):
         super(KubernetesServer, self).__init__(get_cmd, env)
 
-        # TODO: detect when running in-cluster, and use current namespace
-        self._name = 'server-fixtures-%s' % uuid.uuid4()
-
         self._image = image
         self._run_cmd = get_cmd()
         self._labels = merge_dicts(labels, {
@@ -89,10 +86,6 @@ class KubernetesServer(ServerClass):
     @property
     def namespace(self):
         return namespace
-
-    @property
-    def name(self):
-        return self._name
 
     def _get_pod_spec(self):
         container = k8sclient.V1Container(

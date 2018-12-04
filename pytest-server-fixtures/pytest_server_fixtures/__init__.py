@@ -1,9 +1,11 @@
 import socket
 import os
-import uuid
 
 from pytest_fixture_config import Config
+from .util import get_random_id
 
+
+SESSION_ID_LEN = 8
 
 class FixtureConfig(Config):
     __slots__ = (
@@ -33,7 +35,7 @@ class FixtureConfig(Config):
 
 # Default values for system resource locations - patch this to change defaults
 DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostbyname(socket.gethostname())
-DEFAULT_SERVER_FIXTURES_SESSION_ID = str(uuid.uuid4())
+DEFAULT_SERVER_FIXTURES_SESSION_ID = get_random_id(SESSION_ID_LEN)
 DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY = True
 DEFAULT_SERVER_FIXTURES_SERVER_CLASS = 'thread'
 DEFAULT_SERVER_FIXTURES_K8S_NAMESPACE = None

@@ -2,6 +2,7 @@
 Implementation of how a server fixture will run.
 """
 # flake8: noqa
+from __future__ import absolute_import
 
 from pytest_server_fixtures import CONFIG
 

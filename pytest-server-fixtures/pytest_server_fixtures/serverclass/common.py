@@ -4,6 +4,11 @@ Common utils for all serverclasses
 import os
 import threading
 
+from pytest_server_fixtures import CONFIG
+from pytest_server_fixtures.util import get_random_id
+
+SERVER_ID_LEN = 8
+
 def merge_dicts(x, y):
     """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
@@ -19,9 +24,11 @@ class ServerFixtureNotRunningException(Exception):
     """Thrown when a kubernetes pod is not in running state."""
     pass
 
+
 class ServerFixtureNotTerminatedException(Exception):
     """Thrown when a kubernetes pod is still running."""
     pass
+
 
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
@@ -35,6 +42,7 @@ class ServerClass(threading.Thread):
         # set serverclass thread to a daemon thread
         self.daemon = True
 
+        self._id = get_random_id(SERVER_ID_LEN)
         self._get_cmd = get_cmd
         self._env = env
         self._hostname = hostname
@@ -54,3 +62,7 @@ class ServerClass(threading.Thread):
     def hostname(self):
         """Get server's hostname."""
         return self._hostname
+
+    @property
+    def name(self):
+        return "server-fixtures-%s-%s" % (CONFIG.session_id, self._id)

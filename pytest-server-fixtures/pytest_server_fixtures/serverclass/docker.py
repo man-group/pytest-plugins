@@ -5,7 +5,6 @@ from __future__ import absolute_import
 
 import logging
 import docker
-import uuid
 
 from retry import retry
 from pytest_server_fixtures import CONFIG
@@ -23,7 +22,6 @@ class DockerServer(ServerClass):
     def __init__(self, get_cmd, env, image, labels={}):
         super(DockerServer, self).__init__(get_cmd, env)
 
-        self._name = 'server-fixtures-%s' % uuid.uuid4()
         self._image = image
         self._labels = merge_dicts(labels, {
             'server-fixtures': 'docker-server-fixtures',
@@ -75,10 +73,6 @@ class DockerServer(ServerClass):
             self._wait_until_terminated()
         except docker.errors.APIError as e:
             log.warning("Error when stopping the container: %s", e)
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def image(self):
