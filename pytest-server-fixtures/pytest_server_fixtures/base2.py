@@ -7,6 +7,7 @@ from datetime import datetime
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 from .base import get_ephemeral_port
+from .serverclass import create_server
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +37,15 @@ class TestServerV2(Workspace):
         """
 
         try:
-            self._server = self._create_server()
+            self._server = create_server(
+                server_class=CONFIG.server_class,
+                server_type=self.__class__.__name__,
+                get_cmd=self.get_cmd,
+                env=self.env,
+                image=self.image,
+                workspace=self.workspace,
+                random_hostname=self.random_hostname,
+            )
 
             if self._server_class == 'thread':
                 self.pre_setup()
@@ -114,27 +123,6 @@ class TestServerV2(Workspace):
         Set up step to be run after server is up.
         """
         pass
-
-    def _create_server(self):
-        """
-        Initialise a server class instance
-        """
-
-        if self._server_class == 'thread':
-            from .serverclass import ThreadServer
-            return ThreadServer(
-                self.get_cmd,
-                self.env,
-                workspace=self.workspace,
-                random_hostname=self.random_hostname,
-            )
-        if self._server_class == 'docker':
-            from .serverclass import DockerServer
-            return DockerServer(self.__class__.__name__, self.get_cmd, self.env, image=self.image)
-        if self._server_class == 'kubernetes':
-            from .serverclass import KubernetesServer
-            return KubernetesServer(self.__class__.__name__, self.get_cmd, self.env, image=self.image)
-        raise "Invalid server class: {}".format(self._server_class)
 
     def _wait_for_go(self, start_interval=0.1, retries_per_interval=3, retry_limit=28, base=2.0):
         """
