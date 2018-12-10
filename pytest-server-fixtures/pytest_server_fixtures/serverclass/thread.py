@@ -2,11 +2,14 @@
 Thread server class implementation
 """
 import logging
-import subprocess
 import os
-import traceback
 import signal
+import subprocess
+import traceback
 import time
+import psutil
+
+from retry import retry
 
 from pytest_server_fixtures import CONFIG
 from pytest_server_fixtures.base import get_ephemeral_host, ProcessReader, ServerNotDead, OSX
@@ -14,6 +17,24 @@ from .common import ServerClass, is_debug
 
 log = logging.getLogger(__name__)
 
+
+class ProcessStillRunningException(Exception):
+    pass
+
+
+@retry(ProcessStillRunningException,
+       tries=15,
+       delay=1)
+def _wait_for_all(procs):
+    log.debug("Waiting for %d processes to die", len(procs))
+    gone, alive = psutil.wait_procs(procs, timeout=1)
+
+    if len(alive) == 0:
+        log.debug("All processes are terminated")
+        return
+
+    log.warning("%d processes remainings: %s", len(alive), ",".join(alive))
+    raise ProcessStillRunningException()
 
 class ThreadServer(ServerClass):
     """Thread server class."""
@@ -43,7 +64,6 @@ class ThreadServer(ServerClass):
         args = dict(
             env=self._env,
             cwd=self._cwd,
-            preexec_fn=os.setsid
         )
 
         debug = is_debug()
@@ -76,70 +96,19 @@ class ThreadServer(ServerClass):
         return self._proc.poll() is None
 
     def teardown(self):
-        if self._dead:
-            log.debug("Already teardown, skip")
-            return
-        self._dead = True
-
         if not self._proc:
             log.warning("No process is running, skip teardown.")
             return
 
-        if self._terminate():
-            return
+        self._kill_proc_tree()
+        self._proc = None
 
-        if self._kill():
-            return
+    def _kill_proc_tree(self, sig=signal.SIGKILL, timeout=None):
+        parent = psutil.Process(self._proc.pid)
+        children = parent.children(recursive=True)
+        children.append(parent)
+        log.debug("Killing process tree for %d (total_procs_to_kill=%d)", parent.pid, len(children))
+        for p in children:
+            p.send_signal(sig)
+        _wait_for_all(children)
 
-        self._cleanup_all()
-
-    def _terminate(self):
-        log.debug("Terminating process")
-        try:
-            self._proc.terminate()
-            if self._wait_for_process():
-                return True
-        except OSError as err:
-            log.warning("Failed to terminate server.")
-            log.debug(err)
-            return False
-
-    def _kill(self):
-        log.debug("Killing process")
-        try:
-            self._proc.kill()
-            if self._wait_for_process():
-                return True
-        except OSError as err:
-            log.warning("Failed to kill server.")
-            log.debug(err)
-            return False
-
-    def _cleanup_all(self):
-        """
-        Kill all child processes spawned with the same PGID
-        """
-
-        log.debug("Killing process group.")
-
-        # Prevent traceback printed when the server goes away as we kill it
-        self.exit = True
-
-        try:
-            pgid = os.getpgid(self._proc.pid)
-            os.killpg(pgid, signal.SIGKILL)
-        except OSError as err:
-            log.debug(err)
-            log.warning("Failed to cleanup processes. Giving up...")
-
-    def _wait_for_process(self, interval=1, max_retries=10):
-        retries = 0
-        log.debug("Wait for process")
-        while self.is_running():
-            retries+=1
-            log.debug("Still waiting for server to die (retries: %d)", retries)
-            time.sleep(interval)
-            if retries > max_retries:
-                return False
-
-        return True

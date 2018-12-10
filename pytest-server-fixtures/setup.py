@@ -28,6 +28,7 @@ install_requires = ['pytest<4.0.0',
                     'future',
                     'requests',
                     'retry',
+                    'psutil',
                     ]
 
 extras_require = {

@@ -12,6 +12,11 @@ from .serverclass import create_server
 log = logging.getLogger(__name__)
 
 
+class TeardownTestServerException(Exception):
+    """Thrown when attempting to start an already teardown test server."""
+    pass
+
+
 class TestServerV2(Workspace):
     """Base class of a v2 test server."""
     random_port = True
@@ -31,11 +36,15 @@ class TestServerV2(Workspace):
         self._cwd = cwd or os.getcwd()
         self._server_class = server_class
         self._server = None
+        self._teardown = False
 
     def start(self):
         """
         Start the test server.
         """
+
+        if self._teardown:
+            raise TeardownTestServerException()
 
         try:
             self._server = create_server(
@@ -66,9 +75,19 @@ class TestServerV2(Workspace):
         """
         Stop the server and clean up all resources.
         """
-        if self._server:
-            self._server.teardown()
-            self._server = None
+        if self._teardown:
+            log.debug("Server is already teardown, skipping")
+            return
+
+        if not self._server:
+            log.debug("Server not started yet, skipping")
+            return
+        self._server.teardown()
+        self._server = None
+
+        super(TestServerV2, self).teardown()
+
+        self._teardown = True
 
     def check_server_up(self):
         """
