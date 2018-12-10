@@ -36,6 +36,17 @@ def _wait_for_all(procs):
     log.warning("%d processes remainings: %s", len(alive), ",".join(alive))
     raise ProcessStillRunningException()
 
+
+def _kill_proc_tree(pid, sig=signal.SIGKILL, timeout=None):
+    parent = psutil.Process(pid)
+    children = parent.children(recursive=True)
+    children.append(parent)
+    log.debug("Killing process tree for %d (total_procs_to_kill=%d)", parent.pid, len(children))
+    for p in children:
+        p.send_signal(sig)
+    _wait_for_all(children)
+
+
 class ThreadServer(ServerClass):
     """Thread server class."""
 
@@ -100,15 +111,6 @@ class ThreadServer(ServerClass):
             log.warning("No process is running, skip teardown.")
             return
 
-        self._kill_proc_tree()
+        _kill_proc_tree(self._proc.pid)
         self._proc = None
-
-    def _kill_proc_tree(self, sig=signal.SIGKILL, timeout=None):
-        parent = psutil.Process(self._proc.pid)
-        children = parent.children(recursive=True)
-        children.append(parent)
-        log.debug("Killing process tree for %d (total_procs_to_kill=%d)", parent.pid, len(children))
-        for p in children:
-            p.send_signal(sig)
-        _wait_for_all(children)
 
