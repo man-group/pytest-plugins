@@ -18,17 +18,18 @@ class TestServerV2(Workspace):
     random_hostname = True
     port_seed = 65535
 
-    def __init__(self, cwd=None, workspace=None, delete=None):
+    def __init__(self, cwd=None, workspace=None, delete=None, server_class=CONFIG.server_class):
         """
         Initialise a test server.
 
         @param cwd: the current working directory
         @param workspace: where all files will be stored
         @param delete: whether to delete the workspace after teardown or not
+        @param server_class: specify server class name (default from CONFIG.server_class)
         """
         super(TestServerV2, self).__init__(workspace=workspace, delete=delete)
         self._cwd = cwd or os.getcwd()
-        self._server_class = CONFIG.server_class
+        self._server_class = server_class
         self._server = None
 
     def start(self):
@@ -66,6 +67,7 @@ class TestServerV2(Workspace):
         """
         if self._server:
             self._server.teardown()
+            self._server = None
 
     def check_server_up(self):
         """
