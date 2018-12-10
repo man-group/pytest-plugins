@@ -45,6 +45,7 @@ class TestServerV2(Workspace):
                 env=self.env,
                 image=self.image,
                 workspace=self.workspace,
+                cwd=self._cwd,
                 random_hostname=self.random_hostname,
             )
 
