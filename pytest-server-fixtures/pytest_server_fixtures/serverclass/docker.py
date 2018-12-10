@@ -28,7 +28,6 @@ class DockerServer(ServerClass):
             'server-fixtures/server-type': server_type,
             'server-fixtures/session-id': CONFIG.session_id,
         })
-        self._run_cmd = get_cmd()
 
         self._client = docker.from_env()
         self._container = None
@@ -39,7 +38,7 @@ class DockerServer(ServerClass):
             self._container = self._client.containers.run(
                 image=self._image,
                 name=self.name,
-                command=self._run_cmd,
+                command=self._get_cmd(),
                 environment=self._env,
                 labels=self._labels,
                 detach=True,

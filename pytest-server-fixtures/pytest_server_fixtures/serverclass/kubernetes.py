@@ -44,7 +44,6 @@ class KubernetesServer(ServerClass):
             raise NotRunningInKubernetesException()
 
         self._image = image
-        self._run_cmd = get_cmd()
         self._labels = merge_dicts(labels, {
             'server-fixtures': 'kubernetes-server-fixtures',
             'server-fixtures/server-type': server_type,
@@ -90,7 +89,8 @@ class KubernetesServer(ServerClass):
         container = k8sclient.V1Container(
             name='fixture',
             image=self._image,
-            command=self._run_cmd
+            command=self._get_cmd(),
+            env=self._env,
         )
 
         return k8sclient.V1PodSpec(
