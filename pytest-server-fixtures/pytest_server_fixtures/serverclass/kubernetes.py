@@ -20,14 +20,14 @@ from .common import (ServerClass,
 log = logging.getLogger(__name__)
 
 IN_CLUSTER = os.path.exists('/var/run/secrets/kubernetes.io/namespace')
-NAMESPACE = CONFIG.k8s_namespace
+fixture_namespace = CONFIG.k8s_namespace
 
 if IN_CLUSTER:
     config.load_incluster_config()
-    if not namespace:
+    if not fixture_namespace:
         with open('/var/run/secrets/kubernetes.io/namespace', 'r') as f:
-            namespace = f.read().strip()
-        log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using current namespace '%s'", namespace)
+            fixture_namespace = f.read().strp()
+        log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using current namespace '%s'", fixture_namespace)
 
 
 class NotRunningInKubernetesException(Exception):
@@ -79,7 +79,7 @@ class KubernetesServer(ServerClass):
 
     @property
     def namespace(self):
-        return namespace
+        return fixture_namespace
 
     @property
     def labels(self):
