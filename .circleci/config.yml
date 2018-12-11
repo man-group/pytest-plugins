@@ -117,7 +117,9 @@ job-tmpl: &job-tmpl
           coverage combine
           coverage report
           pip install urllib3[secure]
-          pip install coveralls
+          pip install python-coveralls
+          # hack required to get coveralls to work with circleci parallel build
+          # see https://github.com/lemurheavy/coveralls-public/issues/1191
           CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
 
     - store_test_results:
