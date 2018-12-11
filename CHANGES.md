@@ -1,11 +1,18 @@
 
 ## Changelog
 
-### 1.3.2 (Unreleased)
+### 1.4.0 (Unreleased)
  * Fixing python 3 compatibility in Simple HTTP Server fixture
  * Fixed broken tests in pytest-profiling
  * Pinned pytest<4.0.0 until all deprecation warnings are fixed.
  * pytest-webdriver: replaced deprecated phantomjs with headless Google Chrome.
+ * Add Vagrantfile to project to make test environment portable.
+ * Add .editorconfig file to project.
+ * pytest-server-fixtures: add TestServerV2 with Docker and Kubernetes support.
+ * pytest-server-fixtures: fix for an issue where MinioServer is not cleaned up after use.
+ * pytest-server-fixtures: fix deprecation warnings when calling pymongo.
+ * pytest-server-fixtures: close pymongo client on MongoTestServer teardown.
+ * pytest-server-fixtures: upgrade Mongo, Redis and RethinkDB to TestServerV2.
 
 ### 1.3.1 (2018-06-28)
  * Use pymongo list_database_names() instead of the deprecated database_names(), added pymongo>=3.6.0 dependency
@@ -68,7 +75,7 @@
  * Added devpi-server fixture to create an index per test function
  * Added missing licence file
  * Split up httpd server fixture config so child classes can override loaded modules easier
- * Added 'preserve_sys_path' argument to TestServer base class which exports the current python sys.path to subprocesses. 
+ * Added 'preserve_sys_path' argument to TestServer base class which exports the current python sys.path to subprocesses.
  * Updated httpd, redis and jenkins runtime args and paths to current Ubuntu spec
  * Ignore errors when tearing down workspaces to avoid race conditions in 'shutil.rmtree' implementation
 
@@ -82,7 +89,7 @@
  * pytest-profiling improvement: escape illegal characters in .prof files (Thanks to Aarni Koskela for the PR)
 
 ### 1.1.0 (2016-2-15)
- 
+
  * New plugin: devpi server fixture
  * pytest-profiling improvement: overly-long .prof files are saved as the short hash of the test name (Thanks to Vladimir Lagunov for PR)
  * Changed default behavior of workspace.run() to not use a subshell for security reasons
