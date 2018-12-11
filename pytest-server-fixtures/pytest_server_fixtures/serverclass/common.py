@@ -44,19 +44,24 @@ class ServerClass(threading.Thread):
 
         self._id = get_random_id(SERVER_ID_LEN)
         self._get_cmd = get_cmd
-        self._env = env
+        self._env = env or []
         self._hostname = hostname
 
     def run(self):
         """In a new thread, wait for the server to return."""
-        pass
+        raise NotImplementedError("Concrete class should implement this")
 
     def launch(self):
         """Start the server."""
-        pass
+        raise NotImplementedError("Concrete class should implement this")
 
     def teardown(self):
         """Kill the server."""
+        raise NotImplementedError("Concrete class should implement this")
+
+    @property
+    def is_running(self):
+        raise NotImplementedError("Concrete class should implement this")
 
     @property
     def hostname(self):
@@ -66,3 +71,4 @@ class ServerClass(threading.Thread):
     @property
     def name(self):
         return "server-fixtures-%s-%s" % (CONFIG.session_id, self._id)
+

@@ -108,9 +108,13 @@ class ThreadServer(ServerClass):
             if not self.exit:
                 traceback.print_exc()
 
+    @property
     def is_running(self):
+        """Check if the main process is still running."""
+        # return False if the process is not started yet
         if not self._proc:
             return False
+        # return False if there is a return code from the main process
         return self._proc.poll() is None
 
     def teardown(self):

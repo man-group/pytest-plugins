@@ -29,6 +29,11 @@ if IN_CLUSTER:
             fixture_namespace = f.read().strp()
         log.info("SERVER_FIXTURES_K8S_NAMESPACE is not set, using current namespace '%s'", fixture_namespace)
 
+if CONFIG.k8s_local_test:
+    log.info("====== Running K8S Server Class in Test Mode =====")
+    config.load_kube_config()
+    fixture_namespace = 'default'
+
 
 class NotRunningInKubernetesException(Exception):
     """Thrown when code is not running as a Pod inside a Kubernetes cluster."""
@@ -40,7 +45,7 @@ class KubernetesServer(ServerClass):
 
     def __init__(self, server_type, get_cmd, env, image, labels={}):
         super(KubernetesServer, self).__init__(get_cmd, env)
-        if not IN_CLUSTER:
+        if not fixture_namespace:
             raise NotRunningInKubernetesException()
 
         self._image = image
@@ -71,11 +76,20 @@ class KubernetesServer(ServerClass):
         self._wait_until_teardown()
 
     @property
+    def is_running(self):
+        try:
+            return self._get_pod_status().phase == 'Running'
+        except ApiException as e:
+            if e.status == 404:
+                # return false if pod does not exists
+                return False
+            raise
+
+    @property
     def hostname(self):
-        status = self._get_pod_status()
-        if status.phase != 'Running':
+        if not self.is_running:
             raise ServerFixtureNotRunningException()
-        return status.pod_ip
+        return self._get_pod_status().pod_ip
 
     @property
     def namespace(self):
@@ -126,15 +140,15 @@ class KubernetesServer(ServerClass):
 
     @retry(ServerFixtureNotRunningException, tries=28, delay=1, backoff=2, max_delay=10)
     def _wait_until_running(self):
-        current_phase = self._get_pod_status().phase
-        log.debug("%s Waiting for pod status 'Running' (current='%s')", self._log_prefix, current_phase)
-        if current_phase != 'Running':
+        log.debug("%s Waiting for pod status to become running", self._log_prefix)
+        if not self.is_running:
             raise ServerFixtureNotRunningException()
 
     @retry(ServerFixtureNotTerminatedException, tries=28, delay=1, backoff=2, max_delay=10)
     def _wait_until_teardown(self):
         try:
             self._get_pod_status()
+            # waiting for pod to be deleted (expect ApiException with status 404)
             raise ServerFixtureNotTerminatedException()
         except ApiException as e:
             if e.status == 404:

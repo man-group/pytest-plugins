@@ -19,7 +19,7 @@ and databases.
 * [Xvfb](#xvfp)
 * [Jenkins](#jenkins)
 * [Server Framework](#server-framework)
-
+* [Integration Tests](#integration-tests)
 
 
 ## Batteries Included
@@ -37,7 +37,8 @@ and databases.
 | Jenkins  | no | jenkins
 | Xvfb (X-Windows Virtual Frame Buffer)  | no | <none>
 
-v2: v2 fixtures support server classes `Docker` or `Kubernetes` (See [Configuration](#configuration))
+Note: v2 fixtures support launching fixtures locally, in `Docker` containers
+or as `Kubernetes` pods (See [Configuration](#configuration))
 
 
 ## Installation
@@ -88,6 +89,7 @@ The fixtures are configured using the following evironment variables:
 | `SERVER_FIXTURES_DISABLE_HTTP_PROXY` | Disable any HTTP proxies set up in the shell environment when making HTTP requests | True
 | `SERVER_FIXTURES_SERVER_CLASS` | Server class used to run the fixtures, choose from `thread`, `docker` and `kubernetes` | `thread`
 | `SERVER_FIXTURES_K8S_NAMESPACE` | (Kubernetes only) Specify the Kubernetes namespace used to launch fixtures. | `None` (same as the test host)
+| `SERVER_FIXTURES_K8S_LOCAL_TEST` | (Kubernetes only) Set to `True` to allow integration tests to run (See [Integration Tests](#integration-tests)). | `False`
 | `SERVER_FIXTURES_MONGO_BIN`     | Directory containing the `mongodb` executable | "" (relies on `$PATH`)
 | `SERVER_FIXTURES_MONGO_IMAGE`   | (Docker only) Docker image for mongo | `mongo:3.6`
 | `SERVER_FIXTURES_REDIS`         | Redis server executable | `redis-server`
@@ -485,3 +487,7 @@ The base class constructor also accepts these arguments:
 | `hostname` | Explicitly set the hostname
 | `env` | Dict of the shell environment passed to the server process
 | `cwd` | Override the current working directory of the server process
+
+## Integration Tests
+
+TBA

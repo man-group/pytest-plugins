@@ -42,7 +42,6 @@ class TestServerV2(Workspace):
         """
         Start the test server.
         """
-
         if self._teardown:
             raise TeardownTestServerException()
 

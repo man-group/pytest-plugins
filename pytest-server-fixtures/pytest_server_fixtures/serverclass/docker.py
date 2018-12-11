@@ -75,8 +75,15 @@ class DockerServer(ServerClass):
             log.warning("Error when stopping the container: %s", e)
 
     @property
+    def is_running(self):
+        if not self._container:
+            return False
+
+        return self._get_status() == 'running'
+
+    @property
     def hostname(self):
-        if self._get_status() != 'running':
+        if not self.is_running:
             raise ServerFixtureNotRunningException()
         return self._container.attrs['NetworkSettings']['IPAddress']
 
@@ -94,7 +101,7 @@ class DockerServer(ServerClass):
            backoff=2,
            max_delay=10)
     def _wait_until_running(self):
-        if self._get_status() != 'running':
+        if not self.is_running:
             raise ServerFixtureNotRunningException()
 
     @retry(ServerFixtureNotTerminatedException,
