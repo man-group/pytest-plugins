@@ -116,8 +116,9 @@ job-tmpl: &job-tmpl
           . venv/bin/activate
           coverage combine
           coverage report
+          pip install urllib3[secure]
           pip install python-coveralls
-          coveralls --ignore-errors
+          coveralls
 
     - store_test_results:
         path: junit
