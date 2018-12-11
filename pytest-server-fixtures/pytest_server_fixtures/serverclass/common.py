@@ -44,7 +44,7 @@ class ServerClass(threading.Thread):
 
         self._id = get_random_id(SERVER_ID_LEN)
         self._get_cmd = get_cmd
-        self._env = env or []
+        self._env = env or {}
         self._hostname = hostname
 
     def run(self):

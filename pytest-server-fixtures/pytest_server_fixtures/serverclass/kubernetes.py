@@ -104,7 +104,7 @@ class KubernetesServer(ServerClass):
             name='fixture',
             image=self._image,
             command=self._get_cmd(),
-            env=self._env,
+            env=[k8sclient.V1EnvVar(name=k, value=v) for k, v in self._env.iteritems()],
         )
 
         return k8sclient.V1PodSpec(
