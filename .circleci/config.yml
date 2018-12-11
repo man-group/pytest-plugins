@@ -153,9 +153,6 @@ jobs:
       - image: buildpack-deps:trusty
     steps:
       - run:
-          name: Print Build Number
-          command: echo $BUILD_NUMBER
-      - run:
           name: Complete Coveralls
           command: curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$BUILD_NUMBER&payload[status]=done"
 
