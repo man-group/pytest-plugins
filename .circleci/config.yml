@@ -147,14 +147,6 @@ jobs:
     environment:
       PYTHON: "python3.6"
 
-  coveralls:
-    docker:
-      - image: buildpack-deps:trusty
-    steps:
-      - run:
-          name: Complete Coveralls
-          command: curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$BUILD_NUMBER&payload[status]=done"
-
 workflows:
   version: 2
   pytest-plugins:
@@ -163,9 +155,7 @@ workflows:
       - py34
       - py35
       - py36
-      - coveralls:
-          requires:
-            - py27
-            - py34
-            - py35
-            - py36
+
+notify:
+  webhooks:
+    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
