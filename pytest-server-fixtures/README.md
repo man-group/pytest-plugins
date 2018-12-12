@@ -439,11 +439,13 @@ TCP server running framework, and as such many of them share various properties 
 ```
 pytest_shutil.workspace.Workspace
   |
-  *--base.TestServer
+  *--base2.TestServerV2
      |
      *--mongo.MongoTestServer
      *--redis.RedisTestServer
      *--rethink.RethinkDBServer
+  *--base.TestServer
+     |
      *--http.HTTPTestServer
         |
         *--http.SimpleHTTPTestServer
@@ -488,6 +490,23 @@ The base class constructor also accepts these arguments:
 | `env` | Dict of the shell environment passed to the server process
 | `cwd` | Override the current working directory of the server process
 
-## Integration Tests
+# Integration Tests
 
-TBA
+```
+$ vagrant up
+$ vagrant ssh
+...
+$ . venv/bin/activate
+$ cd /vagrant
+$ make develop
+$ cd pytest-server-fixtures
+
+# test serverclass="thread"
+$ pytest
+
+# test serverclass="docker"
+$ SERVER_FIXTURES_SERVER_CLASS=docker pytest
+
+# test serverclass="kubernetes"
+$ SERVER_FIXTURES_SERVER_CLASS=kubernetes SERVER_FIXTURES_K8S_LOCAL_TEST=True pytest
+```
