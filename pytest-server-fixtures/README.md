@@ -25,17 +25,17 @@ and databases.
 ## Batteries Included
 
 
-| Fixture | v2 | Extra Dependency Name
+| Fixture | Extra Dependency Name
 | - | -
-| MongoDB | yes | mongodb
-| Postgres | no | postgres
-| Redis | yes | redis
-| RethinkDB | yes | rethinkdb
-| S3 Minio | no | s3
-| Apache Httpd | no | <none>
-| Simple HTTP Server | no | <none>
-| Jenkins  | no | jenkins
-| Xvfb (X-Windows Virtual Frame Buffer)  | no | <none>
+| MongoDB | mongodb
+| Postgres | postgres
+| Redis | redis
+| RethinkDB | rethinkdb
+| S3 Minio | s3
+| Apache Httpd | <none>
+| Simple HTTP Server | <none>
+| Jenkins | jenkins
+| Xvfb (X-Windows Virtual Frame Buffer) | <none>
 
 Note: v2 fixtures support launching fixtures locally, in `Docker` containers
 or as `Kubernetes` pods (See [Configuration](#configuration))
