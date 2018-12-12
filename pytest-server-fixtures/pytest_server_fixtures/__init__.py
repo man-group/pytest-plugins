@@ -17,7 +17,6 @@ class FixtureConfig(Config):
         'minio_image',
         'mongo_bin',
         'mongo_image',
-        'postgres_image',
         'redis_executable',
         'redis_image',
         'rethink_executable',
@@ -49,7 +48,6 @@ DEFAULT_SERVER_FIXTURES_MINIO = 'minio'
 DEFAULT_SERVER_FIXTURES_MINIO_IMAGE = 'minio/minio:latest'
 DEFAULT_SERVER_FIXTURES_MONGO_BIN = 'mongod'
 DEFAULT_SERVER_FIXTURES_MONGO_IMAGE = 'mongo:3.6'
-DEFAULT_SERVER_FIXTURES_POSTGRES_IMAGE = 'postgres:11.1'
 DEFAULT_SERVER_FIXTURES_REDIS = 'redis-server'
 DEFAULT_SERVER_FIXTURES_REDIS_IMAGE = 'redis:5.0.2-alpine'
 DEFAULT_SERVER_FIXTURES_RETHINK = 'rethinkdb'
@@ -76,7 +74,6 @@ CONFIG = FixtureConfig(
     minio_image=os.getenv('SERVER_FIXTURES_MINIO_IMAGE', DEFAULT_SERVER_FIXTURES_MINIO_IMAGE),
     mongo_bin=os.getenv('SERVER_FIXTURES_MONGO_BIN', DEFAULT_SERVER_FIXTURES_MONGO_BIN),
     mongo_image=os.getenv('SERVER_FIXTURES_MONGO_IMAGE', DEFAULT_SERVER_FIXTURES_MONGO_IMAGE),
-    postgres_image=os.getenv('SERVER_FIXTURES_POSTGRES_IMAGE', DEFAULT_SERVER_FIXTURES_POSTGRES_IMAGE),
     redis_executable=os.getenv('SERVER_FIXTURES_REDIS', DEFAULT_SERVER_FIXTURES_REDIS),
     redis_image=os.getenv('SERVER_FIXTURES_REDIS_IMAGE', DEFAULT_SERVER_FIXTURES_REDIS_IMAGE),
     rethink_executable=os.getenv('SERVER_FIXTURES_RETHINK', DEFAULT_SERVER_FIXTURES_RETHINK),
