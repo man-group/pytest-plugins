@@ -12,6 +12,7 @@ import os
 
 import pytest
 from future.utils import text_type
+from pytest_fixture_config import requires_config
 
 from . import CONFIG
 from .http import HTTPTestServer
@@ -25,6 +26,7 @@ def _s3_server(request):
     return server
 
 
+@requires_config(CONFIG, ['minio_executable'])
 @pytest.fixture(scope="session")
 def s3_server(request):
     """

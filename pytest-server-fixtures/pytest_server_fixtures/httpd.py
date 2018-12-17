@@ -9,6 +9,7 @@ try:
 except ImportError:
     from path import path as Path
 
+from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG
 
 from .http import HTTPTestServer
@@ -16,6 +17,7 @@ from .http import HTTPTestServer
 log = logging.getLogger(__name__)
 
 
+@yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 @pytest.yield_fixture(scope='function')
 def httpd_server():
     """ Function-scoped httpd server in a local thread.
