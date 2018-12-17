@@ -25,8 +25,8 @@ def _redis_server(request):
     return test_server
 
 
-@requires_config(CONFIG, ['redis_executable'])
 @pytest.fixture(scope='function')
+@requires_config(CONFIG, ['redis_executable'])
 def redis_server(request):
     """ Function-scoped Redis server in a local thread.
 
@@ -38,8 +38,8 @@ def redis_server(request):
     return _redis_server(request)
 
 
-@requires_config(CONFIG, ['redis_executable'])
 @pytest.fixture(scope='session')
+@requires_config(CONFIG, ['redis_executable'])
 def redis_server_sess(request):
     """ Same as redis_server fixture, scoped for test session
     """

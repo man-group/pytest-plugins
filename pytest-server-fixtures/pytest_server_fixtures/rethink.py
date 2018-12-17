@@ -24,8 +24,8 @@ def _rethink_server(request):
     return test_server
 
 
-@requires_config(CONFIG, ['rethink_executable'])
 @pytest.fixture(scope='function')
+@requires_config(CONFIG, ['rethink_executable'])
 def rethink_server(request):
     """ Function-scoped RethinkDB server in a local thread.
 
@@ -38,8 +38,8 @@ def rethink_server(request):
     return _rethink_server(request)
 
 
-@requires_config(CONFIG, ['rethink_executable'])
 @pytest.fixture(scope='session')
+@requires_config(CONFIG, ['rethink_executable'])
 def rethink_server_sess(request):
     """ Same as rethink_server fixture, scoped as session instead.
     """

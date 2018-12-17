@@ -17,8 +17,8 @@ from .http import HTTPTestServer
 log = logging.getLogger(__name__)
 
 
-@yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 @pytest.yield_fixture(scope='function')
+@yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 def httpd_server():
     """ Function-scoped httpd server in a local thread.
     

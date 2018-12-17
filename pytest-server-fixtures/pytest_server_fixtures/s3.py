@@ -26,8 +26,8 @@ def _s3_server(request):
     return server
 
 
-@requires_config(CONFIG, ['minio_executable'])
 @pytest.fixture(scope="session")
+@requires_config(CONFIG, ['minio_executable'])
 def s3_server(request):
     """
     Creates a session-scoped temporary S3 server using the 'minio' tool.
