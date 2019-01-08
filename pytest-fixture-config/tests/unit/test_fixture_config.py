@@ -7,7 +7,7 @@ from six.moves import reload_module
 import pytest_fixture_config
 reload_module(pytest_fixture_config)
 
-from pytest_fixture_config import Config
+from pytest_fixture_config import Config, requires_config, yield_requires_config
 
 class DummyConfig(Config):
     __slots__ = ('foo', 'bar')
@@ -23,3 +23,46 @@ def test_config_update():
     with pytest.raises(ValueError):
         cfg.update({"baz": 30})
 
+
+CONFIG1 = DummyConfig(foo=None, bar=1)
+
+@pytest.fixture
+@requires_config(CONFIG1, ('foo', 'bar'))
+def a_fixture(request):
+    raise ValueError('Should not run')
+
+
+def test_requires_config_skips(a_fixture):
+    raise ValueError('Should not run')
+
+
+@pytest.fixture
+@requires_config(CONFIG1, ('bar',))
+def another_fixture(request):
+    return 'xxxx'
+
+
+def test_requires_config_doesnt_skip(another_fixture):
+    assert another_fixture == 'xxxx'
+    
+    
+
+@pytest.yield_fixture
+@yield_requires_config(CONFIG1, ('foo', 'bar'))
+def yet_another_fixture():
+    raise ValueError('Should also not run')
+    yield 'yyyy'
+
+
+def test_yield_requires_config_skips(yet_another_fixture):
+    raise ValueError('Should also not run')
+
+
+@pytest.yield_fixture
+@yield_requires_config(CONFIG1, ('bar',))
+def yet_some_other_fixture():
+    yield 'yyyy'
+
+
+def test_yield_requires_config_doesnt_skip(yet_some_other_fixture):
+    assert yet_some_other_fixture == 'yyyy'

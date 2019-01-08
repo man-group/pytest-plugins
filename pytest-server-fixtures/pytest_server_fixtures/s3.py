@@ -12,6 +12,7 @@ import os
 
 import pytest
 from future.utils import text_type
+from pytest_fixture_config import requires_config
 
 from . import CONFIG
 from .http import HTTPTestServer
@@ -26,6 +27,7 @@ def _s3_server(request):
 
 
 @pytest.fixture(scope="session")
+@requires_config(CONFIG, ['minio_executable'])
 def s3_server(request):
     """
     Creates a session-scoped temporary S3 server using the 'minio' tool.

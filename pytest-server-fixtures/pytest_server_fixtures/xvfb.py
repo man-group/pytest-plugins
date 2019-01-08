@@ -8,11 +8,13 @@ from tempfile import mkdtemp
 import pytest
 
 from pytest_shutil.workspace import Workspace
+from pytest_fixture_config import yield_requires_config
 
 from pytest_server_fixtures import CONFIG
 
 
 @pytest.yield_fixture(scope='function')
+@yield_requires_config(CONFIG, ['xvfb_executable'])
 def xvfb_server():
     """ Function-scoped Xvfb (X-Windows Virtual Frame Buffer) in a local thread.
     """
@@ -22,6 +24,7 @@ def xvfb_server():
 
 
 @pytest.yield_fixture(scope='session')
+@yield_requires_config(CONFIG, ['xvfb_executable'])
 def xvfb_server_sess():
     """ Session-scoped Xvfb (X-Windows Virtual Frame Buffer) in a local thread.
     """

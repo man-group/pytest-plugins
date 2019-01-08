@@ -54,3 +54,30 @@ Simply reference the singleton at run-time in your fixtures:
         watcher.communicate()
 ```
 
+## Skipping tests when things are missing
+
+There are some decorators that allow you to skip tests when settings aren't set.
+This is useful when you're testing something you might not have installed
+but don't want your tests suite to fail:
+
+```python
+    from pytest_fixture_config import requires_config
+    
+    @pytest.fixture
+    @requires_config(CONFIG, ['log_watcher', 'log_dir'])
+    def log_watcher():
+        return subprocess.popen([CONFIG.log_watcher, '--log-dir', CONFIG.log_dir])
+```
+    
+There is also a version for yield_fixtures:
+
+```python
+    from pytest_fixture_config import yield_requires_config
+    
+    @pytest.fixture
+    @yield_requires_config(CONFIG, ['log_watcher', 'log_dir'])
+    def log_watcher():
+        watcher = subprocess.popen([CONFIG.log_watcher, '--log-dir', CONFIG.log_dir])
+        yield watcher
+        watcher.kill()
+```

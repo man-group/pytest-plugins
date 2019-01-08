@@ -10,6 +10,7 @@ import socket
 import pytest
 
 from pytest_server_fixtures import CONFIG
+from pytest_fixture_config import requires_config
 
 from .base import TestServer
 
@@ -25,6 +26,7 @@ def _redis_server(request):
 
 
 @pytest.fixture(scope='function')
+@requires_config(CONFIG, ['redis_executable'])
 def redis_server(request):
     """ Function-scoped Redis server in a local thread.
 
@@ -37,6 +39,7 @@ def redis_server(request):
 
 
 @pytest.fixture(scope='session')
+@requires_config(CONFIG, ['redis_executable'])
 def redis_server_sess(request):
     """ Same as redis_server fixture, scoped for test session
     """

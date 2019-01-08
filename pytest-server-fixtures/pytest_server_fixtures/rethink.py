@@ -5,6 +5,7 @@ import logging
 import pytest
 
 from pytest_server_fixtures import CONFIG
+from pytest_fixture_config import requires_config
 
 from .base import TestServer
 
@@ -24,6 +25,7 @@ def _rethink_server(request):
 
 
 @pytest.fixture(scope='function')
+@requires_config(CONFIG, ['rethink_executable'])
 def rethink_server(request):
     """ Function-scoped RethinkDB server in a local thread.
 
@@ -37,6 +39,7 @@ def rethink_server(request):
 
 
 @pytest.fixture(scope='session')
+@requires_config(CONFIG, ['rethink_executable'])
 def rethink_server_sess(request):
     """ Same as rethink_server fixture, scoped as session instead.
     """
