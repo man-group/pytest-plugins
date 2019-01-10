@@ -7,7 +7,7 @@ import pytest
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
 
-from .base import TestServer
+from .base2 import TestServerV2
 
 
 log = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def _rethink_server(request):
     """ This does the actual work - there are several versions of this used
         with different scopes.
     """
-    test_server = RethinkDBServer(hostname=CONFIG.fixture_hostname)
+    test_server = RethinkDBServer()
     request.addfinalizer(lambda p=test_server: p.teardown())
     test_server.start()
     return test_server
@@ -113,29 +113,53 @@ def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
     yield conn
 
 
-class RethinkDBServer(TestServer):
-    random_port = True
+class RethinkDBServer(TestServerV2):
+    random_hostname = False
 
     def __init__(self, **kwargs):
+        # defer loading of rethinkdb
         global rethinkdb
-        try:
-            import rethinkdb
-        except ImportError:
-            pytest.skip('rethinkdb not installed, skipping test')
+        import rethinkdb
+
         super(RethinkDBServer, self).__init__(**kwargs)
-        self.cluster_port = self.get_port()
-        self.http_port = self.get_port()
+        self._driver_port = self._get_port(28015)
+        self._cluster_port = self._get_port(29015)
+        self._http_port = self._get_port(8080)
         self.db = None
 
+    def get_cmd(self, **kwargs):
+        cmd = [
+            CONFIG.rethink_executable,
+            '--driver-port', str(self.port),
+            '--http-port', str(self.http_port),
+            '--cluster-port', str(self.cluster_port),
+        ]
+
+        if 'hostname' in kwargs:
+            cmd += ['--bind', kwargs['hostname']]
+        else:
+            cmd += ['--bind', 'all']
+
+        if 'workspace' in kwargs:
+            cmd += ['--directory', str(kwargs['workspace'] / 'db')]
+
+        return cmd
+
     @property
-    def run_cmd(self):
-        return [CONFIG.rethink_executable,
-                '--directory', self.workspace / 'db',
-                '--bind', socket.gethostbyname(self.hostname),
-                '--driver-port', str(self.port),
-                '--http-port', str(self.http_port),
-                '--cluster-port', str(self.cluster_port),
-                ]
+    def image(self):
+        return CONFIG.rethink_image
+
+    @property
+    def port(self):
+        return self._driver_port
+
+    @property
+    def cluster_port(self):
+        return self._cluster_port
+
+    @property
+    def http_port(self):
+        return self._http_port
 
     def check_server_up(self):
         """Test connection to the server."""

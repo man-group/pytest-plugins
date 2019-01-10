@@ -1,5 +1,6 @@
 *.py[cod]
 .cache
+.mypy_cache
 
 # C extensions
 *.so
@@ -25,7 +26,7 @@ htmlcov
 FAILED-*
 *.log
 
-# IDEs 
+# IDEs
 .project
 .pydevproject
 .settings

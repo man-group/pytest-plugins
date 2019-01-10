@@ -13,101 +13,101 @@ job-tmpl: &job-tmpl
     - run: env
     - checkout
     - run:
-        name: Install Python 
-        command: | 
-          set -x 
+        name: Install Python
+        command: |
+          set -x
           sudo bash -c ". install.sh && install_python_ppa && install_python $PYTHON"
           rm -rf /opt/circleci/.pyenv
 
-    - run: 
+    - run:
         name: Create venv and install extras
         command: bash -c ". install.sh && init_venv $PYTHON"
 
-    - run: 
+    - run:
         name: Update Apt-Sources
         command: sudo bash -c ". install.sh && update_apt_sources"
-    - run: 
+    - run:
         name: Install System Dependencies
         command: sudo bash -c ". install.sh && install_system_deps"
-    - run: 
+    - run:
         name: Install Postgresql
         command: sudo bash -c ". install.sh && install_postgresql"
-    - run: 
+    - run:
         name: Install Redis
         command: sudo bash -c ". install.sh && install_redis"
-    - run: 
+    - run:
         name: Install Rethinkdb
         command: sudo bash -c ". install.sh && install_rethinkdb"
-    - run: 
+    - run:
         name: Install Jenkins
         command: sudo bash -c ". install.sh && install_jenkins"
-    - run: 
+    - run:
         name: Install Mongodb
         command: sudo bash -c ". install.sh && install_mongodb"
-    - run: 
+    - run:
         name: Install Apache
         command: sudo bash -c ". install.sh && install_apache"
-    - run: 
+    - run:
         name: Install Minio
         command: sudo bash -c ". install.sh && install_minio"
-    - run: 
+    - run:
         name: Install Chrome Headless
         command: sudo bash -c ". install.sh && install_chrome_headless"
 
-    - run: 
+    - run:
         name: Build and install dists
         command: |
           . venv/bin/activate
           make develop
-    - run: 
-        name: Run Tests - pytest-fixture-config 
+    - run:
+        name: Run Tests - pytest-fixture-config
         working_directory: ~/src/pytest-fixture-config
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-shutil
         working_directory: ~/src/pytest-shutil
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-server-fixtures
         working_directory: ~/src/pytest-server-fixtures
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-pyramid-server
         working_directory: ~/src/pytest-pyramid-server
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-devpi-server
         working_directory: ~/src/pytest-devpi-server
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-listener
         working_directory: ~/src/pytest-listener
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-svn
         working_directory: ~/src/pytest-svn
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-git
         working_directory: ~/src/pytest-git
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-virtualenv
         working_directory: ~/src/pytest-virtualenv
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-webdriver
         working_directory: ~/src/pytest-webdriver
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-profiling
         working_directory: ~/src/pytest-profiling
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-verbose-parametrize
         working_directory: ~/src/pytest-verbose-parametrize
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Archive Junit and Coverage
         command: |
           mkdir junit
@@ -116,33 +116,34 @@ job-tmpl: &job-tmpl
           . venv/bin/activate
           coverage combine
           coverage report
-          pip install python-coveralls
-          coveralls --ignore-errors
-          
+          pip install urllib3[secure]
+          pip install coveralls
+          CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
+
     - store_test_results:
         path: junit
-    - run: 
+    - run:
         name: Explode if tests have failed
         command: compgen -G FAILED-* && exit 1 || true
 
 version: 2
 jobs:
-  py27: 
+  py27:
     <<: *job-tmpl
     environment:
       PYTHON: "python2.7"
 
-  py34: 
+  py34:
     <<: *job-tmpl
     environment:
       PYTHON: "python3.4"
 
-  py35: 
+  py35:
     <<: *job-tmpl
     environment:
       PYTHON: "python3.5"
 
-  py36: 
+  py36:
     <<: *job-tmpl
     environment:
       PYTHON: "python3.6"
@@ -151,10 +152,10 @@ jobs:
     docker:
       - image: buildpack-deps:trusty
     steps:
-      - run: 
+      - run:
           name: Complete Coveralls
-          command: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$BUILD_NUMBER&payload[status]=done"
-  
+          command: curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+
 workflows:
   version: 2
   pytest-plugins:
