@@ -1,5 +1,5 @@
 # Package list, in order of ancestry
-# removed pytest-qt-app                  
+# removed pytest-qt-app
 EXTRA_DEPS = pypandoc       \
              wheel          \
              coverage       \
@@ -47,15 +47,9 @@ test:
 	./foreach.sh 'DEBUG=1 python setup.py test || touch ../FAILED-$$PKG'
 	bash -c "! compgen -G 'FAILED-*'"
 
-upload: 
+upload:
 	pip install twine
-	for package in $(CHANGED_PACKAGES); do                     \
-	    cd $$package;                                  \
-            if [ -f common_setup.py ]; then  \
-                twine upload $(UPLOAD_OPTS) dist/*; \
-            fi; \
-	    cd ..;                                         \
-    done
+	./foreach.sh --changed '[ -f common_setup.py ] && twine upload $(UPLOAD_OPTS) dist/*'
 
 clean:
 	./foreach.sh 'rm -rf build dist *.xml *.egg-info .eggs htmlcov .cache $(COPY_FILES)'
