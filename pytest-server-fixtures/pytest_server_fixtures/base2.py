@@ -49,9 +49,12 @@ class TestServerV2(Workspace):
             self._server = create_server(
                 server_class=CONFIG.server_class,
                 server_type=self.__class__.__name__,
-                get_cmd=self.get_cmd,
+                cmd=self.cmd,
+                cmd_local=self.cmd_local,
+                get_args=self.get_args,
                 env=self.env,
                 image=self.image,
+                labels=self.labels,
                 workspace=self.workspace,
                 cwd=self._cwd,
                 random_hostname=self.random_hostname,
@@ -119,8 +122,19 @@ class TestServerV2(Workspace):
     def image(self):
         """
         Get the Docker image of the server.
+
+        Only used when SERVER_FIXTURE_SERVER_CLASS is 'docker' or 'kubernetes'.
         """
         raise NotImplementedError("Concret class should implement this")
+
+    @property
+    def labels(self):
+        """
+        Extra labels to be added to the server fixture container.
+
+        Only used when SERVER_FIXTURE_SERVER_CLASS is 'docker' or 'kubernetes'.
+        """
+        return dict()
 
     @property
     def env(self):
@@ -129,14 +143,37 @@ class TestServerV2(Workspace):
         """
         return dict()
 
-    def get_cmd(self, **kwargs):
+    @property
+    def cmd(self):
         """
-        Get the command to run the server fixtures.
+        Get the command to run the server fixture.
+        """
+        raise NotImplementedError("Concrete class should implement this")
+
+    @property
+    def cmd_local(self):
+        """
+        Get the local command to run the server fixture.
+
+        Only used when SERVER_FIXTURES_SERVER_CLASS is 'thread'.
+        """
+        return self.get_cmd()
+
+    def get_args(self, hostname=None, workspace=None):
+        """
+        Get the arguments to run the server fixtures.
+
+        @param hostname: hostname of the server
+        @param workspace: workspace of the server
         """
         raise NotImplementedError("Concrete class should implement this")
 
     def pre_setup(self):
-        """DEPRECATED: only used if serverclass=thread"""
+        """
+        DEPRECATED
+
+        Only used when SERVER_FIXTURE_SERVER_CLASS is 'thread'
+        """
         pass
 
     def post_setup(self):

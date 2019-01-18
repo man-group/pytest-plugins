@@ -19,8 +19,14 @@ log = logging.getLogger(__name__)
 class DockerServer(ServerClass):
     """Docker server class."""
 
-    def __init__(self, server_type, get_cmd, env, image, labels={}):
-        super(DockerServer, self).__init__(get_cmd, env)
+    def __init__(self,
+                 server_type,
+                 cmd,
+                 get_args,
+                 env,
+                 image,
+                 labels={}):
+        super(DockerServer, self).__init__(cmd, get_args, env)
 
         self._image = image
         self._labels = merge_dicts(labels, {
@@ -38,7 +44,7 @@ class DockerServer(ServerClass):
             self._container = self._client.containers.run(
                 image=self._image,
                 name=self.name,
-                command=self._get_cmd(),
+                command=[self._cmd] + self._get_args(),
                 environment=self._env,
                 labels=self._labels,
                 detach=True,

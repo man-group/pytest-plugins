@@ -127,9 +127,17 @@ class RethinkDBServer(TestServerV2):
         self._http_port = self._get_port(8080)
         self.db = None
 
-    def get_cmd(self, **kwargs):
+
+    @property
+    def cmd(self):
+        return "rethindb"
+
+    @property
+    def cmd_local(self):
+        return CONFIG.rethink_executable
+
+    def get_args(self, **kwargs):
         cmd = [
-            CONFIG.rethink_executable,
             '--driver-port', str(self.port),
             '--http-port', str(self.http_port),
             '--cluster-port', str(self.cluster_port),
