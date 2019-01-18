@@ -33,7 +33,7 @@ class ServerFixtureNotTerminatedException(Exception):
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
 
-    def __init__(self, get_cmd, env, hostname=None):
+    def __init__(self, cmd, get_args, env, hostname=None):
         """Initialise the server class.
         Server fixture will be started here.
         """
@@ -43,7 +43,8 @@ class ServerClass(threading.Thread):
         self.daemon = True
 
         self._id = get_random_id(SERVER_ID_LEN)
-        self._get_cmd = get_cmd
+        self._cmd = cmd
+        self._get_args = get_args
         self._env = env or {}
         self._hostname = hostname
 

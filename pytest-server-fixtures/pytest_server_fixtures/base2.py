@@ -119,6 +119,8 @@ class TestServerV2(Workspace):
     def image(self):
         """
         Get the Docker image of the server.
+
+        Only used when SERVER_FIXTURE_SERVER_CLASS is 'docker' or 'kubernetes'
         """
         raise NotImplementedError("Concret class should implement this")
 
@@ -129,14 +131,36 @@ class TestServerV2(Workspace):
         """
         return dict()
 
-    def get_cmd(self, **kwargs):
+    def get_default_bin(self, hostname=None, workspace=None, container=False):
         """
         Get the command to run the server fixtures.
+
+        @param hostname: hostname of the server
+        @param workspace: workspace of the server
+        @param container:
+        """
+        return [self.get_bin]
+
+    def get_bin(self):
+        """
+        Get the command to run the server fixtures.
+
+        Only used when SERVER_FIXTURES_SERVER_CLASS is 'thread'.
+        """
+        raise NotImplementedError("Concrete class should implement this")
+
+    def get_args(self, **kwargs):
+        """
+        Get the arguments to run the server fixtures.
         """
         raise NotImplementedError("Concrete class should implement this")
 
     def pre_setup(self):
-        """DEPRECATED: only used if serverclass=thread"""
+        """
+        DEPRECATED
+
+        Only used when SERVER_FIXTURE_SERVER_CLASS is 'thread'
+        """
         pass
 
     def post_setup(self):

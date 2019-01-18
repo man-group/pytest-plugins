@@ -58,9 +58,10 @@ def _kill_proc_tree(pid, sig=signal.SIGKILL, timeout=None):
 class ThreadServer(ServerClass):
     """Thread server class."""
 
-    def __init__(self, get_cmd, env, workspace, cwd=None, random_hostname=True):
+    def __init__(self, cmd, get_args, env, workspace, cwd=None, random_hostname=True):
         super(ThreadServer, self).__init__(
-            get_cmd,
+            cmd,
+            get_args,
             env,
             hostname=(get_ephemeral_host() if random_hostname else CONFIG.fixture_hostname),
         )
@@ -74,7 +75,7 @@ class ThreadServer(ServerClass):
     def launch(self):
         log.debug("Launching thread server.")
 
-        self._run_cmd = self._get_cmd(
+        self._run_cmd = self._get_args(
             hostname=self._hostname,
             workspace=self._workspace,
         )
