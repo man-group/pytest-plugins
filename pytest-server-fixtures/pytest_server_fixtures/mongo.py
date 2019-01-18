@@ -83,9 +83,16 @@ class MongoTestServer(TestServerV2):
         self._port = self._get_port(27017)
         self.api = None
 
-    def get_cmd(self, **kwargs):
+    @property
+    def cmd(self):
+        return 'mongod'
+
+    @property
+    def cmd_local(self):
+        return CONFIG.mongo_bin
+
+    def get_args(self, **kwargs):
         cmd = [
-            CONFIG.mongo_bin,
             '--port=%s' % self.port,
             '--nounixsocket',
             '--syncdelay=0',

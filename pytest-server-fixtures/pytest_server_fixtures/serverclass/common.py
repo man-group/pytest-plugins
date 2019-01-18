@@ -33,8 +33,12 @@ class ServerFixtureNotTerminatedException(Exception):
 class ServerClass(threading.Thread):
     """Example interface for ServerClass."""
 
-    def __init__(self, cmd, get_args, env, hostname=None):
-        """Initialise the server class.
+    def __init__(self,
+                 cmd,
+                 get_args,
+                 env):
+        """
+        Initialise the server class.
         Server fixture will be started here.
         """
         super(ServerClass, self).__init__()
@@ -46,7 +50,6 @@ class ServerClass(threading.Thread):
         self._cmd = cmd
         self._get_args = get_args
         self._env = env or {}
-        self._hostname = hostname
 
     def run(self):
         """In a new thread, wait for the server to return."""
@@ -62,12 +65,13 @@ class ServerClass(threading.Thread):
 
     @property
     def is_running(self):
+        """Tell if the server is running."""
         raise NotImplementedError("Concrete class should implement this")
 
     @property
     def hostname(self):
         """Get server's hostname."""
-        return self._hostname
+        raise NotImplementedError("Concrete class should implement this")
 
     @property
     def name(self):

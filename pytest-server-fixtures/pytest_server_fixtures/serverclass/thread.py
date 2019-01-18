@@ -58,40 +58,39 @@ def _kill_proc_tree(pid, sig=signal.SIGKILL, timeout=None):
 class ThreadServer(ServerClass):
     """Thread server class."""
 
-    def __init__(self, cmd, get_args, env, workspace, cwd=None, random_hostname=True):
-        super(ThreadServer, self).__init__(
-            cmd,
-            get_args,
-            env,
-            hostname=(get_ephemeral_host() if random_hostname else CONFIG.fixture_hostname),
-        )
+    def __init__(self,
+                 cmd,
+                 get_args,
+                 env,
+                 workspace,
+                 cwd=None,
+                 random_hostname=True):
+        super(ThreadServer, self).__init__(cmd, get_args, env)
 
         self.exit = False
+        self._hostname = get_ephemeral_host() if random_hostname else CONFIG.fixture_hostname
         self._workspace = workspace
         self._cwd = cwd
         self._proc = None
-        self._run_cmd = []
 
     def launch(self):
         log.debug("Launching thread server.")
 
-        self._run_cmd = self._get_args(
-            hostname=self._hostname,
+        run_cmd = [self._cmd] + self._get_args(
+            hostname=self.hostname,
             workspace=self._workspace,
-        )
-
-        args = dict(
-            env=self._env,
-            cwd=self._cwd,
         )
 
         debug = is_debug()
 
+        extra_args = dict()
         if debug:
-            args['stdout'] = subprocess.PIPE
-            args['stderr'] = subprocess.PIPE
+            extra_args['stdout'] = subprocess.PIPE
+            extra_args['stderr'] = subprocess.PIPE
 
-        self._proc = subprocess.Popen(self._run_cmd, **args)
+        self._proc = subprocess.Popen(run_cmd, env=self._env, cwd=self._cwd, **extra_args)
+        log.debug("Running server: %s", ' '.join(run_cmd))
+        log.debug("CWD: %s", self._cwd)
 
         if debug:
             ProcessReader(self._proc, self._proc.stdout, False).start()
@@ -101,8 +100,6 @@ class ThreadServer(ServerClass):
 
     def run(self):
         """Run in thread"""
-        log.debug("Running server: %s", ' '.join(self._run_cmd))
-        log.debug("CWD: %s", self._cwd)
         try:
             self._proc.wait()
         except OSError:
@@ -117,6 +114,10 @@ class ThreadServer(ServerClass):
             return False
         # return False if there is a return code from the main process
         return self._proc.poll() is None
+
+    @property
+    def hostname(self):
+        return self._hostname
 
     def teardown(self):
         if not self._proc:

@@ -68,9 +68,16 @@ class RedisTestServer(TestServerV2):
             self._api = redis.Redis(host=self.hostname, port=self.port, db=self.db)
         return self._api
 
-    def get_cmd(self, **kwargs):
+    @property
+    def cmd(self):
+        return "redis-server"
+
+    @property
+    def cmd_local(self):
+        return CONFIG.redis_executable
+
+    def get_args(self, **kwargs):
         cmd = [
-            CONFIG.redis_executable,
             "--port", str(self.port),
             "--timeout", "0",
             "--loglevel", "notice",

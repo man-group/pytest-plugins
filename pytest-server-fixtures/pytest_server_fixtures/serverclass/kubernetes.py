@@ -43,8 +43,15 @@ class NotRunningInKubernetesException(Exception):
 class KubernetesServer(ServerClass):
     """Kubernetes server class."""
 
-    def __init__(self, server_type, get_cmd, env, image, labels={}):
-        super(KubernetesServer, self).__init__(get_cmd, env)
+    def __init__(self,
+                server_type,
+                cmd,
+                get_args,
+                env,
+                image,
+                labels={}):
+        super(KubernetesServer, self).__init__(cmd, get_args, env)
+
         if not fixture_namespace:
             raise NotRunningInKubernetesException()
 
