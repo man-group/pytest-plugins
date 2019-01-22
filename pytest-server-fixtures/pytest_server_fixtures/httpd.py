@@ -1,4 +1,6 @@
+import functools
 import os
+import platform
 import socket
 import string
 import logging
@@ -17,11 +19,15 @@ from .http import HTTPTestServer
 log = logging.getLogger(__name__)
 
 
+def is_rhel():
+    """"Check if OS is RHEL/Centos"""
+    return 'el' in platform.uname()[2]
+
 @pytest.yield_fixture(scope='function')
 @yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 def httpd_server():
     """ Function-scoped httpd server in a local thread.
-    
+
         Methods
         -------
         get()   : Query url relative to the server root.
@@ -51,6 +57,10 @@ class HTTPDServer(HTTPTestServer):
       </IfModule>
       LoadModule mime_module $modules/mod_mime.so
       LoadModule authz_core_module $modules/mod_authz_core.so
+    """
+
+    cfg_rhel_template = """
+      LoadModule unixd_module modules/mod_unixd.so
     """
 
     cfg_mpm_template = """
@@ -99,10 +109,18 @@ class HTTPDServer(HTTPTestServer):
             Server log directory, defaults to $(workspace)/logs
         """
         self.proxy_rules = proxy_rules if proxy_rules is not None else {}
-        self.cfg_template = string.Template(self.cfg_modules_template +
-                                            self.cfg_mpm_template +
-                                            self.cfg_template +
-                                            extra_cfg)
+
+        if not is_rhel():
+            self.cfg_template = string.Template(self.cfg_modules_template +
+                                                self.cfg_mpm_template +
+                                                self.cfg_template +
+                                                extra_cfg)
+        else:
+            self.cfg_template = string.Template(self.cfg_modules_template +
+                                                self.cfg_rhel_template +
+                                                self.cfg_mpm_template +
+                                                self.cfg_template +
+                                                extra_cfg)
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
@@ -111,7 +129,7 @@ class HTTPDServer(HTTPTestServer):
         kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
 
         super(HTTPDServer, self).__init__(**kwargs)
-        
+
         self.document_root = document_root or self.workspace
         self.document_root = Path(self.document_root)
         self.log_dir = log_dir or self.workspace / 'logs'
