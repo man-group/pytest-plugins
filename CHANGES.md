@@ -1,7 +1,10 @@
 
 ## Changelog
 
-### 1.4.1 (Unreleased)
+### 1.5.0 (Unreleased)
+ * pytest-server-fixtures: made postgres fixtures and its tests optional, like all other fixtures
+
+### 1.4.1 (2019-01-18)
  * pytest-server-fixtures: server fixture binary path specified in ENV now only affect server class 'thread'
 
 ### 1.4.0 (2019-01-15)

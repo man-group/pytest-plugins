@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='session')
+@requires_config(CONFIG, ['pg_config_executable'])
 def postgres_server_sess(request):
     """A session-scoped Postgres Database fixture"""
     return _postgres_server(request)
@@ -59,7 +60,7 @@ class PostgresServer(TestServer):
         (self.workspace / 'db').mkdir()  # pylint: disable=no-value-for-parameter
 
         try:
-            self.pg_bin = subprocess.check_output(["pg_config", "--bindir"]).decode('utf-8').rstrip()
+            self.pg_bin = subprocess.check_output([CONFIG.pg_config_executable, "--bindir"]).decode('utf-8').rstrip()
         except OSError as e:
             msg = "Failed to get pg_config --bindir: " + text_type(e)
             print(msg)
