@@ -9,6 +9,7 @@ import subprocess
 import errno
 import pytest
 from six import text_type
+from pytest_fixture_config import requires_config
 
 from .base import TestServer
 
