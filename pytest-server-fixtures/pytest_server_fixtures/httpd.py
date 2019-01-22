@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 @yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 def httpd_server():
     """ Function-scoped httpd server in a local thread.
-    
+
         Methods
         -------
         get()   : Query url relative to the server root.
@@ -55,6 +55,7 @@ class HTTPDServer(HTTPTestServer):
 
     cfg_mpm_template = """
       LoadModule mpm_prefork_module $modules/mod_mpm_prefork.so
+      LoadModule unixd_module modules/mod_unixd.so
       StartServers       1
       MinSpareServers    1
       MaxSpareServers   4
@@ -111,7 +112,7 @@ class HTTPDServer(HTTPTestServer):
         kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
 
         super(HTTPDServer, self).__init__(**kwargs)
-        
+
         self.document_root = document_root or self.workspace
         self.document_root = Path(self.document_root)
         self.log_dir = log_dir or self.workspace / 'logs'
