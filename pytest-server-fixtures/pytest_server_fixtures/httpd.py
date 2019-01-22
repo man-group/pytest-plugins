@@ -55,7 +55,7 @@ class HTTPDServer(HTTPTestServer):
 
     cfg_mpm_template = """
       LoadModule mpm_prefork_module $modules/mod_mpm_prefork.so
-      LoadModule unixd_module modules/mod_unixd.so
+      LoadModule unixd_module $modules/mod_unixd.so
       StartServers       1
       MinSpareServers    1
       MaxSpareServers   4
