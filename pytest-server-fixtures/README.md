@@ -92,6 +92,7 @@ The fixtures are configured using the following evironment variables:
 | `SERVER_FIXTURES_K8S_LOCAL_TEST` | (Kubernetes only) Set to `True` to allow integration tests to run (See [Integration Tests](#integration-tests)). | `False`
 | `SERVER_FIXTURES_MONGO_BIN`     | Directory containing the `mongodb` executable | "" (relies on `$PATH`)
 | `SERVER_FIXTURES_MONGO_IMAGE`   | (Docker only) Docker image for mongo | `mongo:3.6`
+| `SERVER_FIXTURES_PG_CONFIG`     | Postgres pg_config executable | `pg_config`
 | `SERVER_FIXTURES_REDIS`         | Redis server executable | `redis-server`
 | `SERVER_FIXTURES_REDIS_IMAGE`   | (Docker only) Docker image for redis | `redis:5.0.2-alpine`
 | `SERVER_FIXTURES_RETHINK`       | RethinkDB server executable |  `rethinkdb`
