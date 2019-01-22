@@ -3,6 +3,7 @@
 
 ### 1.5.0 (Unreleased)
  * pytest-server-fixtures: made postgres fixtures and its tests optional, like all other fixtures
+ * pytest-server-fixtures: reverted a fix for pymongo deprecation warning, as this will break compatibility with pymongo 3.6.0
 
 ### 1.4.1 (2019-01-18)
  * pytest-server-fixtures: server fixture binary path specified in ENV now only affect server class 'thread'
