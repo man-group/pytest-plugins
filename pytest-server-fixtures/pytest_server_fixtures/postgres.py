@@ -9,6 +9,8 @@ import subprocess
 import errno
 import pytest
 from six import text_type
+
+from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
 
 from .base import TestServer
