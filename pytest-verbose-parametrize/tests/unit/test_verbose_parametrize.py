@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from mock import Mock
 
 from pytest_verbose_parametrize import pytest_generate_tests
@@ -64,3 +65,10 @@ def test_generates_ids_from_apparent_duplicates():
 
 def test_ok_on_non_parametrized_function():
     pytest_generate_tests(object())
+
+
+def test_unicode_parameters():
+    metafunc = get_metafunc(("test_param", [u"111", u"¬˚ß∆∂", u"😀 😁 😂 🤣 😃 😄 😅 😆"]))
+    pytest_generate_tests(metafunc)
+    assert metafunc.function.parametrize.kwargs['ids'] == [u"111", u"¬˚ß∆∂", u"😀 😁 😂 🤣 😃 😄 😅 😆"]
+

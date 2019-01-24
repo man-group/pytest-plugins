@@ -1,12 +1,12 @@
 from collections import Iterable
-from six import string_types
+from six import string_types, text_type
 
 
 def _strize_arg(arg):
     try:
         s = arg.__name__
     except AttributeError:
-        s = str(arg)
+        s = text_type(arg)
     if len(s) > 32:
         s = s[:29] + '...'
     return s
