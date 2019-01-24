@@ -1,7 +1,10 @@
 
 ## Changelog
 
-### 1.5.0 (Unreleased)
+### 1.5.1 (Unreleased)
+ * pytest-verbose-parametrize: fixed unicode parameters when using `@pytest.mark.parametrize`
+
+### 1.5.0 (2019-01-23)
  * pytest-server-fixtures: made postgres fixtures and its tests optional, like all other fixtures
  * pytest-server-fixtures: reverted a fix for pymongo deprecation warning, as this will break compatibility with pymongo 3.6.0
  * pytest-server-fixtures: dropped RHEL5 support in httpd
