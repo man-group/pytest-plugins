@@ -9,9 +9,9 @@ can point a Selenium webdriver at.
 Install using your favourite package manager:
 
 ```bash
-    pip install pytest-pyramid
+    pip install pytest-pyramid-server
     #  or..
-    easy_install pytest-pyramid
+    easy_install pytest-pyramid-server
 ```
 
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
