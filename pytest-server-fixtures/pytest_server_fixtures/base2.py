@@ -12,8 +12,8 @@ from .serverclass import create_server
 log = logging.getLogger(__name__)
 
 
-class TeardownTestServerException(Exception):
-    """Thrown when attempting to start an already teardown test server."""
+class TestServerAlreadyKilledException(Exception):
+    """Thrown when attempting to start an already killed test server."""
     pass
 
 
@@ -36,14 +36,14 @@ class TestServerV2(Workspace):
         self._cwd = cwd or os.getcwd()
         self._server_class = server_class
         self._server = None
-        self._teardown = False
+        self._killed = False
 
     def start(self):
         """
         Start the test server.
         """
-        if self._teardown:
-            raise TeardownTestServerException()
+        if self._killed:
+            raise TestServerAlreadyKilledException()
 
         try:
             self._server = create_server(
@@ -73,12 +73,12 @@ class TestServerV2(Workspace):
             log.debug(err)
             raise
 
-    def teardown(self):
+    def kill(self):
         """
         Stop the server and clean up all resources.
         """
-        if self._teardown:
-            log.debug("Server is already teardown, skipping")
+        if self._killed:
+            log.debug("Server is already killed, skipping")
             return
 
         if not self._server:
@@ -86,10 +86,14 @@ class TestServerV2(Workspace):
             return
         self._server.teardown()
         self._server = None
+        self._killed = True
 
+    def teardown(self):
+        """ Called when tearing down this instance, eg in a context manager
+        """
+        self.kill()
         super(TestServerV2, self).teardown()
 
-        self._teardown = True
 
     def check_server_up(self):
         """
