@@ -11,6 +11,11 @@ def virtualenv():
     with VirtualEnv() as venv:
         test_dir = resource_filename('pytest_profiling',
                                  'tests/integration/profile')
+
+        # HACK: pin more-itertools to 5.0.0 to keep tests working in PY27 as
+        # as that's a py3 only release
+        venv.install_package('more-itertools==5.0.0')
+
         venv.install_package('pytest-cov')
         venv.install_package('pytest-profiling')
         copy_tree(test_dir, venv.workspace)
