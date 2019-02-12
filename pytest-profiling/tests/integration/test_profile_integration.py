@@ -1,8 +1,7 @@
 from distutils.dir_util import copy_tree
 import shutil
-import pkg_resources
 
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, get_distribution
 import pytest
 
 from pytest_virtualenv import VirtualEnv
@@ -15,7 +14,7 @@ def virtualenv():
 
         # HACK: pin pytest version to the current env's one (3.10.1) to avoid
         # pytest-cov to pick up the latest (4.2) which will break tests in PY27
-        venv.install_package('pytest=={}'.format(pkg_resources.get_distribution('pytest')))
+        venv.install_package('pytest=={}'.format(get_distribution('pytest').version))
 
         venv.install_package('pytest-cov')
         venv.install_package('pytest-profiling')
