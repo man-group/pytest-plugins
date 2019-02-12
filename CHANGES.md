@@ -3,6 +3,7 @@
 
 ### 1.6.0 (Unreleased)
  * pytest-server-fixtures: added previously removed TestServerV2.kill() function
+ * pytest-profiling: fix tests in py27
 
 ### 1.5.1 (2019-01-24)
  * pytest-verbose-parametrize: fixed unicode parameters when using `@pytest.mark.parametrize`
