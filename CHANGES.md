@@ -3,7 +3,7 @@
 
 ### 1.6.0 (Unreleased)
  * pytest-server-fixtures: added previously removed TestServerV2.kill() function
- * pytest-profiling: pin more-itertools<6.0.0 in integration tests, as that's a PY3 only release
+ * pytest-profiling: pin more-itertools==5.0.0 in integration tests, as that's a PY3 only release
 
 ### 1.5.1 (2019-01-24)
  * pytest-verbose-parametrize: fixed unicode parameters when using `@pytest.mark.parametrize`
