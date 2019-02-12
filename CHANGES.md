@@ -1,7 +1,10 @@
 
 ## Changelog
 
-### 1.6.0 (Unreleased)
+### 1.6.1 (Unrelease)
+ * pytest-server-fixtures: fix exception when attempting to access hostname while server is not started
+
+### 1.6.0 (2019-02-12)
  * pytest-server-fixtures: added previously removed TestServerV2.kill() function
  * pytest-profiling: pin more-itertools==5.0.0 in integration tests, as that's a PY3 only release
 
