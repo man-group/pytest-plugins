@@ -15,7 +15,7 @@ def virtualenv():
 
         # HACK: pin pytest version to the current env's one (3.10.1) to avoid
         # pytest-cov to pick up the latest (4.2) which will break tests in PY27
-        venv.install_package('pytest=={}'.format(pkg_resources.get_distribution('pytest'))
+        venv.install_package('pytest=={}'.format(pkg_resources.get_distribution('pytest')))
 
         venv.install_package('pytest-cov')
         venv.install_package('pytest-profiling')
