@@ -12,3 +12,7 @@ def test_init():
         assert ts._cwd == sentinel.cwd
         assert ts._server_class == sentinel.server_class
 
+def test_hostname_when_server_is_not_started():
+    ts = _TestServerV2()
+    assert ts.hostname == None
+
