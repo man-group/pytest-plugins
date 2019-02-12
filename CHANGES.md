@@ -1,7 +1,10 @@
 
 ## Changelog
 
-### 1.5.1 (Unreleased)
+### 1.6.0 (Unreleased)
+ * pytest-server-fixtures: added previously removed TestServerV2.kill() function
+
+### 1.5.1 (2019-01-24)
  * pytest-verbose-parametrize: fixed unicode parameters when using `@pytest.mark.parametrize`
 
 ### 1.5.0 (2019-01-23)
