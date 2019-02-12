@@ -1,5 +1,6 @@
 from distutils.dir_util import copy_tree
 import shutil
+import pkg_resources
 
 from pkg_resources import resource_filename
 import pytest
@@ -11,6 +12,11 @@ def virtualenv():
     with VirtualEnv() as venv:
         test_dir = resource_filename('pytest_profiling',
                                  'tests/integration/profile')
+
+        # HACK: pin pytest version to the current env's one (3.10.1) to avoid
+        # pytest-cov to pick up the latest (4.2) which will break tests in PY27
+        venv.install_package('pytest=={}'.format(pkg_resources.get_distribution('pytest'))
+
         venv.install_package('pytest-cov')
         venv.install_package('pytest-profiling')
         copy_tree(test_dir, venv.workspace)
