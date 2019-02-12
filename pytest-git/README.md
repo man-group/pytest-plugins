@@ -25,7 +25,7 @@ Here's a noddy test case that shows it working:
 ```python
 def test_git_repo(git_repo):
     # The fixture derives from `workspace` in `pytest-shutil`, so they contain 
-    # a handle to the path.py path object (see https://pythonhosted.org/path.py)
+    # a handle to the path.py path object (see https://pathpy.readthedocs.io/)
     path = git_repo.workspace
     file = path / 'hello.txt'
     file.write_text('hello world!')

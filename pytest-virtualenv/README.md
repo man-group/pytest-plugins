@@ -30,7 +30,7 @@ This fixture is configured using the following evironment variables
 ## Fixture Attributes
 
 Here's a noddy test case to demonstrate the basic fixture attributes. 
-For more information on `path.py` see https://pythonhosted.org/path.py
+For more information on `path.py` see https://pathpy.readthedocs.io/
 
 ```python
 def test_virtualenv(virtualenv):
