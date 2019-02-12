@@ -107,10 +107,14 @@ class RedisTestServer(TestServerV2):
     def check_server_up(self):
         """ Ping the server
         """
+        print("pinging Redis at %s:%s db %s" % (
+            self.hostname, self.port, self.db
+        ))
+
+        if not self.hostname:
+            return False
+
         try:
-            print("pinging Redis at %s:%s db %s" % (
-                self.hostname, self.port, self.db
-            ))
             return self.api.ping()
         except redis.ConnectionError as e:
             print("server not up yet (%s)" % e)

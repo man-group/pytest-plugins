@@ -106,6 +106,8 @@ class TestServerV2(Workspace):
         """
         Get the IP address of the server.
         """
+        if not self._server:
+            return None
         return self._server.hostname
 
     @property

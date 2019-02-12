@@ -173,6 +173,10 @@ class RethinkDBServer(TestServerV2):
         """Test connection to the server."""
         log.info("Connecting to RethinkDB at {0}:{1}".format(
             self.hostname, self.port))
+
+        if not self.hostname:
+            return False
+
         try:
             self.conn = rethinkdb.connect(host=self.hostname,
                                           port=self.port, db='test')

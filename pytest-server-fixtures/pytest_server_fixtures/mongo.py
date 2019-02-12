@@ -122,6 +122,12 @@ class MongoTestServer(TestServerV2):
         import pymongo
         from pymongo.errors import AutoReconnect, ConnectionFailure
 
+        # Hostname must exist before continuing
+        # Some server class (e.g. Docker) will only allocate an IP after the
+        # container has started.
+        if not self.hostname:
+            return False
+
         log.info("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
         try:
             self.api = pymongo.MongoClient(self.hostname, self.port,
