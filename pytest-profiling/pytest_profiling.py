@@ -1,3 +1,5 @@
+"""pytest: avoid already-imported warning: PYTEST_DONT_REWRITE."""
+
 from __future__ import absolute_import
 
 import sys
