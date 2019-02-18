@@ -49,7 +49,7 @@ def webdriver(request):
     """ Connects to a remote selenium webdriver and returns the browser handle.
         Scoped on a per-function level so you get one browser window per test.
         Creates screenshots automatically on test failures.
-        
+
         Attributes
         ----------
         root_uri:  URI to the pyramid_server fixture if it's detected in the test run
@@ -59,7 +59,7 @@ def webdriver(request):
     # Look for the pyramid server funcarg in the current session, and save away its root uri
     root_uri = []
     try:
-        root_uri.append(request.getfuncargvalue('pyramid_server').uri)
+        root_uri.append(request.getfixturevalue('pyramid_server').uri)
     except LookupError:
         pass
 
