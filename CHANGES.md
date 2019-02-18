@@ -3,6 +3,7 @@
 
 ### 1.6.2
  * pytest-webdriver: fix 'use of getfuncargvalue is deprecated' warning
+ * pytest-webdriver: fix 'use options instead of chrome_options' warning
 
 ### 1.6.1 (Unrelease)
  * pytest-server-fixtures: fix exception when attempting to access hostname while server is not started
