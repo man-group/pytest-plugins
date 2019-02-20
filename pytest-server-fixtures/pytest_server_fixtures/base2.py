@@ -34,10 +34,10 @@ class TestServerV2(Workspace):
         """
         super(TestServerV2, self).__init__(workspace=workspace, delete=delete)
         self._cwd = cwd or os.getcwd()
-        self._listen_hostname = self._get_hostname()
         self._server_class = server_class
         self._server = None
         self._killed = False
+        self._listen_hostname = self._get_hostname()
 
     def start(self):
         """
