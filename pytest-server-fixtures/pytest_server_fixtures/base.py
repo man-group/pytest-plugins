@@ -89,7 +89,7 @@ def get_ephemeral_port(port=0, host=None, cache_host=True):
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, port))
             port = s.getsockname()[1]
             s.close()
