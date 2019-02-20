@@ -16,7 +16,7 @@ def test_init(mock_init):
     mock_init.assert_called_with(sentinel.cmd,
                                  sentinel.get_args,
                                  sentinel.env)
-    assert ts._hostname = sentinel.listen_hostname
+    assert ts._hostname == sentinel.listen_hostname
     assert ts._workspace == sentinel.workspace
     assert ts._cwd == sentinel.cwd
 
