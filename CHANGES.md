@@ -3,6 +3,7 @@
 
 ### 1.6.1 (Unrelease)
  * pytest-server-fixtures: fix exception when attempting to access hostname while server is not started
+ * pytest-server-fixtures: fix random port logic in TestServerV2
 
 ### 1.6.0 (2019-02-12)
  * pytest-server-fixtures: added previously removed TestServerV2.kill() function

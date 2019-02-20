@@ -12,7 +12,7 @@ import psutil
 from retry import retry
 
 from pytest_server_fixtures import CONFIG
-from pytest_server_fixtures.base import get_ephemeral_host, ProcessReader, ServerNotDead, OSX
+from pytest_server_fixtures.base import ProcessReader
 from .common import ServerClass, is_debug
 
 log = logging.getLogger(__name__)
@@ -64,22 +64,19 @@ class ThreadServer(ServerClass):
                  env,
                  workspace,
                  cwd=None,
-                 random_hostname=True):
+                 listen_hostname=None):
         super(ThreadServer, self).__init__(cmd, get_args, env)
 
         self.exit = False
-        self._hostname = get_ephemeral_host() if random_hostname else CONFIG.fixture_hostname
         self._workspace = workspace
         self._cwd = cwd
+        self._hostname = listen_hostname
         self._proc = None
 
     def launch(self):
         log.debug("Launching thread server.")
 
-        run_cmd = [self._cmd] + self._get_args(
-            hostname=self.hostname,
-            workspace=self._workspace,
-        )
+        run_cmd = [self._cmd] + self._get_args(workspace=self._workspace)
 
         debug = is_debug()
 

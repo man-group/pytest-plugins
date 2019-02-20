@@ -13,7 +13,7 @@ def create_server(server_class, **kwargs):
             env=kwargs["env"],
             workspace=kwargs["workspace"],
             cwd=kwargs["cwd"],
-            random_hostname=kwargs["random_hostname"],
+            listen_hostname=kwargs["listen_hostname"],
         )
 
     if server_class == 'docker':
