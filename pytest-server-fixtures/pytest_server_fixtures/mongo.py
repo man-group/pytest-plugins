@@ -93,6 +93,7 @@ class MongoTestServer(TestServerV2):
 
     def get_args(self, **kwargs):
         cmd = [
+            '--bind_ip=%s' % self._listen_hostname,
             '--port=%s' % self.port,
             '--nounixsocket',
             '--syncdelay=0',
@@ -100,10 +101,6 @@ class MongoTestServer(TestServerV2):
             '--quiet',
         ]
 
-        if 'hostname' in kwargs:
-            cmd.append('--bind_ip=%s' % kwargs['hostname'])
-        else:
-            cmd.append('--bind_ip=0.0.0.0')
         if 'workspace' in kwargs:
             cmd.append('--dbpath=%s' % str(kwargs['workspace']))
 

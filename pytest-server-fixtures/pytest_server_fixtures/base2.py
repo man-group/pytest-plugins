@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
-from .base import get_ephemeral_port
+from .base import get_ephemeral_host, get_ephemeral_port
 from .serverclass import create_server
 
 log = logging.getLogger(__name__)
@@ -37,6 +37,7 @@ class TestServerV2(Workspace):
         self._server_class = server_class
         self._server = None
         self._killed = False
+        self._listen_hostname = self._get_hostname()
 
     def start(self):
         """
@@ -57,7 +58,7 @@ class TestServerV2(Workspace):
                 labels=self.labels,
                 workspace=self.workspace,
                 cwd=self._cwd,
-                random_hostname=self.random_hostname,
+                listen_hostname=self._listen_hostname,
             )
 
             if self._server_class == 'thread':
@@ -169,11 +170,10 @@ class TestServerV2(Workspace):
         """
         return self.get_cmd()
 
-    def get_args(self, hostname=None, workspace=None):
+    def get_args(self, workspace=None):
         """
         Get the arguments to run the server fixtures.
 
-        @param hostname: hostname of the server
         @param workspace: workspace of the server
         """
         raise NotImplementedError("Concrete class should implement this")
@@ -236,16 +236,28 @@ class TestServerV2(Workspace):
         raise ValueError("Server failed to start up after waiting %s. Giving up!"
                          % str(datetime.now() - start_time))
 
+    def _get_hostname(self):
+        """
+        Get host IP for service to listen on
+        """
+        if self._server_class == 'thread':
+            # serverclass "thread" has special way to do this
+            return get_ephemeral_host() \
+                    if self.random_hostname \
+                    else CONFIG.fixture_hostname
+
+        return '0.0.0.0'
+
     def _get_port(self, default_port):
         """
         Get a random or pseudo-random port based on config.
         """
-        if self._server_class != 'thread':
-            return default_port
+        if self._server_class == 'thread':
+            return get_ephemeral_port(host=self._listen_hostname) \
+                    if self.random_port \
+                    else self._get_pseudo_random_port()
 
-        return (
-            get_ephemeral_port() if self.random_port
-            else self._get_pseudo_random_port())
+        return default_port
 
     def _get_pseudo_random_port(self):
         """

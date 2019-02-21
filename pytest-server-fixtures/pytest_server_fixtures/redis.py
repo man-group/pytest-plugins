@@ -78,6 +78,7 @@ class RedisTestServer(TestServerV2):
 
     def get_args(self, **kwargs):
         cmd = [
+            "--bind", self._listen_hostname,
             "--port", str(self.port),
             "--timeout", "0",
             "--loglevel", "notice",
@@ -88,11 +89,6 @@ class RedisTestServer(TestServerV2):
             "--slowlog-log-slower-than", "-1",
             "--slowlog-max-len", "1024",
         ]
-
-        if 'hostname' in kwargs:
-            cmd += ["--bind", "%s" % kwargs['hostname']]
-        else:
-            cmd += ["--bind", "0.0.0.0"]
 
         return cmd
 

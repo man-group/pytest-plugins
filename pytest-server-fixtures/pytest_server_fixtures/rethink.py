@@ -138,15 +138,11 @@ class RethinkDBServer(TestServerV2):
 
     def get_args(self, **kwargs):
         cmd = [
+            '--bind', self._listen_hostname,
             '--driver-port', str(self.port),
             '--http-port', str(self.http_port),
             '--cluster-port', str(self.cluster_port),
         ]
-
-        if 'hostname' in kwargs:
-            cmd += ['--bind', kwargs['hostname']]
-        else:
-            cmd += ['--bind', 'all']
 
         if 'workspace' in kwargs:
             cmd += ['--directory', str(kwargs['workspace'] / 'db')]
