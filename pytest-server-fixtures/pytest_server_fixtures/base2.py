@@ -85,6 +85,10 @@ class TestServerV2(Workspace):
         if not self._server:
             log.debug("Server not started yet, skipping")
             return
+
+        # Prevent traceback printed when the server goes away as we kill it
+        self._server.exit = True
+
         self._server.teardown()
         self._server = None
         self._killed = True
