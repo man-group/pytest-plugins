@@ -35,7 +35,10 @@ class FixtureConfig(Config):
     )
 
 # Default values for system resource locations - patch this to change defaults
-DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostbyname(socket.gethostname())
+try:
+    DEFAULT_SERVER_FIXTURES_HOSTNAME = socket.gethostbyname(socket.gethostname())
+except socket.gaierror:
+    DEFAULT_SERVER_FIXTURES_HOSTNAME = '127.0.0.1'
 DEFAULT_SERVER_FIXTURES_SESSION_ID = get_random_id(SESSION_ID_LEN)
 DEFAULT_SERVER_FIXTURES_DISABLE_HTTP_PROXY = True
 DEFAULT_SERVER_FIXTURES_SERVER_CLASS = 'thread'
