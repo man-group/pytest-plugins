@@ -1,10 +1,12 @@
 
 ## Changelog
 
-### 1.6.2 (Unreleased)
+### 1.7.0
+  * pytest-server-fixtures: if host not defined, use localhost
+
+### 1.6.2 (2019-02-21)
  * pytest-server-fixtures: suppress stacktrace if kill() is called
  * pytest-server-fixtures: fix random port logic in TestServerV2
- * pytest-server-fixtures: if host not defined, use localhost
 
 ### 1.6.1 (2019-02-12)
  * pytest-server-fixtures: fix exception when attempting to access hostname while server is not started
