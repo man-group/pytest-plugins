@@ -5,7 +5,8 @@ test-tmpl: &test-tmpl
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
-  machine: true
+  machine:
+    image: circleci/classic:201808-01
 
   working_directory: ~/src
 
