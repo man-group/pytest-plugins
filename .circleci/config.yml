@@ -5,7 +5,8 @@ test-tmpl: &test-tmpl
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
-  machine: true
+  machine:
+    image: circleci/classic:201808-01
 
   working_directory: ~/src
 
@@ -118,7 +119,11 @@ job-tmpl: &job-tmpl
           coverage report
           pip install urllib3[secure]
           pip install coveralls
-          CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
+          if [[ "$COVERALLS_REPO_TOKEN" != "" ]]; then
+            CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
+          else
+            echo "Skipping Coveralls"
+          fi
 
     - store_test_results:
         path: junit
@@ -148,13 +153,23 @@ jobs:
     environment:
       PYTHON: "python3.6"
 
+  py37:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.7"
+
   coveralls:
     docker:
       - image: buildpack-deps:trusty
     steps:
       - run:
           name: Complete Coveralls
-          command: curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+          command: |
+            if [[ "$COVERALLS_REPO_TOKEN" != "" ]]; then
+              curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+            else
+              echo "Skipping Coveralls"
+            fi
 
 workflows:
   version: 2
@@ -164,9 +179,11 @@ workflows:
       - py34
       - py35
       - py36
+      - py37
       - coveralls:
           requires:
             - py27
             - py34
             - py35
             - py36
+            - py37

@@ -8,8 +8,10 @@ def get_metafunc(args):
     p = Mock(kwargs={}, args=args)
     p._arglist = ([args, {}],)
     metafunc = Mock()
-    metafunc.function.parametrize = p
+    metafunc.function.parametrize = p  # Deprecated
+    metafunc.definition.get_closest_marker.return_value = p
     return metafunc
+
 
 def test_generates_ids_from_tuple():
     metafunc = get_metafunc((None, [(1, 2, 3)]))

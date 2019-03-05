@@ -19,12 +19,13 @@ classifiers = [
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
 ]
 
 install_requires = ['six',
                     'execnet',
                     'contextlib2',
-                    'pytest<4.0.0',
+                    'pytest',
                     'path.py',
                     'mock',
                     'termcolor'

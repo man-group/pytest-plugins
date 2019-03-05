@@ -178,5 +178,5 @@ class RethinkDBServer(TestServerV2):
                                           port=self.port, db='test')
             return True
         except rethinkdb.RqlDriverError as err:
-            log.warn(err)
+            log.warning(err)
         return False

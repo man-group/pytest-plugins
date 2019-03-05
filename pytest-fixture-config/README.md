@@ -9,8 +9,6 @@ Install using your favourite package manager:
 
 ```bash
     pip install pytest-fixture-config
-    #  or..
-    easy_install pytest-fixture-config
 ```
 
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):

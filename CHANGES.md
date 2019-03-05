@@ -2,7 +2,19 @@
 ## Changelog
 
 ### 1.7.0
-  * pytest-server-fixtures: if host not defined, use localhost
+ * pytest-server-fixtures: if host not defined, use localhost
+ * circleci: Test against Python 3.7
+ * circleci: Fix checks by skipping coverall submission for developer without push access
+ * pytest-server-fixture: Fix rethinkdb tests requiring rethinkdb < 2.4.0
+ * wheels: Generate universal wheels installable with both python 2.x and 3.x
+ * Fix DeprecationWarning warnings using "logger.warning()" function
+ * pytest-virtualenv: Add virtualenv as install requirement. Fixes #122
+ * Remove requirement for pytest<4.0.0
+ * pytest-webdriver: Fix RemovedInPytest4Warning using getfixturevalue
+ * pytest-verbose-parametrize: Add support for revamped marker infrastructure
+ * pytest-verbose-parametrize: Fix integration tests to support pytest >= 4.1.0
+ * dist: Remove support for building and distributing *.egg files
+ * VagrantFile: Install python 3.7 and initialize python 3.7 by default
 
 ### 1.6.2 (2019-02-21)
  * pytest-server-fixtures: suppress stacktrace if kill() is called

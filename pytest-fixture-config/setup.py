@@ -19,9 +19,10 @@ classifiers = [
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
 ]
 
-install_requires = ['pytest<4.0.0']
+install_requires = ['pytest']
 
 tests_require = ['six',
                  ]

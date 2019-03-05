@@ -9,8 +9,6 @@ on test failures.
 Install using your favourite package installer:
 ```bash
     pip install pytest-webdriver
-    # or
-    easy_install pytest-webdriver
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
