@@ -148,6 +148,11 @@ jobs:
     environment:
       PYTHON: "python3.6"
 
+  py37:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.7"
+
   coveralls:
     docker:
       - image: buildpack-deps:trusty
@@ -164,9 +169,11 @@ workflows:
       - py34
       - py35
       - py36
+      - py37
       - coveralls:
           requires:
             - py27
             - py34
             - py35
             - py36
+            - py37

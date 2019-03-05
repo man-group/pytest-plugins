@@ -2,7 +2,8 @@
 ## Changelog
 
 ### 1.7.0
-  * pytest-server-fixtures: if host not defined, use localhost
+ * pytest-server-fixtures: if host not defined, use localhost
+ * circleci: Test against Python 3.7
 
 ### 1.6.2 (2019-02-21)
  * pytest-server-fixtures: suppress stacktrace if kill() is called
