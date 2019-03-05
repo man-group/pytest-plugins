@@ -118,7 +118,11 @@ job-tmpl: &job-tmpl
           coverage report
           pip install urllib3[secure]
           pip install coveralls
-          CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
+          if [[ "$COVERALLS_REPO_TOKEN" != "" ]]; then
+            CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
+          else
+            echo "Skipping Coveralls"
+          fi
 
     - store_test_results:
         path: junit
@@ -159,7 +163,12 @@ jobs:
     steps:
       - run:
           name: Complete Coveralls
-          command: curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+          command: |
+            if [[ "$COVERALLS_REPO_TOKEN" != "" ]]; then
+              curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+            else
+              echo "Skipping Coveralls"
+            fi
 
 workflows:
   version: 2
