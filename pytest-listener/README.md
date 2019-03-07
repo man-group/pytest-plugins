@@ -8,8 +8,6 @@ Install using your favourite package manager:
 
 ```bash
     pip install pytest-listener
-    #  or..
-    easy_install pytest-listener
 ```
 
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):

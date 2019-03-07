@@ -7,8 +7,6 @@ Creates an empty Git repository for testing that cleans up after itself on teard
 Install using your favourite package installer:
 ```bash
     pip install pytest-git
-    # or
-    easy_install pytest-git
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
