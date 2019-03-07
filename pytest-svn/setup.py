@@ -22,7 +22,7 @@ classifiers = [
     'Programming Language :: Python :: 3.7',
 ]
 
-install_requires = ['pytest<4.0.0',
+install_requires = ['pytest',
                     'pytest-shutil',
                     ]
 

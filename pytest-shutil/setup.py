@@ -25,7 +25,7 @@ classifiers = [
 install_requires = ['six',
                     'execnet',
                     'contextlib2',
-                    'pytest<4.0.0',
+                    'pytest',
                     'path.py',
                     'mock',
                     'termcolor'
