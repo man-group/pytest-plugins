@@ -8,7 +8,7 @@ EXTRA_DEPS = pypandoc       \
              pymongo        \
              psycopg2       \
              boto3          \
-             rethinkdb      \
+             "rethinkdb<2.4.0" \
              docker         \
              kubernetes
 
