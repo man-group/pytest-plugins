@@ -25,6 +25,7 @@ classifiers = [
 install_requires = ['pytest-fixture-config',
                     'pytest-shutil',
                     'pytest<4.0.0',
+                    'virtualenv',
                     ]
 
 tests_require = [
