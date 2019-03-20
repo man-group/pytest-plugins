@@ -13,10 +13,19 @@ def _strize_arg(arg):
 
 
 def pytest_generate_tests(metafunc):
+
     try:
-        markers = metafunc.function.parametrize
+        markers = metafunc.definition.get_closest_marker('parametrize')
+        if not markers:
+            return
     except AttributeError:
-        return
+        # Deprecated in pytest >= 3.6
+        # See https://docs.pytest.org/en/latest/mark.html#marker-revamp-and-iteration
+        try:
+            markers = metafunc.function.parametrize
+        except AttributeError:
+            return
+
     if 'ids' not in markers.kwargs:
         list_names = []
         for i, argvalue in enumerate(markers.args[1]):

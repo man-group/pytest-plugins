@@ -140,6 +140,7 @@ function install_all {
   install_python python3.4
   install_python python3.5
   install_python python3.6
+  install_python python3.7
 
   update_apt_sources
   install_system_deps

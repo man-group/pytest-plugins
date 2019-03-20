@@ -7,8 +7,6 @@ Set up a Q Application for QT with an X-Window Virtual Framebuffer (Xvfb).
 Install using your favourite package installer:
 ```bash
     pip install pytest-qt-app
-    # or
-    easy_install pytest-qt-app
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):

@@ -59,7 +59,7 @@ def webdriver(request):
     # Look for the pyramid server funcarg in the current session, and save away its root uri
     root_uri = []
     try:
-        root_uri.append(request.getfuncargvalue('pyramid_server').uri)
+        root_uri.append(request.getfixturevalue('pyramid_server').uri)
     except LookupError:
         pass
 

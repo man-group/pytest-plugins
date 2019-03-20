@@ -8,7 +8,7 @@ EXTRA_DEPS = pypandoc       \
              pymongo        \
              psycopg2       \
              boto3          \
-             rethinkdb      \
+             "rethinkdb<2.4.0" \
              docker         \
              kubernetes
 
@@ -16,7 +16,7 @@ COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in LICENSE
 UPLOAD_OPTS =
 
 # removed from PHONY:  circleci_sip circleci_pyqt
-.PHONY: extras copyfiles wheels eggs sdists install develop test upload clean
+.PHONY: extras copyfiles wheels sdists install develop test upload clean
 
 extras:
 	pip install $(EXTRA_DEPS)
@@ -27,9 +27,6 @@ copyfiles:
 wheels: copyfiles
 	pip install -U wheel
 	./foreach.sh --changed 'python setup.py bdist_wheel'
-
-eggs: copyfiles
-	./foreach.sh --changed 'python setup.py bdist_egg'
 
 sdists: copyfiles
 	./foreach.sh --changed 'python setup.py sdist'
