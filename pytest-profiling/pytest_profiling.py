@@ -6,6 +6,7 @@ import cProfile
 import pstats
 import errno
 from hashlib import md5
+from subprocess import Popen, PIPE
 
 import six
 import pytest
@@ -57,15 +58,7 @@ class Profiling(object):
                 # convert file <self.combined> into file <self.svg_name> using a pipe of gprof2dot | dot
                 # gprof2dot -f pstats prof/combined.prof | dot -Tsvg -o prof/combined.svg
 
-                # A/ Legacy: python pipes: does not seem to work on windows targets :(
-                # import pipes
-                # t = pipes.Template()
-                # t.append("{} -f pstats $IN".format(self.gprof2dot), "f-")
-                # t.append("dot -Tsvg -o $OUT", "-f")
-                # t.copy(self.combined, self.svg_name)
-
-                # B/ A handcrafted POpen pipe actually seems to work on windows:
-                from subprocess import Popen, PIPE
+                # A handcrafted Popen pipe actually seems to work on both windows and unix
 
                 # the 2 commands that we wish to execute
                 gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined]
@@ -87,31 +80,6 @@ class Profiling(object):
                 else:
                     # success
                     self.svg_err = 0
-
-                # C/ Safest and most portable way is to simply write a temporary file and delete it afterwards
-                # The lines below work perfectly, in case we wish to use this behaviour later
-                #
-                # from subprocess import Popen
-                # self.tmp_file_name = "tmp"
-                #
-                # # gprof2dot -f pstats prof/combined.prof > prof/tmp
-                # gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined, ">", self.tmp_file_name]
-                # self.gprof2dot_cmd = " ".join(gprof2dot_args)
-                # p = Popen(gprof2dot_args, shell=True)
-                # p.wait()
-                # if os.path.exists(self.tmp_file_name):
-                #     # dot -Tsvg -o prof/combined.svg prof/tmp
-                #     dot_args = ["dot", "-Tsvg", "-o", self.svg_name, self.tmp_file_name]
-                #     self.dot_cmd = " ".join(dot_args)
-                #     p2 = Popen(dot_args, shell=True)
-                #     p2.wait()
-                #     if os.path.exists(self.svg_name):
-                #         self.svg_err = 0  # SUCCESS
-                #         os.remove(self.tmp_file_name)  # remove tmp file
-                #     else:
-                #         self.svg_err = 2  # error: dot
-                # else:
-                #     self.svg_err = 1  # error: gprof2dot
 
     def pytest_terminal_summary(self, terminalreporter):
         if self.combined:
