@@ -58,14 +58,13 @@ class Profiling(object):
                 # convert file <self.combined> into file <self.svg_name> using a pipe of gprof2dot | dot
                 # gprof2dot -f pstats prof/combined.prof | dot -Tsvg -o prof/combined.svg
 
-                # A handcrafted Popen pipe actually seems to work on both windows and unix
-
                 # the 2 commands that we wish to execute
                 gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined]
                 dot_args = ["dot", "-Tsvg", "-o", self.svg_name]
                 self.dot_cmd = " ".join(dot_args)
                 self.gprof2dot_cmd = " ".join(gprof2dot_args)
 
+                # A handcrafted Popen pipe actually seems to work on both windows and unix:
                 # do it in 2 subprocesses, with a pipe in between
                 pdot = Popen(dot_args, stdin=PIPE, shell=True)
                 pgprof = Popen(gprof2dot_args, stdout=pdot.stdin, shell=True)
