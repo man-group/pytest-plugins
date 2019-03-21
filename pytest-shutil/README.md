@@ -10,7 +10,9 @@ Install using your favourite package manager::
 
 ```bash
     pip install pytest-shutil
-```
+    #  or..
+    easy_install pytest-shutil
+```               
 
 ## Workspace Fixture
 

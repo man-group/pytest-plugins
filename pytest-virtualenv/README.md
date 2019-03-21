@@ -8,6 +8,8 @@ The fixture has utility methods to install packages and list what's installed.
 Install using your favourite package installer:
 ```bash
     pip install pytest-virtualenv
+    # or
+    easy_install pytest-virtualenv
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
