@@ -1,3 +1,5 @@
+"""pytest: avoid already-imported warning: PYTEST_DONT_REWRITE."""
+
 import os
 import traceback
 import logging
@@ -59,12 +61,18 @@ def webdriver(request):
     # Look for the pyramid server funcarg in the current session, and save away its root uri
     root_uri = []
     try:
-        root_uri.append(request.getfuncargvalue('pyramid_server').uri)
+        root_uri.append(request.getfixturevalue('pyramid_server').uri)
     except LookupError:
         pass
 
     if CONFIG.browser.lower() == 'phantomjs':
         driver = webdriver.PhantomJS(executable_path=CONFIG.phantomjs)
+    elif CONFIG.browser.lower() == 'chrome':
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        driver = webdriver.Chrome(chrome_options=chrome_options)
     else:
         selenium_uri = CONFIG.uri
         if not selenium_uri:

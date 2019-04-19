@@ -7,8 +7,6 @@ Creates an empty Git repository for testing that cleans up after itself on teard
 Install using your favourite package installer:
 ```bash
     pip install pytest-git
-    # or
-    easy_install pytest-git
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
@@ -25,7 +23,7 @@ Here's a noddy test case that shows it working:
 ```python
 def test_git_repo(git_repo):
     # The fixture derives from `workspace` in `pytest-shutil`, so they contain 
-    # a handle to the path.py path object (see https://pythonhosted.org/path.py)
+    # a handle to the path.py path object (see https://pathpy.readthedocs.io/)
     path = git_repo.workspace
     file = path / 'hello.txt'
     file.write_text('hello world!')

@@ -1,7 +1,7 @@
 # Pytest Server Fixtures
 
 This library provides an extensible framework for running up real network
-servers in your tests, as well as a suite of fixtures for some well-known webservices 
+servers in your tests, as well as a suite of fixtures for some well-known webservices
 and databases.
 
 ## Table of Contents
@@ -19,44 +19,53 @@ and databases.
 * [Xvfb](#xvfp)
 * [Jenkins](#jenkins)
 * [Server Framework](#server-framework)
+* [Integration Tests](#integration-tests)
 
 
-                      
 ## Batteries Included
 
 
-| Fixture | Extra Dependency Name 
-| - | - 
-| MongoDB | mongodb 
-| Postgres   | postgres
-| Redis   | redis
+| Fixture | Extra Dependency Name
+| - | -
+| MongoDB | mongodb
+| Postgres | postgres
+| Redis | redis
 | RethinkDB | rethinkdb
 | S3 Minio | s3
 | Apache Httpd | <none>
 | Simple HTTP Server | <none>
-| Jenkins  | jenkins
-| Xvfb (X-Windows Virtual Frame Buffer)  | <none>
+| Jenkins | jenkins
+| Xvfb (X-Windows Virtual Frame Buffer) | <none>
+
+Note: v2 fixtures support launching fixtures locally, in `Docker` containers
+or as `Kubernetes` pods (See [Configuration](#configuration))
 
 
 ## Installation
 
-Installation of this package varies on which parts of it you would like to use. 
-It uses optional dependencies (specified in the table above) to reduce the number 
-of 3rd party packages required. This way if you don't use MongoDB, you don't need 
-to install PyMongo. 
+Installation of this package varies on which parts of it you would like to use.
+It uses optional dependencies (specified in the table above) to reduce the number
+of 3rd party packages required. This way if you don't use MongoDB, you don't need
+to install PyMongo.
 
 ```bash
     # Install with support for just mongodb
     pip install pytest-server-fixtures[mongodb]
-    
+
     # Install with support for mongodb and jenkins
     pip install pytest-server-fixtures[mongodb,jenkins]
-    
+
+    # Install with Docker support
+    pip install pytest-server-fixtures[docker]
+
+    # Install with Kubernetes support
+    pip install pytest-server-fixtures[kubernetes]
+
     # Install with only core library and support for httpd and xvfp
     pip install pytest-server-fixtures
-```               
+```
 
-Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools 
+Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools
 entry points):
 
 ```python
@@ -78,24 +87,31 @@ The fixtures are configured using the following evironment variables:
 | ------- | ----------- | -------
 | `SERVER_FIXTURES_HOSTNAME`      | Hostname that servers will listen on | Current default hostname
 | `SERVER_FIXTURES_DISABLE_HTTP_PROXY` | Disable any HTTP proxies set up in the shell environment when making HTTP requests | True
+| `SERVER_FIXTURES_SERVER_CLASS` | Server class used to run the fixtures, choose from `thread`, `docker` and `kubernetes` | `thread`
+| `SERVER_FIXTURES_K8S_NAMESPACE` | (Kubernetes only) Specify the Kubernetes namespace used to launch fixtures. | `None` (same as the test host)
+| `SERVER_FIXTURES_K8S_LOCAL_TEST` | (Kubernetes only) Set to `True` to allow integration tests to run (See [Integration Tests](#integration-tests)). | `False`
 | `SERVER_FIXTURES_MONGO_BIN`     | Directory containing the `mongodb` executable | "" (relies on `$PATH`)
-| `SERVER_FIXTURES_REDIS`         | Redis server executable | `/usr/sbin/redis-server`
-| `SERVER_FIXTURES_RETHINK`       | RethinkDB server executable |  `/usr/bin/rethinkdb`
-| `SERVER_FIXTURES_HTTPD`         | Httpd server executable | `/usr/sbin/apache2`
+| `SERVER_FIXTURES_MONGO_IMAGE`   | (Docker only) Docker image for mongo | `mongo:3.6`
+| `SERVER_FIXTURES_PG_CONFIG`     | Postgres pg_config executable | `pg_config`
+| `SERVER_FIXTURES_REDIS`         | Redis server executable | `redis-server`
+| `SERVER_FIXTURES_REDIS_IMAGE`   | (Docker only) Docker image for redis | `redis:5.0.2-alpine`
+| `SERVER_FIXTURES_RETHINK`       | RethinkDB server executable |  `rethinkdb`
+| `SERVER_FIXTURES_RETHINK_IMAGE` | (Docker only) Docker image for rethinkdb | `rethink:2.3.6`
+| `SERVER_FIXTURES_HTTPD`         | Httpd server executable | `apache2`
 | `SERVER_FIXTURES_HTTPD_MODULES` | Httpd modules directory | `/usr/lib/apache2/modules`
 | `SERVER_FIXTURES_JAVA`          | Java executable used for running Jenkins server | `java`
 | `SERVER_FIXTURES_JENKINS_WAR`   | `.war` file used to run Jenkins | `/usr/share/jenkins/jenkins.war`
-| `SERVER_FIXTURES_XVFB`          | Xvfb server executable | `/usr/bin/Xvfb`
+| `SERVER_FIXTURES_XVFB`          | Xvfb server executable | `Xvfb`
 
 ## Common fixture properties
 
-All of these fixtures follow the pattern of spinning up a server on a unique port and 
+All of these fixtures follow the pattern of spinning up a server on a unique port and
 then killing the server and cleaning up on fixture teardown.
 
 All test fixtures share the following properties at runtime:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `hostname`  | Hostname that server is listening on
 | `port`      | Port number that the server is listening on
 | `dead`      | True/False: am I dead yet?
@@ -105,16 +121,16 @@ All test fixtures share the following properties at runtime:
 
 The `mongo` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `mongo_server`      | Function-scoped MongoDB server
 | `mongo_server_sess` | Session-scoped MongoDB server
 | `mongo_server_cls`  | Class-scoped MongoDB server
 
-All these fixtures have the following properties: 
+All these fixtures have the following properties:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `api` | `pymongo.MongoClient` connected to running server
 
 Here's an example on how to run up one of these servers:
@@ -130,14 +146,14 @@ def test_mongo(mongo_server):
 ## Postgres
 The `postgres` module contains the following fixture:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `postgres_server_sess` | Session-scoped Postgres server
 
 The Postgres server fixture has the following properties:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `connect()` | Returns a raw `psycopg2` connection object connected to the server
 | `connection_config` | Returns a dict containing all the data needed for another db library to connect with.
 
@@ -159,15 +175,15 @@ def db_config_sess(postgres_server_sess: PostgresServer) -> PostgresServer:
 
 The `redis` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `redis_server`      | Function-scoped Redis server
 | `redis_server_sess` | Session-scoped Redis server
 
-All these fixtures have the following properties: 
+All these fixtures have the following properties:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `api` | `redis.Redis` client connected to the running server
 
 Here's an example on how to run up one of these servers:
@@ -182,22 +198,22 @@ def test_redis(redis_server):
 
 The `s3` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `s3_server`  | Session-scoped S3 server using the 'minio' tool.
 | `s3_bucket`  | Function-scoped S3 bucket
 
 
 The S3 server has the following properties:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `get_s3_client()` | Return a boto3 `Resource`: (`boto3.resource('s3', ...)`
 
 The S3 Bucket has the following properties:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `name`   | Bucket name, a UUID
 | `client` | Boto3 `Resource` from the server
 
@@ -215,8 +231,8 @@ def test_connection(s3_bucket):
 
 The `rethink` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `rethink_server`       | Function-scoped Redis server
 | `rethink_server_sess` | Session-scoped Redis server
 | `rethink_unique_db` | Session-scoped unique db
@@ -226,8 +242,8 @@ The `rethink` module contains the following fixtures:
 
 The server fixtures have the following properties
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `conn` | `rethinkdb.Connection` to the `test` database on the running server
 
 
@@ -255,7 +271,7 @@ def test_table_creation(rethink_module_db, rethink_make_tables):
 
 ### Emptying Databases
 
-RehinkDb is annecdotally slower to create tables that it is to empty them 
+RehinkDb is annecdotally slower to create tables that it is to empty them
 (at least at time of writing), so we have a fixture that will empty out
 tables between tests for us that were created with the `rethink_make_tables`
 fixture above:
@@ -280,15 +296,15 @@ def test_empty_db(rethink_empty_db):
 
 The `httpd` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
-| `httpd_server` | Function-scoped httpd server to use as a web proxy 
+| Fixture Name | Description
+| ------------ | -----------
+| `httpd_server` | Function-scoped httpd server to use as a web proxy
 
 The fixture has the following properties at runtime:
 
-| Property | Description 
-| -------- | ----------- 
-| `document_root` | `path.path` to the document root 
+| Property | Description
+| -------- | -----------
+| `document_root` | `path.path` to the document root
 | `log_dir` | `path.path` to the log directory
 
 Here's an example showing some of the features of the fixture:
@@ -297,7 +313,7 @@ Here's an example showing some of the features of the fixture:
 def test_httpd(httpd_server):
     # Log files can be accessed by the log_dir property
     assert 'access.log' in [i.basename() for i in httpd_server.log_dir.files()]
-    
+
     # Files in the document_root are accessable by HTTP
     hello = httpd_server.document_root / 'hello.txt'
     hello.write_text('Hello World!')
@@ -325,18 +341,18 @@ def proxy_server(pyramid_server):
     # Configure the proxy rules as a dict of source -> dest URLs
     proxy_rules = {'/downstream/' : pyramid_server.url
                   }
-                
-    server = HTTPDServer(proxy_rules, 
-                         # You can also specify any arbitrary text you want to 
+
+    server = HTTPDServer(proxy_rules,
+                         # You can also specify any arbitrary text you want to
                          # put in the config file
                          extra_cfg = 'Alias /tmp /var/tmp\n',
                          )
-    server.start()                        
+    server.start()
     yield server
     server.teardown()
-    
+
 def test_proxy(proxy_server):
-    # This request will be proxied to the pyramid server 
+    # This request will be proxied to the pyramid server
     response = proxy_server.get('/downstream/accounts')
     assert response.status_code == 200
 ```
@@ -345,15 +361,15 @@ def test_proxy(proxy_server):
 
 The `http` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `simple_http_server` | Function-scoped instance of Python's `SimpleHTTPServer`
 
 The fixture has the following properties at runtime:
 
-| Property | Description 
-| -------- | ----------- 
-| `document_root` | `path.path` to the document root 
+| Property | Description
+| -------- | -----------
+| `document_root` | `path.path` to the document root
 
 Here's an example showing some of the features of the fixture:
 
@@ -371,14 +387,14 @@ def test_simple_server(simple_http_server):
 
 The `jenkins` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `jenkins_server` | Session-scoped Jenkins server instance
 
 The fixture has the following methods and properties:
-    
-| Property | Description 
-| -------- | ----------- 
+
+| Property | Description
+| -------- | -----------
 | `api` | `jenkins.Jenkins` API client connected to the running server (see https://python-jenkins.readthedocs.org)
 | `load_plugins()` | Load plugins into the server from a directory
 
@@ -397,15 +413,15 @@ def test_jenkins(jenkins_server):
 
 The `xvfb` module contains the following fixtures:
 
-| Fixture Name | Description 
-| ------------ | ----------- 
+| Fixture Name | Description
+| ------------ | -----------
 | `xvfb_server` | Function-scoped Xvfb server
 | `xvfb_server_sess` | Session-scoped Xvfb server
 
 The fixture has the following properties:
 
-| Property | Description 
-| -------- | ----------- 
+| Property | Description
+| -------- | -----------
 | `display` | X-windows `DISPLAY` variable
 
 Here's an example showing how to run up the server:
@@ -418,17 +434,19 @@ def test_xvfb(xvfb_server):
 
 # Server Framework
 
-All the included fixtures and others in this suite of plugins are built on an extensible 
+All the included fixtures and others in this suite of plugins are built on an extensible
 TCP server running framework, and as such many of them share various properties and methods.
 
 ```
 pytest_shutil.workspace.Workspace
   |
-  *--base.TestServer
-     | 
+  *--base2.TestServerV2
+     |
      *--mongo.MongoTestServer
      *--redis.RedisTestServer
      *--rethink.RethinkDBServer
+  *--base.TestServer
+     |
      *--http.HTTPTestServer
         |
         *--http.SimpleHTTPTestServer
@@ -442,10 +460,10 @@ pytest_shutil.workspace.Workspace
 The best way to understand the framework is look at the code, but here's a quick summary
 on the class methods that child classes of `base.TestServer` can override.
 
-| Method | Description 
-| ------ | ----------- 
+| Method | Description
+| ------ | -----------
 | `pre_setup`                  | This should execute any setup required before starting the server
-| `run_cmd` (required)         | This should return a list of shell commands needed to start the server 
+| `run_cmd` (required)         | This should return a list of shell commands needed to start the server
 | `run_stdin`                  | The result of this is passed to the process as stdin
 | `check_server_up` (required) | This is called to see if the server is running
 | `post_setup`                 | This should execute any setup required after starting the server
@@ -466,9 +484,30 @@ There are also some class attributes that can be overridden to modify server beh
 
 The base class constructor also accepts these arguments:
 
-| Argument | Description 
-| -------- | ----------- 
+| Argument | Description
+| -------- | -----------
 | `port`                  | Explicitly set the port number
 | `hostname` | Explicitly set the hostname
 | `env` | Dict of the shell environment passed to the server process
 | `cwd` | Override the current working directory of the server process
+
+# Integration Tests
+
+```
+$ vagrant up
+$ vagrant ssh
+...
+$ . venv/bin/activate
+$ cd /vagrant
+$ make develop
+$ cd pytest-server-fixtures
+
+# test serverclass="thread"
+$ pytest
+
+# test serverclass="docker"
+$ SERVER_FIXTURES_SERVER_CLASS=docker pytest
+
+# test serverclass="kubernetes"
+$ SERVER_FIXTURES_SERVER_CLASS=kubernetes SERVER_FIXTURES_K8S_LOCAL_TEST=True pytest
+```

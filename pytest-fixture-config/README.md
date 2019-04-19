@@ -9,8 +9,6 @@ Install using your favourite package manager:
 
 ```bash
     pip install pytest-fixture-config
-    #  or..
-    easy_install pytest-fixture-config
 ```
 
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
@@ -63,8 +61,8 @@ but don't want your tests suite to fail:
 ```python
     from pytest_fixture_config import requires_config
     
-    @requires_config(CONFIG, ['log_watcher', 'log_dir'])
     @pytest.fixture
+    @requires_config(CONFIG, ['log_watcher', 'log_dir'])
     def log_watcher():
         return subprocess.popen([CONFIG.log_watcher, '--log-dir', CONFIG.log_dir])
 ```
@@ -74,8 +72,8 @@ There is also a version for yield_fixtures:
 ```python
     from pytest_fixture_config import yield_requires_config
     
-    @yield_requires_config(CONFIG, ['log_watcher', 'log_dir'])
     @pytest.fixture
+    @yield_requires_config(CONFIG, ['log_watcher', 'log_dir'])
     def log_watcher():
         watcher = subprocess.popen([CONFIG.log_watcher, '--log-dir', CONFIG.log_dir])
         yield watcher

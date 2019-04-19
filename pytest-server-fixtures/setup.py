@@ -19,6 +19,7 @@ classifiers = [
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
 ]
 
 install_requires = ['pytest',
@@ -27,15 +28,19 @@ install_requires = ['pytest',
                     'six',
                     'future',
                     'requests',
+                    'retry',
+                    'psutil',
                     ]
 
 extras_require = {
     'jenkins':  ["python-jenkins"],
     'mongodb':  ["pymongo>=3.6.0"],
     'postgres': ["psycopg2"],
-    'rethinkdb':  ["rethinkdb"],
+    'rethinkdb':  ["rethinkdb<2.4.0"],
     'redis':  ["redis"],
-    's3': ["boto3"]
+    's3': ["boto3"],
+    'docker': ["docker"],
+    'kubernetes': ["kubernetes"],
 }
 
 tests_require = [

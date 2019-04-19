@@ -8,8 +8,6 @@ The fixture has utility methods to install packages and list what's installed.
 Install using your favourite package installer:
 ```bash
     pip install pytest-virtualenv
-    # or
-    easy_install pytest-virtualenv
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
@@ -30,7 +28,7 @@ This fixture is configured using the following evironment variables
 ## Fixture Attributes
 
 Here's a noddy test case to demonstrate the basic fixture attributes. 
-For more information on `path.py` see https://pythonhosted.org/path.py
+For more information on `path.py` see https://pathpy.readthedocs.io/
 
 ```python
 def test_virtualenv(virtualenv):

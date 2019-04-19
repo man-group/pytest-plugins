@@ -50,6 +50,18 @@ To run all the tests:
     make test
 ```
 
+To setup test environment in Vagrant (requires virtualbox):
+
+```bash
+    $ vagrant up
+    $ vagrant ssh
+
+    # ..... inside vagrant ....
+    . venv/bin/activate
+    make develop
+    make test
+```
+
 ## `foreach.sh` 
 
 To run a command in each of the package directories, use the `foreach.sh` script.

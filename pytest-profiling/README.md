@@ -13,8 +13,6 @@ generated using [gprof2dot](http://code.google.com/p/jrfonseca/wiki/Gprof2Dot) a
 Install using your favourite package installer:
 ```bash
     pip install pytest-profiling
-    # or
-    easy_install pytest-profiling
 ```
     
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):

@@ -67,7 +67,7 @@ def run(cmd, stdin=None, capture_stdout=True, capture_stderr=False,
         try:
             out = out.decode('utf-8')
         except:
-            log.warn("Unable to decode command output to UTF-8")
+            log.warning("Unable to decode command output to UTF-8")
 
     if check_rc and p.returncode != 0:
         err_msg = ((out if out else 'No output') if capture_stdout is True

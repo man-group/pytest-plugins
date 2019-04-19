@@ -7,7 +7,7 @@ import pytest
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
 
-from .base import TestServer
+from .base2 import TestServerV2
 
 
 log = logging.getLogger(__name__)
@@ -18,14 +18,14 @@ def _rethink_server(request):
     """ This does the actual work - there are several versions of this used
         with different scopes.
     """
-    test_server = RethinkDBServer(hostname=CONFIG.fixture_hostname)
+    test_server = RethinkDBServer()
     request.addfinalizer(lambda p=test_server: p.teardown())
     test_server.start()
     return test_server
 
 
-@requires_config(CONFIG, ['rethink_executable'])
 @pytest.fixture(scope='function')
+@requires_config(CONFIG, ['rethink_executable'])
 def rethink_server(request):
     """ Function-scoped RethinkDB server in a local thread.
 
@@ -38,8 +38,8 @@ def rethink_server(request):
     return _rethink_server(request)
 
 
-@requires_config(CONFIG, ['rethink_executable'])
 @pytest.fixture(scope='session')
+@requires_config(CONFIG, ['rethink_executable'])
 def rethink_server_sess(request):
     """ Same as rethink_server fixture, scoped as session instead.
     """
@@ -113,38 +113,70 @@ def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
     yield conn
 
 
-class RethinkDBServer(TestServer):
-    random_port = True
+class RethinkDBServer(TestServerV2):
+    random_hostname = False
 
     def __init__(self, **kwargs):
+        # defer loading of rethinkdb
         global rethinkdb
-        try:
-            import rethinkdb
-        except ImportError:
-            pytest.skip('rethinkdb not installed, skipping test')
+        import rethinkdb
+
         super(RethinkDBServer, self).__init__(**kwargs)
-        self.cluster_port = self.get_port()
-        self.http_port = self.get_port()
+        self._driver_port = self._get_port(28015)
+        self._cluster_port = self._get_port(29015)
+        self._http_port = self._get_port(8080)
         self.db = None
 
+
     @property
-    def run_cmd(self):
-        return [CONFIG.rethink_executable,
-                '--directory', self.workspace / 'db',
-                '--bind', socket.gethostbyname(self.hostname),
-                '--driver-port', str(self.port),
-                '--http-port', str(self.http_port),
-                '--cluster-port', str(self.cluster_port),
-                ]
+    def cmd(self):
+        return "rethindb"
+
+    @property
+    def cmd_local(self):
+        return CONFIG.rethink_executable
+
+    def get_args(self, **kwargs):
+        cmd = [
+            '--bind', self._listen_hostname,
+            '--driver-port', str(self.port),
+            '--http-port', str(self.http_port),
+            '--cluster-port', str(self.cluster_port),
+        ]
+
+        if 'workspace' in kwargs:
+            cmd += ['--directory', str(kwargs['workspace'] / 'db')]
+
+        return cmd
+
+    @property
+    def image(self):
+        return CONFIG.rethink_image
+
+    @property
+    def port(self):
+        return self._driver_port
+
+    @property
+    def cluster_port(self):
+        return self._cluster_port
+
+    @property
+    def http_port(self):
+        return self._http_port
 
     def check_server_up(self):
         """Test connection to the server."""
         log.info("Connecting to RethinkDB at {0}:{1}".format(
             self.hostname, self.port))
+
+        if not self.hostname:
+            return False
+
         try:
             self.conn = rethinkdb.connect(host=self.hostname,
                                           port=self.port, db='test')
             return True
         except rethinkdb.RqlDriverError as err:
-            log.warn(err)
+            log.warning(err)
         return False

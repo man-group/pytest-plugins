@@ -12,7 +12,7 @@ import pytest
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import yield_requires_config
 
-from .base import TestServer
+from .base2 import TestServerV2
 
 log = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ def _mongo_server():
         test_server.teardown()
 
 
-@yield_requires_config(CONFIG, ['mongo_bin'])
 @pytest.yield_fixture(scope='function')
+@yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server():
     """ Function-scoped MongoDB server started in a local thread.
         This also provides a temp workspace.
@@ -48,8 +48,8 @@ def mongo_server():
         yield server
 
 
-@yield_requires_config(CONFIG, ['mongo_bin'])
 @pytest.yield_fixture(scope='session')
+@yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server_sess():
     """ Same as mongo_server fixture, scoped as session instead.
     """
@@ -57,8 +57,8 @@ def mongo_server_sess():
         yield server
 
 
-@yield_requires_config(CONFIG, ['mongo_bin'])
 @pytest.yield_fixture(scope='class')
+@yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server_cls(request):
     """ Same as mongo_server fixture, scoped for test classes.
     """
@@ -67,8 +67,8 @@ def mongo_server_cls(request):
         yield server
 
 
-@yield_requires_config(CONFIG, ['mongo_bin'])
 @pytest.yield_fixture(scope='module')
+@yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server_module():
     """ Same as mongo_server fixture, scoped for test modules.
     """
@@ -76,47 +76,54 @@ def mongo_server_module():
         yield server
 
 
-class MongoTestServer(TestServer):
-    # Use a random port for Mongo, as we run tests in parallel
-    random_port = True
+class MongoTestServer(TestServerV2):
 
-    def __init__(self, **kwargs):
-        base_dir = self.get_base_dir()
-        if not os.path.exists(base_dir):
-            try:
-                os.makedirs(base_dir)
-            except OSError as exc:  # Python >2.5
-                if exc.errno == errno.EEXIST and os.path.isdir(base_dir):
-                    pass
-                else:
-                    raise
-        mongod_dir = tempfile.mkdtemp(dir=base_dir)
-        super(MongoTestServer, self).__init__(workspace=mongod_dir, delete=True, **kwargs)
-
-    @staticmethod
-    def get_base_dir():
-        candidate_dir = os.environ.get('WORKSPACE', None)
-        if not candidate_dir or not os.path.exists(candidate_dir):
-            candidate_dir = os.environ.get('TMPDIR', '/tmp')
-        return os.path.join(candidate_dir, getpass.getuser(), 'mongo')
+    def __init__(self, delete=True, **kwargs):
+        super(MongoTestServer, self).__init__(delete=delete, **kwargs)
+        self._port = self._get_port(27017)
+        self.api = None
 
     @property
-    def run_cmd(self):
-        return [os.path.join(CONFIG.mongo_bin, 'mongod'),
-                '--bind_ip=%s' % self.hostname,
-                '--port=%s' % self.port,
-                '--dbpath=%s' % self.workspace,
-                '--nounixsocket',
-                '--syncdelay', '0',
-                '--nojournal',
-                '--quiet',
-                '--storageEngine=ephemeralForTest'
-                ]
+    def cmd(self):
+        return 'mongod'
+
+    @property
+    def cmd_local(self):
+        return CONFIG.mongo_bin
+
+    def get_args(self, **kwargs):
+        cmd = [
+            '--bind_ip=%s' % self._listen_hostname,
+            '--port=%s' % self.port,
+            '--nounixsocket',
+            '--syncdelay=0',
+            '--nojournal',
+            '--quiet',
+        ]
+
+        if 'workspace' in kwargs:
+            cmd.append('--dbpath=%s' % str(kwargs['workspace']))
+
+        return cmd
+
+    @property
+    def image(self):
+        return CONFIG.mongo_image
+
+    @property
+    def port(self):
+        return self._port
 
     def check_server_up(self):
         """Test connection to the server."""
         import pymongo
         from pymongo.errors import AutoReconnect, ConnectionFailure
+
+        # Hostname must exist before continuing
+        # Some server class (e.g. Docker) will only allocate an IP after the
+        # container has started.
+        if not self.hostname:
+            return False
 
         log.info("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
         try:
@@ -130,62 +137,8 @@ class MongoTestServer(TestServer):
             pass
         return False
 
-    def kill(self):
-        """ We override kill, as the parent kill does way too much.  We are single process
-            and simply want to kill the underlying mongod process. """
-        if self.server:
-            try:
-                self.server.exit = True
-                self.server.p.kill()
-                self.server.p.wait()
-                i = 0
-                while self.check_server_up():
-                    time.sleep(0.1)
-                    if i % 10 == 0:
-                        log.info("Waiting for MongoServer.kill()")
-            except OSError:
-                pass
-            self.dead = True
-
-    @staticmethod
-    def cleanup_all():
-        """Helper method which will ensure that there are no running mongos
-        on the current host, in the current workspace"""
-        base = MongoTestServer.get_base_dir()
-        if not os.path.isdir(base):
-            return
-
-        log.info("======================================")
-        log.info("Cleaning up previous sessions under " + base)
-        log.info("======================================")
-
-        for mongo in os.listdir(base):
-            if mongo.startswith('tmp'):
-                mongo = os.path.join(base, mongo)
-                log.info("Previous session: " + mongo)
-                lock = os.path.join(mongo, 'mongod.lock')
-                if os.path.exists(lock):
-                    log.info("Lock file found: " + lock)
-                    p = subprocess.Popen(["/usr/sbin/lsof", "-Fp", "--", lock], stdout=subprocess.PIPE)
-                    (out, _) = p.communicate()
-                    if out:
-                        pid = out[1:].strip()
-                        log.info("Owned by pid: " + pid + " killing...")
-                        p = subprocess.Popen(["kill -9 %s" % pid], shell=True)
-                        p.communicate()
-                log.info("Removing: " + mongo)
-                shutil.rmtree(mongo, True)
-
-
-# Cleanup any old mongo sessions for this workspace when run in Jenkins
-# We do this here rather than doing:
-#    request.cached_setup(MongoTestServer.kill_all, scope='session')
-# as with pytest-xidst, the per-session setups appear to be run for each worker
-
-# We don't do this for users (who don't have the WORKSPACE env variable set)
-# as they may legitimately be running a test suite more than once.
-
-# TODO: check that with the latest py.test this is still the case, work has
-#       been done to improve fixtures with xdist
-if 'WORKSPACE' in os.environ:
-    MongoTestServer.cleanup_all()
+    def teardown(self):
+        if self.api:
+            self.api.close()
+            self.api = None
+        super(MongoTestServer, self).teardown()

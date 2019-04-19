@@ -1,7 +1,58 @@
 
 ## Changelog
 
-### 1.3.1
+### 1.7.0
+ * pytest-server-fixtures: if host not defined, use localhost
+ * circleci: Test against Python 3.7
+ * circleci: Fix checks by skipping coverall submission for developer without push access
+ * pytest-server-fixture: Fix rethinkdb tests requiring rethinkdb < 2.4.0
+ * wheels: Generate universal wheels installable with both python 2.x and 3.x
+ * Fix DeprecationWarning warnings using "logger.warning()" function
+ * pytest-virtualenv: Add virtualenv as install requirement. Fixes #122
+ * Remove requirement for pytest<4.0.0
+ * pytest-webdriver: Fix RemovedInPytest4Warning using getfixturevalue
+ * pytest-verbose-parametrize: Add support for revamped marker infrastructure
+ * pytest-verbose-parametrize: Fix integration tests to support pytest >= 4.1.0
+ * dist: Remove support for building and distributing *.egg files
+ * VagrantFile: Install python 3.7 and initialize python 3.7 by default
+
+### 1.6.2 (2019-02-21)
+ * pytest-server-fixtures: suppress stacktrace if kill() is called
+ * pytest-server-fixtures: fix random port logic in TestServerV2
+
+### 1.6.1 (2019-02-12)
+ * pytest-server-fixtures: fix exception when attempting to access hostname while server is not started
+
+### 1.6.0 (2019-02-12)
+ * pytest-server-fixtures: added previously removed TestServerV2.kill() function
+ * pytest-profiling: pin more-itertools==5.0.0 in integration tests, as that's a PY3 only release
+
+### 1.5.1 (2019-01-24)
+ * pytest-verbose-parametrize: fixed unicode parameters when using `@pytest.mark.parametrize`
+
+### 1.5.0 (2019-01-23)
+ * pytest-server-fixtures: made postgres fixtures and its tests optional, like all other fixtures
+ * pytest-server-fixtures: reverted a fix for pymongo deprecation warning, as this will break compatibility with pymongo 3.6.0
+ * pytest-server-fixtures: dropped RHEL5 support in httpd
+
+### 1.4.1 (2019-01-18)
+ * pytest-server-fixtures: server fixture binary path specified in ENV now only affect server class 'thread'
+
+### 1.4.0 (2019-01-15)
+ * Fixing python 3 compatibility in Simple HTTP Server fixture
+ * Fixed broken tests in pytest-profiling
+ * Pinned pytest<4.0.0 until all deprecation warnings are fixed.
+ * pytest-webdriver: replaced deprecated phantomjs with headless Google Chrome.
+ * Add Vagrantfile to project to make test environment portable.
+ * Add .editorconfig file to project.
+ * pytest-server-fixtures: add TestServerV2 with Docker and Kubernetes support.
+ * pytest-server-fixtures: fix for an issue where MinioServer is not cleaned up after use.
+ * pytest-server-fixtures: fix deprecation warnings when calling pymongo.
+ * pytest-server-fixtures: close pymongo client on MongoTestServer teardown.
+ * pytest-server-fixtures: upgrade Mongo, Redis and RethinkDB to TestServerV2.
+ * coveralls: fix broken coveralls
+
+### 1.3.1 (2018-06-28)
  * Use pymongo list_database_names() instead of the deprecated database_names(), added pymongo>=3.6.0 dependency
 
 ### 1.3.0 (2017-11-17)
@@ -62,7 +113,7 @@
  * Added devpi-server fixture to create an index per test function
  * Added missing licence file
  * Split up httpd server fixture config so child classes can override loaded modules easier
- * Added 'preserve_sys_path' argument to TestServer base class which exports the current python sys.path to subprocesses. 
+ * Added 'preserve_sys_path' argument to TestServer base class which exports the current python sys.path to subprocesses.
  * Updated httpd, redis and jenkins runtime args and paths to current Ubuntu spec
  * Ignore errors when tearing down workspaces to avoid race conditions in 'shutil.rmtree' implementation
 
@@ -76,7 +127,7 @@
  * pytest-profiling improvement: escape illegal characters in .prof files (Thanks to Aarni Koskela for the PR)
 
 ### 1.1.0 (2016-2-15)
- 
+
  * New plugin: devpi server fixture
  * pytest-profiling improvement: overly-long .prof files are saved as the short hash of the test name (Thanks to Vladimir Lagunov for PR)
  * Changed default behavior of workspace.run() to not use a subshell for security reasons

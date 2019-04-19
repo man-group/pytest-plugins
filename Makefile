@@ -1,5 +1,5 @@
 # Package list, in order of ancestry
-# removed pytest-qt-app                  
+# removed pytest-qt-app
 EXTRA_DEPS = pypandoc       \
              wheel          \
              coverage       \
@@ -8,13 +8,15 @@ EXTRA_DEPS = pypandoc       \
              pymongo        \
              psycopg2       \
              boto3          \
-             rethinkdb
+             "rethinkdb<2.4.0" \
+             docker         \
+             kubernetes
 
 COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in LICENSE
 UPLOAD_OPTS =
 
 # removed from PHONY:  circleci_sip circleci_pyqt
-.PHONY: extras copyfiles wheels eggs sdists install develop test upload clean
+.PHONY: extras copyfiles wheels sdists install develop test upload clean
 
 extras:
 	pip install $(EXTRA_DEPS)
@@ -25,9 +27,6 @@ copyfiles:
 wheels: copyfiles
 	pip install -U wheel
 	./foreach.sh --changed 'python setup.py bdist_wheel'
-
-eggs: copyfiles
-	./foreach.sh --changed 'python setup.py bdist_egg'
 
 sdists: copyfiles
 	./foreach.sh --changed 'python setup.py sdist'
@@ -43,22 +42,18 @@ develop: copyfiles extras
 test:
 	rm -f FAILED-*
 	./foreach.sh 'DEBUG=1 python setup.py test || touch ../FAILED-$$PKG'
-	compgen -G 'FAILED-*' && exit 1
+	bash -c "! compgen -G 'FAILED-*'"
 
-upload: 
+upload:
 	pip install twine
-	for package in $(CHANGED_PACKAGES); do                     \
-	    cd $$package;                                  \
-            if [ -f common_setup.py ]; then  \
-                twine upload $(UPLOAD_OPTS) dist/*; \
-            fi; \
-	    cd ..;                                         \
-    done
+	./foreach.sh --changed '[ -f common_setup.py ] && twine upload $(UPLOAD_OPTS) dist/*'
 
 clean:
 	./foreach.sh 'rm -rf build dist *.xml *.egg-info .eggs htmlcov .cache $(COPY_FILES)'
 	rm -rf pytest-pyramid-server/vx pip-log.txt
-	find . -name *.pyc -name .coverage -name .coverage.* -delete
+	find . -name *.pyc -delete
+	find . -name .coverage -delete
+	find . -name .coverage.* -delete
 	rm -f FAILED-*
 
 all: extras develop test
