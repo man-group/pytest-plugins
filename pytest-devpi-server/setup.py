@@ -28,6 +28,9 @@ install_requires = ['pytest-server-fixtures',
                     'devpi-server>=3.0.1',
                     'devpi-client',
                     'six',
+                    'ruamel.yaml>=0.15;python_version == "2.7"',
+                    'ruamel.yaml>=0.15,<=0.15.94;python_version == "3.4"',
+                    'ruamel.yaml>=0.15;python_version > "3.4"',
                     ]
 
 tests_require = []
