@@ -1,4 +1,4 @@
-# A goody-bag of nifty plugins for [Py.Test](https://pytest.org)
+# A goody-bag of nifty plugins for [pytest](https://pytest.org)
 
 [![Circle CI](https://circleci.com/gh/manahl/pytest-plugins.svg?style=shield)](https://circleci.com/gh/manahl/pytest-plugins)
 
