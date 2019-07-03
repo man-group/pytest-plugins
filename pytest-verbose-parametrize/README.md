@@ -8,6 +8,8 @@ more descriptive than the default (which just outputs id numbers).
 Install with your favourite package manager, and this plugin will automatically be enabled:
 ```bash
 pip install pytest-verbose-parametrize
+# or .. 
+easy_install pytest-verbose-parametrize
 ```
 ## Usage
 
