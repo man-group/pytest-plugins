@@ -43,7 +43,7 @@ def _kill_all(procs, sig):
         log.debug("All processes are terminated")
         return
 
-    log.warning("%d processes remainings: %s" % (len(alive), ",".join(alive)))
+    log.warning("%d processes remainings: %s" % (len(alive), ",".join([p.name() for p in alive])))
     raise ProcessStillRunningException()
 
 
