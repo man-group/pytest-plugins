@@ -88,7 +88,7 @@ class HTTPTestServer(TestServer):
                 pass
         raise e
 
-    def post(self, path, data=None, attempts=25, as_json=False):
+    def post(self, path, data=None, attempts=25, as_json=False, headers=None):
         """ Posts data to the server using requests.POST and returns the response object. 
         
         Parameters
@@ -100,12 +100,14 @@ class HTTPTestServer(TestServer):
         attempts: `int`
             This function will retry up to `attempts` times on connection errors, to handle 
             the server still waking up. Defaults to 25.
+        headers: `dict`
+            Optional HTTP headers.
         """
         e = None
         for i in range(attempts):
             try:
                 with self.handle_proxy():
-                    returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data)
+                    returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data, headers=headers)
                 return returned.json() if as_json else returned
             except (http_client.BadStatusLine, requests.ConnectionError) as e:
                 time.sleep(int(i) / 10)
