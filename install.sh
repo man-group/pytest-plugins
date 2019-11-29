@@ -159,5 +159,3 @@ function install_all {
   install_minio
   install_chrome_headless
 }
-
-}
