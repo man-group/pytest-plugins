@@ -19,4 +19,5 @@ Vagrant.configure("2") do |config|
   config.vm.provision "file", source: "install.sh", destination: "/tmp/install.sh"
   config.vm.provision "shell", inline: ". /tmp/install.sh && install_all"
   config.vm.provision "shell", inline: ". /tmp/install.sh && init_venv python3.7", privileged: false
+  config.vm.synced_folder ".", "/home/vagrant/src"
 end
