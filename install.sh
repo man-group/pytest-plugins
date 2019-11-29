@@ -141,7 +141,6 @@ function install_all {
   install_python_ppa
 
   install_python python2.7
-  install_python python3.4
   install_python python3.5
   install_python python3.6
   install_python python3.7
