@@ -1,17 +1,16 @@
 import json
 
 NEW_INDEX = {
-    'result': {
-        'acl_toxresult_upload': [':ANONYMOUS:'], 
-        'acl_upload': ['testuser'], 
-        'bases': [], 
-        'mirror_whitelist': [], 
-        'projects': [], 
-        'pypi_whitelist': [], 
-        'type': 'stage', 
-        'volatile': True
-    }, 
-    'type': 'indexconfig'
+    u"result": {
+        u"acl_toxresult_upload": [u":ANONYMOUS:"],
+        u"acl_upload": [u"testuser"],
+        u"bases": [],
+        u"mirror_whitelist": [],
+        u"projects": [],
+        u"type": u"stage",
+        u"volatile": True,
+    },
+    u"type": u"indexconfig",
 }
 
 
