@@ -1,6 +1,7 @@
 # Package list, in order of ancestry
 # removed pytest-qt-app
-EXTRA_DEPS = pypandoc       \
+EXTRA_DEPS = setuptools-git \
+             pypandoc       \
              wheel          \
              coverage       \
              python-jenkins \
@@ -11,6 +12,7 @@ EXTRA_DEPS = pypandoc       \
              "rethinkdb<2.4.0" \
              docker         \
              kubernetes
+
 
 COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in LICENSE
 UPLOAD_OPTS =
