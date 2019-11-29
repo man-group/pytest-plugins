@@ -1,7 +1,7 @@
 from distutils.dir_util import copy_tree
 import shutil
 
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, get_distribution
 import pytest
 
 from pytest_virtualenv import VirtualEnv
@@ -15,6 +15,9 @@ def virtualenv():
         # HACK: pin more-itertools to 5.0.0 to keep tests working in PY27 as
         # as that's a py3 only release
         venv.install_package('more-itertools==5.0.0')
+
+        # Keep pytest version the same as what's running this test to ensure P27 keeps working
+        venv.install_package('pytest=={}'.format(get_distribution('pytest').version))
 
         venv.install_package('pytest-cov')
         venv.install_package('pytest-profiling')
@@ -34,7 +37,7 @@ def test_profile_generates_svg(pytestconfig, virtualenv):
     output = virtualenv.run_with_coverage(['-m', 'pytest', '--profile-svg',
                                           'tests/unit/test_example.py'],
                                           pytestconfig, cd=virtualenv.workspace)
-    assert any(['test_example:1:test_foo' in i for i in 
+    assert any(['test_example:1:test_foo' in i for i in
                 (virtualenv.workspace / 'prof/combined.svg').lines()])
 
     assert 'test_example.py:1(test_foo)' in output
