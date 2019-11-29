@@ -1,7 +1,8 @@
 # A goody-bag of nifty plugins for [pytest](https://pytest.org)
 
-[![CircleCI](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master)
+ Linux [![CircleCI (Linux)](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
+ Windows [![Travic CI (Windows)](https://travis-ci.org/man-group/pytest-plugins.svg?branch=master)](https://travis-ci.org/man-group/pytest-plugins)
 
 Plugin | Description |
 ------ | ----------- |

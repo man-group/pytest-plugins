@@ -1,6 +1,7 @@
 # Package list, in order of ancestry
 # removed pytest-qt-app
 EXTRA_DEPS = setuptools-git \
+             pytest-timeout \
              pypandoc       \
              wheel          \
              coverage       \
@@ -46,8 +47,12 @@ develop: copyfiles extras
 
 test:
 	rm -f FAILED-*
-	./foreach.sh 'DEBUG=1 python setup.py test || touch ../FAILED-$$PKG'
+	./foreach.sh 'DEBUG=1 python setup.py test -sv -ra || touch ../FAILED-$$PKG'
 	bash -c "! compgen -G 'FAILED-*'"
+
+test-ci:
+	rm -f FAILED-*
+	./foreach.sh 'cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra --timeout 120 || touch ../FAILED-$$PKG'
 
 upload:
 	pip install twine

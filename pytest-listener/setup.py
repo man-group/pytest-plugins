@@ -13,6 +13,7 @@ classifiers = [
     'Topic :: Utilities',
     'Intended Audience :: Developers',
     'Operating System :: POSIX',
+    'Operating System :: Microsoft :: Windows',
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',

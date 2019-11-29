@@ -2,6 +2,12 @@
 # Run a command for each of our packages
 set -ef
 
+QUIET=0
+if [ "$1" = '--quiet' ]; then
+  QUIET=1
+  shift
+fi
+
 if [ "$1" = '--changed' ]; then
     shift
     # Package list, filtered to ones changed since last tag
@@ -10,28 +16,33 @@ if [ "$1" = '--changed' ]; then
 else
     # Package list, in order of ancestry
     # removed pytest-qt-app
-    PACKAGES="pytest-fixture-config      \
-             pytest-shutil                  \
-             pytest-server-fixtures         \
-             pytest-pyramid-server          \
-             pytest-devpi-server            \
-             pytest-listener                \
-             pytest-svn                     \
-             pytest-git                     \
-             pytest-virtualenv              \
-             pytest-webdriver               \
-             pytest-profiling               \
+    DEFAULT_PACKAGES="pytest-fixture-config     \
+             pytest-shutil                      \
+             pytest-server-fixtures             \
+             pytest-pyramid-server              \
+             pytest-devpi-server                \
+             pytest-listener                    \
+             pytest-svn                         \
+             pytest-git                         \
+             pytest-virtualenv                  \
+             pytest-webdriver                   \
+             pytest-profiling                   \
              pytest-verbose-parametrize"
+    PACKAGES="${PACKAGES:-$DEFAULT_PACKAGES}"
 fi
 
 for pkg in $PACKAGES; do
    export PKG=$pkg
    (cd $pkg
-    echo "-----------------------------------------------------"
-    echo "                   $pkg"
-    echo "-----------------------------------------------------"
-    echo
-    bash -x -c "$*"
-    echo
+    if [ $QUIET -eq 1 ]; then
+        bash -c "$*"
+    else
+        echo "-----------------------------------------------------"
+        echo "                   $pkg"
+        echo "-----------------------------------------------------"
+        echo
+        bash -x -c "$*"
+        echo
+    fi
    )
 done
