@@ -32,18 +32,18 @@ class ProcessStillRunningException(Exception):
        tries=KILL_RETRY_COUNT,
        delay=KILL_RETRY_WAIT_SECS)
 def _kill_all(procs, sig):
-    log.debug("Killing %d processes with signal %s", len(procs), sig)
+    log.debug("Killing %d processes with signal %s" % (len(procs), sig))
     for p in procs:
         p.send_signal(sig)
 
-    log.debug("Waiting for %d processes to die", len(procs))
+    log.debug("Waiting for %d processes to die" % len(procs))
     gone, alive = psutil.wait_procs(procs, timeout=KILL_WAIT_SECS)
 
     if len(alive) == 0:
         log.debug("All processes are terminated")
         return
 
-    log.warning("%d processes remainings: %s", len(alive), ",".join(alive))
+    log.warning("%d processes remainings: %s" % (len(alive), ",".join([p.name() for p in alive])))
     raise ProcessStillRunningException()
 
 
@@ -51,7 +51,7 @@ def _kill_proc_tree(pid, sig=signal.SIGKILL, timeout=None):
     parent = psutil.Process(pid)
     children = parent.children(recursive=True)
     children.append(parent)
-    log.debug("Killing process tree for %d (total_procs_to_kill=%d)", parent.pid, len(children))
+    log.debug("Killing process tree for %d (total_procs_to_kill=%d)" % (parent.pid, len(children)))
     _kill_all(children, sig)
 
 
@@ -86,8 +86,8 @@ class ThreadServer(ServerClass):
             extra_args['stderr'] = subprocess.PIPE
 
         self._proc = subprocess.Popen(run_cmd, env=self._env, cwd=self._cwd, **extra_args)
-        log.debug("Running server: %s", ' '.join(run_cmd))
-        log.debug("CWD: %s", self._cwd)
+        log.debug("Running server: %s" % ' '.join(run_cmd))
+        log.debug("CWD: %s" % self._cwd)
 
         if debug:
             ProcessReader(self._proc, self._proc.stdout, False).start()
