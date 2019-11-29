@@ -1,4 +1,4 @@
-# A goody-bag of nifty plugins for [Py.Test](https://pytest.org)
+# A goody-bag of nifty plugins for [pytest](https://pytest.org)
 
 [![CircleCI](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
