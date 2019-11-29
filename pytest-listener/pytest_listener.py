@@ -1,3 +1,5 @@
+"""pytest: avoid already-imported warning: PYTEST_DONT_REWRITE."""
+
 import collections
 import json
 import logging

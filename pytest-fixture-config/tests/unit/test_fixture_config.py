@@ -26,8 +26,8 @@ def test_config_update():
 
 CONFIG1 = DummyConfig(foo=None, bar=1)
 
-@requires_config(CONFIG1, ('foo', 'bar'))
 @pytest.fixture
+@requires_config(CONFIG1, ('foo', 'bar'))
 def a_fixture(request):
     raise ValueError('Should not run')
 
@@ -36,8 +36,8 @@ def test_requires_config_skips(a_fixture):
     raise ValueError('Should not run')
 
 
-@requires_config(CONFIG1, ('bar',))
 @pytest.fixture
+@requires_config(CONFIG1, ('bar',))
 def another_fixture(request):
     return 'xxxx'
 
@@ -47,8 +47,8 @@ def test_requires_config_doesnt_skip(another_fixture):
     
     
 
-@yield_requires_config(CONFIG1, ('foo', 'bar'))
 @pytest.yield_fixture
+@yield_requires_config(CONFIG1, ('foo', 'bar'))
 def yet_another_fixture():
     raise ValueError('Should also not run')
     yield 'yyyy'
@@ -58,8 +58,8 @@ def test_yield_requires_config_skips(yet_another_fixture):
     raise ValueError('Should also not run')
 
 
-@yield_requires_config(CONFIG1, ('bar',))
 @pytest.yield_fixture
+@yield_requires_config(CONFIG1, ('bar',))
 def yet_some_other_fixture():
     yield 'yyyy'
 

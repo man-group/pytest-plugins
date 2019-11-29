@@ -1,7 +1,6 @@
-# A goody-bag of nifty plugins for [Py.Test](https://pytest.org)
+# A goody-bag of nifty plugins for [pytest](https://pytest.org)
 
-[![Circle CI](https://circleci.com/gh/manahl/pytest-plugins.svg?style=shield)](https://circleci.com/gh/manahl/pytest-plugins)
-
+[![CircleCI](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master)
 [![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
 
 Plugin | Description |
@@ -47,6 +46,18 @@ To install all the packages as wheel distributions:
 To run all the tests:
 
 ```bash
+    make test
+```
+
+To setup test environment in Vagrant (requires virtualbox):
+
+```bash
+    $ vagrant up
+    $ vagrant ssh
+
+    # ..... inside vagrant ....
+    . venv/bin/activate
+    make develop
     make test
 ```
 

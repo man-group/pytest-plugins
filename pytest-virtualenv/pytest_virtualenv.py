@@ -28,8 +28,8 @@ CONFIG = FixtureConfig(
 )
 
 
-@yield_requires_config(CONFIG, ['virtualenv_executable'])
 @yield_fixture(scope='function')
+@yield_requires_config(CONFIG, ['virtualenv_executable'])
 def virtualenv():
     """ Function-scoped virtualenv in a temporary workspace.
 

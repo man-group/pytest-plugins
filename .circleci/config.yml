@@ -2,11 +2,11 @@ test-tmpl: &test-tmpl
   command: |
     . ../venv/bin/activate
     export DEBUG=1
-    export SELENIUM_BROWSER=phantomjs
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
-  machine: true
+  machine:
+    image: ubuntu-1604:201903-01
 
   working_directory: ~/src
 
@@ -14,218 +14,169 @@ job-tmpl: &job-tmpl
     - run: env
     - checkout
     - run:
-        name: Install Python 
-        command: | 
-          set -x 
-
-          if [[ $PYTHON == "python2.7" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python2.7 python2.7-dev"
-          fi
-
-          if [[ $PYTHON == "python3.4" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.4 python3.4-dev"
-          fi
-
-          if [[ $PYTHON == "python3.5" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get install -y python3.5 python3.5-dev"
-          fi
-
-          if [[ $PYTHON == "python3.6" ]]; then 
-            sudo bash -c "yes | add-apt-repository ppa:jonathonf/python-3.6 && apt-get update && apt-get install -y python3.6 python3.6-dev"
-          fi
-
+        name: Install Python
+        command: |
+          set -x
+          sudo bash -c ". install.sh && install_python_ppa && install_python $PYTHON"
           rm -rf /opt/circleci/.pyenv
 
-    - run: 
-        name: Install Pip and Virtualenv
-        command: | 
-          curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $PYTHON
-          sudo $PYTHON -m pip install --upgrade pip
-          sudo $PYTHON -m pip install --upgrade virtualenv
- 
-    - run: 
+    - run:
         name: Create venv and install extras
-        command: | 
-          $PYTHON -m virtualenv venv
-          . venv/bin/activate
-          pip install       \
-              pypandoc       \
-              wheel          \
-              coverage       \
-              python-jenkins \
-              redis          \
-              pymongo        \
-              psycopg2       \
-              boto3          \
-              rethinkdb
+        command: bash -c ". install.sh && init_venv $PYTHON"
 
-    - run: 
+    - run:
         name: Update Apt-Sources
-        command: | 
-          source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
-          wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
-          source /etc/lsb-release && echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list
-          wget -qO- https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-          echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
-          sudo apt-get update
-    - run: 
+        command: sudo bash -c ". install.sh && update_apt_sources"
+    - run:
         name: Install System Dependencies
-        command: | 
-          sudo apt-get install subversion graphviz
-    - run: 
+        command: sudo bash -c ". install.sh && install_system_deps"
+    - run:
         name: Install Postgresql
-        command: | 
-          sudo apt-get install postgresql postgresql-contrib libpq-dev
-          sudo service postgresql stop; sudo update-rc.d postgresql disable;
-    - run: 
+        command: sudo bash -c ". install.sh && install_postgresql"
+    - run:
         name: Install Redis
-        command: | 
-          sudo apt-get install redis-server pandoc subversion graphviz
-    - run: 
+        command: sudo bash -c ". install.sh && install_redis"
+    - run:
         name: Install Rethinkdb
-        command: | 
-          sudo apt-get install rethinkdb
-          sudo service rethinkdb stop; sudo update-rc.d rethinkdb disable;
-    - run: 
+        command: sudo bash -c ". install.sh && install_rethinkdb"
+    - run:
         name: Install Jenkins
-        command: | 
-          sudo apt-get install jenkins
-          sudo service jenkins stop; sudo update-rc.d jenkins disable;
-    - run: 
+        command: sudo bash -c ". install.sh && install_jenkins"
+    - run:
         name: Install Mongodb
-        command: | 
-          sudo apt-get install mongodb-org mongodb-org-server
-    - run: 
+        command: sudo bash -c ". install.sh && install_mongodb"
+    - run:
         name: Install Apache
-        command: | 
-          sudo apt-get install apache2
-          sudo service apache2 stop; sudo update-rc.d apache2 disable;
-    - run: 
+        command: sudo bash -c ". install.sh && install_apache"
+    - run:
         name: Install Minio
-        command: | 
-          wget https://dl.minio.io/server/minio/release/linux-amd64/minio -O /tmp/minio
-          sudo mv /tmp/minio /usr/local/bin/minio
-          sudo chmod a+x /usr/local/bin/minio
-    - run: 
-        name: Install PhantomJS
-        command: | 
-          curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-          sudo $(which npm) install --shared phantomjs
-    - run: 
+        command: sudo bash -c ". install.sh && install_minio"
+    - run:
+        name: Install Chrome Headless
+        command: sudo bash -c ". install.sh && install_chrome_headless"
+
+    - run:
         name: Build and install dists
         command: |
           . venv/bin/activate
-          ./foreach.sh 'cp ../VERSION ../CHANGES.md ../common_setup.py ../MANIFEST.in ../LICENSE .'
-          ./foreach.sh 'pip install -e .[tests]'
-    - run: 
-        name: Run Tests - pytest--fixture-config 
+          make develop
+    - run:
+        name: Run Tests - pytest-fixture-config
         working_directory: ~/src/pytest-fixture-config
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-shutil
         working_directory: ~/src/pytest-shutil
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-server-fixtures
         working_directory: ~/src/pytest-server-fixtures
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-pyramid-server
         working_directory: ~/src/pytest-pyramid-server
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-devpi-server
         working_directory: ~/src/pytest-devpi-server
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-listener
         working_directory: ~/src/pytest-listener
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-svn
         working_directory: ~/src/pytest-svn
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-git
         working_directory: ~/src/pytest-git
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-virtualenv
         working_directory: ~/src/pytest-virtualenv
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-webdriver
         working_directory: ~/src/pytest-webdriver
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-profiling
         working_directory: ~/src/pytest-profiling
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Run Tests - pytest-verbose-parametrize
         working_directory: ~/src/pytest-verbose-parametrize
         <<: *test-tmpl
-    - run: 
+    - run:
         name: Archive Junit and Coverage
         command: |
           mkdir junit
-          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml'
-          ./foreach.sh 'cp .coverage.* ..'
+          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
+          ./foreach.sh 'cp .coverage.* .. || true'
           . venv/bin/activate
           coverage combine
           coverage report
-          pip install python-coveralls
-          coveralls --ignore-errors
-          
+          pip install urllib3[secure]
+          pip install coveralls
+          if [[ "$COVERALLS_REPO_TOKEN" != "" ]]; then
+            CIRCLE_BUILD_NUM=$CIRCLE_WORKFLOW_ID coveralls
+          else
+            echo "Skipping Coveralls"
+          fi
+
     - store_test_results:
         path: junit
-    - run: 
+    - run:
         name: Explode if tests have failed
         command: compgen -G FAILED-* && exit 1 || true
 
 version: 2
 jobs:
-  py27: 
+  py27:
     <<: *job-tmpl
     environment:
       PYTHON: "python2.7"
 
-  py34: 
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.4"
-
-  py35: 
+  py35:
     <<: *job-tmpl
     environment:
       PYTHON: "python3.5"
 
-  py36: 
+  py36:
     <<: *job-tmpl
     environment:
       PYTHON: "python3.6"
+
+  py37:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.7"
 
   coveralls:
     docker:
       - image: buildpack-deps:trusty
     steps:
-      - run: 
+      - run:
           name: Complete Coveralls
-          command: curl -k https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$BUILD_NUMBER&payload[status]=done"
-  
+          command: |
+            if [[ "$COVERALLS_REPO_TOKEN" != "" ]]; then
+              curl --fail https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+            else
+              echo "Skipping Coveralls"
+            fi
+
 workflows:
   version: 2
   pytest-plugins:
     jobs:
       - py27
-      - py34
       - py35
       - py36
+      - py37
       - coveralls:
           requires:
             - py27
-            - py34
             - py35
             - py36
+            - py37

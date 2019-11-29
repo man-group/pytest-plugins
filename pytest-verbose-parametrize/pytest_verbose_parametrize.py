@@ -1,22 +1,31 @@
 from collections import Iterable
-from six import string_types
+from six import string_types, text_type
 
 
 def _strize_arg(arg):
     try:
         s = arg.__name__
     except AttributeError:
-        s = str(arg)
+        s = text_type(arg)
     if len(s) > 32:
         s = s[:29] + '...'
     return s
 
 
 def pytest_generate_tests(metafunc):
+
     try:
-        markers = metafunc.function.parametrize
+        markers = metafunc.definition.get_closest_marker('parametrize')
+        if not markers:
+            return
     except AttributeError:
-        return
+        # Deprecated in pytest >= 3.6
+        # See https://docs.pytest.org/en/latest/mark.html#marker-revamp-and-iteration
+        try:
+            markers = metafunc.function.parametrize
+        except AttributeError:
+            return
+
     if 'ids' not in markers.kwargs:
         list_names = []
         for i, argvalue in enumerate(markers.args[1]):

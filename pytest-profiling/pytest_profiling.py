@@ -1,3 +1,5 @@
+"""pytest: avoid already-imported warning: PYTEST_DONT_REWRITE."""
+
 from __future__ import absolute_import
 
 import sys
@@ -27,7 +29,7 @@ class Profiling(object):
     profs = []
     combined = None
 
-    def __init__(self, svg, dir, element_number):
+    def __init__(self, svg, dir=None, element_number=20):
         self.svg = svg
         self.dir = 'prof' if dir is None else dir[0]
         self.element_number = element_number
@@ -65,7 +67,7 @@ class Profiling(object):
             terminalreporter.write("SVG profile in {svg}.\n".format(svg=self.svg_name))
 
     @pytest.hookimpl(hookwrapper=True)
-    def pytest_runtest_call(self, item):
+    def pytest_runtest_protocol(self, item, nextitem):
         prof_filename = os.path.abspath(os.path.join(self.dir, clean_filename(item.name) + ".prof"))
         try:
             os.makedirs(os.path.dirname(prof_filename))

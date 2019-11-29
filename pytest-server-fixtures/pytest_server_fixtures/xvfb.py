@@ -13,8 +13,8 @@ from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG
 
 
-@yield_requires_config(CONFIG, ['xvfb_executable'])
 @pytest.yield_fixture(scope='function')
+@yield_requires_config(CONFIG, ['xvfb_executable'])
 def xvfb_server():
     """ Function-scoped Xvfb (X-Windows Virtual Frame Buffer) in a local thread.
     """
@@ -23,8 +23,8 @@ def xvfb_server():
     test_server.close()
 
 
-@yield_requires_config(CONFIG, ['xvfb_executable'])
 @pytest.yield_fixture(scope='session')
+@yield_requires_config(CONFIG, ['xvfb_executable'])
 def xvfb_server_sess():
     """ Session-scoped Xvfb (X-Windows Virtual Frame Buffer) in a local thread.
     """

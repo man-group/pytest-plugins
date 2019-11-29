@@ -17,9 +17,9 @@ classifiers = [
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
 ]
 
 install_requires = ['pytest-server-fixtures',
@@ -27,6 +27,8 @@ install_requires = ['pytest-server-fixtures',
                     'devpi-server>=3.0.1',
                     'devpi-client',
                     'six',
+                    'ruamel.yaml>=0.15;python_version == "2.7"',
+                    'ruamel.yaml>=0.15;python_version > "3.4"',
                     ]
 
 tests_require = []

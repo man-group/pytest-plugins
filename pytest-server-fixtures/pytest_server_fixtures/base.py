@@ -30,15 +30,15 @@ class ServerNotDead(Exception):
 
 
 def get_ephemeral_host(cached=True, regen_cache=False):
-    """ 
-    Returns a random IP in the 127.0.0.0/24. This decreases the likelihood of races for ports by 255^3. 
-    
+    """
+    Returns a random IP in the 127.0.0.0/24. This decreases the likelihood of races for ports by 255^3.
+
     Parameters
     ----------
     cached : ``bool``
-        if True, use a cached return value. This is to preserve behaviour as many clients rely on the hostname 
-        to remain the same during a test session. 
-    
+        if True, use a cached return value. This is to preserve behaviour as many clients rely on the hostname
+        to remain the same during a test session.
+
     regen_cache: ``bool``
         if True, regenerate the cached value.
     """
@@ -47,7 +47,7 @@ def get_ephemeral_host(cached=True, regen_cache=False):
     if cached and not regen_cache and _SESSION_HOST:
         return _SESSION_HOST
 
-    # MacOS / OSX does not support loopback ip addresses other than 
+    # MacOS / OSX does not support loopback ip addresses other than
     #  127.0.0.1 unless they are manually configured (unlike linux)
     if OSX:
         res = '127.0.0.1'
@@ -63,7 +63,7 @@ def get_ephemeral_host(cached=True, regen_cache=False):
 def get_ephemeral_port(port=0, host=None, cache_host=True):
     """
     Get an ephemeral socket at random from the kernel.
-    
+
     Parameters
     ----------
     port: `str`
@@ -89,6 +89,7 @@ def get_ephemeral_port(port=0, host=None, cache_host=True):
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, port))
             port = s.getsockname()[1]
             s.close()
@@ -159,9 +160,9 @@ class ServerThread(threading.Thread):
 
 
 class TestServer(Workspace):
-    """ 
+    """
     Abstract class for creating a working dir and setting up a server instance in a thread.
-    
+
     Parameters
     ----------
     preserve_sys_path: `bool`
