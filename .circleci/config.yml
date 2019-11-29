@@ -2,6 +2,7 @@ test-tmpl: &test-tmpl
   command: |
     . ../venv/bin/activate
     export DEBUG=1
+    export SERVER_FIXTURES_JENKINS_WAR=
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
@@ -39,9 +40,6 @@ job-tmpl: &job-tmpl
     - run:
         name: Install Rethinkdb
         command: sudo bash -c ". install.sh && install_rethinkdb"
-    - run:
-        name: Install Jenkins
-        command: sudo bash -c ". install.sh && install_jenkins"
     - run:
         name: Install Mongodb
         command: sudo bash -c ". install.sh && install_mongodb"
