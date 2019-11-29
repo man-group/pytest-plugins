@@ -112,8 +112,8 @@ job-tmpl: &job-tmpl
         name: Archive Junit and Coverage
         command: |
           mkdir junit
-          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml'
-          ./foreach.sh 'cp .coverage.* ..'
+          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
+          ./foreach.sh 'cp .coverage.* .. || true'
           . venv/bin/activate
           coverage combine
           coverage report
