@@ -6,7 +6,7 @@ test-tmpl: &test-tmpl
 
 job-tmpl: &job-tmpl
   machine:
-    image: circleci/classic:201808-01
+    image: ubuntu-1604:201903-01
 
   working_directory: ~/src
 
@@ -112,8 +112,8 @@ job-tmpl: &job-tmpl
         name: Archive Junit and Coverage
         command: |
           mkdir junit
-          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml'
-          ./foreach.sh 'cp .coverage.* ..'
+          ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
+          ./foreach.sh 'cp .coverage.* .. || true'
           . venv/bin/activate
           coverage combine
           coverage report
@@ -137,11 +137,6 @@ jobs:
     <<: *job-tmpl
     environment:
       PYTHON: "python2.7"
-
-  py34:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.4"
 
   py35:
     <<: *job-tmpl
@@ -176,14 +171,12 @@ workflows:
   pytest-plugins:
     jobs:
       - py27
-      - py34
       - py35
       - py36
       - py37
       - coveralls:
           requires:
             - py27
-            - py34
             - py35
             - py36
             - py37

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run a command for each of our packages
-set -x
+set -ef
 
 if [ "$1" = '--changed' ]; then
     shift
@@ -9,7 +9,7 @@ if [ "$1" = '--changed' ]; then
     PACKAGES=$(git diff --name-only ${LAST_TAG} | grep pytest- | cut -d'/' -f1 | sort | uniq)
 else
     # Package list, in order of ancestry
-    # removed pytest-qt-app                  
+    # removed pytest-qt-app
     PACKAGES="pytest-fixture-config      \
              pytest-shutil                  \
              pytest-server-fixtures         \
@@ -27,9 +27,9 @@ fi
 for pkg in $PACKAGES; do
    export PKG=$pkg
    (cd $pkg
-    echo "-------------------------------------------------------------------------------------------------------------------------- "
-    echo "                                                        $pkg"
-    echo "-------------------------------------------------------------------------------------------------------------------------- "
+    echo "-----------------------------------------------------"
+    echo "                   $pkg"
+    echo "-----------------------------------------------------"
     echo
     bash -x -c "$*"
     echo
