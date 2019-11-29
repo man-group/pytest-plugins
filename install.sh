@@ -131,6 +131,10 @@ EOF
   chown -R vagrant: /home/vagrant/.kube
 }
 
+function install_black {
+  python3.6 -mpip install black
+}
+
 # Install all
 function install_all {
   install_base_tools
@@ -142,6 +146,8 @@ function install_all {
   install_python python3.6
   install_python python3.7
 
+  install_black
+
   update_apt_sources
   install_system_deps
   install_postgresql
@@ -152,4 +158,6 @@ function install_all {
   install_apache
   install_minio
   install_chrome_headless
+}
+
 }
