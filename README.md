@@ -1,23 +1,25 @@
 # A goody-bag of nifty plugins for [pytest](https://pytest.org)
 
-[![CircleCI](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master)
-[![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
+OS | Build | Coverage |
+ ------  | ----- | -------- |
+ ![Linux](img/linux.png) | [![CircleCI (Linux)](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master) | [![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
+ ![Windows](img/windows.png) | [![Travic CI (Windows)](https://travis-ci.org/man-group/pytest-plugins.svg?branch=master)](https://travis-ci.org/man-group/pytest-plugins) |
 
-Plugin | Description |
------- | ----------- |
-| [pytest-server-fixtures](pytest-server-fixtures) |  Extensible server-running framework with a suite of well-known databases and webservices included | 
-| [pytest-shutil](pytest-shutil) | Unix shell and environment management tools |
-| [pytest-profiling](pytest-profiling) | Profiling plugin with tabular heat graph output and gprof support for C-Extensions | 
-| [pytest-devpi-server](pytest-devpi-server) | DevPI server fixture | 
-| [pytest-pyramid-server](pytest-pyramid-server) | Pyramid server fixture | 
-| [pytest-webdriver](pytest-webdriver) | Selenium webdriver fixture | 
-| [pytest-virtualenv](pytest-virtualenv) | Virtualenv fixture | 
-| [pytest-qt-app](pytest-qt-app) | PyQT application fixture | 
-| [pytest-listener](pytest-listener)  | TCP Listener/Reciever for testing remote systems | 
-| [pytest-git](pytest-git) | Git repository fixture | 
-| [pytest-svn](pytest-svn) | SVN repository fixture | 
-| [pytest-fixture-config](pytest-fixture-config) | Configuration tools for Py.test fixtures |
-| [pytest-verbose-parametrize](pytest-verbose-parametrize) | Makes py.test's parametrize output a little more verbose |
+Plugin | Description | Supported OS |
+------ | ----------- | ------------ |
+| [pytest-server-fixtures](pytest-server-fixtures) |  Extensible server-running framework with a suite of well-known databases and webservices included | ![Linux](img/linux.png)
+| [pytest-shutil](pytest-shutil) | Unix shell and environment management tools |![Linux](img/linux.png)
+| [pytest-profiling](pytest-profiling) | Profiling plugin with tabular heat graph output and gprof support for C-Extensions |![Linux](img/linux.png)
+| [pytest-devpi-server](pytest-devpi-server) | DevPI server fixture |![Linux](img/linux.png)
+| [pytest-pyramid-server](pytest-pyramid-server) | Pyramid server fixture |![Linux](img/linux.png)
+| [pytest-webdriver](pytest-webdriver) | Selenium webdriver fixture |![Linux](img/linux.png)
+| [pytest-virtualenv](pytest-virtualenv) | Virtualenv fixture |![Linux](img/linux.png) ![Windows](img/windows.png)
+| [pytest-qt-app](pytest-qt-app) | PyQT application fixture |![Linux](img/linux.png)
+| [pytest-listener](pytest-listener)  | TCP Listener/Reciever for testing remote systems |![Linux](img/linux.png) ![Windows](img/windows.png)
+| [pytest-git](pytest-git) | Git repository fixture |![Linux](img/linux.png) ![Windows](img/windows.png)
+| [pytest-svn](pytest-svn) | SVN repository fixture |![Linux](img/linux.png)
+| [pytest-fixture-config](pytest-fixture-config) | Configuration tools for Py.test fixtures |![Linux](img/linux.png) ![Windows](img/windows.png)
+| [pytest-verbose-parametrize](pytest-verbose-parametrize) | Makes py.test's parametrize output a little more verbose |![Linux](img/linux.png)
 
 
 ## Developing these plugins
@@ -61,7 +63,7 @@ To setup test environment in Vagrant (requires virtualbox):
     make test
 ```
 
-## `foreach.sh` 
+## `foreach.sh`
 
 To run a command in each of the package directories, use the `foreach.sh` script.
 This example will build all the wheel distributions:

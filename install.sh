@@ -21,19 +21,79 @@ function install_python_ppa {
   apt-get update
 }
 
+function install_python_packaging {
+  local py=$1
+  $py -m pip install --upgrade pip
+  $py -m pip install --upgrade setuptools
+  $py -m pip install --upgrade virtualenv
+}
+
+
 function install_python {
   local py=$1
   apt-get install -y $py $py-dev
   curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $py
-  $py -m pip install --upgrade pip
-  $py -m pip install --upgrade virtualenv
+  install_python_packaging $py
 }
+
+
+function choco_install {
+  local args=$*
+  # choco fails randomly with network errors on travis, have a few goes
+  for i in {1..5}; do
+      choco install $args && return 0
+      echo 'choco install failed, log tail follows:'
+      tail -500 C:/ProgramData/chocolatey/logs/chocolatey.log
+      echo 'sleeping for a bit and retrying'.
+      sleep 5
+  done
+  return 1
+}
+
+
+function install_windows_make {
+  choco_install make --params "/InstallDir:C:\\tools\\make"
+}
+
+
+function install_windows_py27 {
+  choco_install python2 --params "/InstallDir:C:\\Python"
+  export PATH="/c/Python:/c/Python/Scripts:$PATH"
+  install_python_packaging python
+}
+
+
+function install_windows_py35 {
+  choco_install python --version 3.5.4 --params "/InstallDir:C:\\Python"
+  export PATH="/c/Python35:/c/Python35/Scripts:$PATH"
+  install_python_packaging python
+}
+
+
+function install_windows_py36 {
+  choco_install python --version 3.6.8 --params "/InstallDir:C:\\Python"
+  export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
+  install_python_packaging python
+}
+
+
+function install_windows_py37 {
+  choco_install python --version 3.7.5 --params "/InstallDir:C:\\Python"
+  export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+  install_python_packaging python
+}
+
 
 function init_venv {
   local py=$1
   virtualenv venv --python=$py
-  . venv/bin/activate
+  if [ -f venv/Scripts/activate ]; then
+      . venv/Scripts/activate
+  else
+      . venv/bin/activate
+  fi
 }
+
 
 function update_apt_sources {
   wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | apt-key add -
@@ -158,3 +218,4 @@ function install_all {
   install_minio
   install_chrome_headless
 }
+
