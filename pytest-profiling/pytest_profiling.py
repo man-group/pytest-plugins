@@ -6,9 +6,9 @@ import sys
 import os
 import cProfile
 import pstats
-import pipes
 import errno
 from hashlib import md5
+from subprocess import Popen, PIPE
 
 import six
 import pytest
@@ -28,6 +28,9 @@ class Profiling(object):
     svg_name = None
     profs = []
     combined = None
+    svg_err = None
+    dot_cmd = None
+    gprof2dot_cmd = None
 
     def __init__(self, svg, dir=None, element_number=20):
         self.svg = svg
@@ -54,17 +57,51 @@ class Profiling(object):
             combined.dump_stats(self.combined)
             if self.svg:
                 self.svg_name = os.path.abspath(os.path.join(self.dir, "combined.svg"))
-                t = pipes.Template()
-                t.append("{} -f pstats $IN".format(self.gprof2dot), "f-")
-                t.append("dot -Tsvg -o $OUT", "-f")
-                t.copy(self.combined, self.svg_name)
+
+                # convert file <self.combined> into file <self.svg_name> using a pipe of gprof2dot | dot
+                # gprof2dot -f pstats prof/combined.prof | dot -Tsvg -o prof/combined.svg
+
+                # the 2 commands that we wish to execute
+                gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined]
+                dot_args = ["dot", "-Tsvg", "-o", self.svg_name]
+                self.dot_cmd = " ".join(dot_args)
+                self.gprof2dot_cmd = " ".join(gprof2dot_args)
+
+                # A handcrafted Popen pipe actually seems to work on both windows and unix:
+                # do it in 2 subprocesses, with a pipe in between
+                pdot = Popen(dot_args, stdin=PIPE, shell=True)
+                pgprof = Popen(gprof2dot_args, stdout=pdot.stdin, shell=True)
+                (stdoutdata1, stderrdata1) = pgprof.communicate()
+                (stdoutdata2, stderrdata2) = pdot.communicate()
+                if stderrdata1 is not None or pgprof.poll() > 0:
+                    # error: gprof2dot
+                    self.svg_err = 1
+                elif stderrdata2 is not None or pdot.poll() > 0:
+                    # error: dot
+                    self.svg_err = 2
+                else:
+                    # success
+                    self.svg_err = 0
 
     def pytest_terminal_summary(self, terminalreporter):
         if self.combined:
             terminalreporter.write("Profiling (from {prof}):\n".format(prof=self.combined))
             pstats.Stats(self.combined, stream=terminalreporter).strip_dirs().sort_stats('cumulative').print_stats(self.element_number)
         if self.svg_name:
-            terminalreporter.write("SVG profile in {svg}.\n".format(svg=self.svg_name))
+            if not self.svg_err:
+                # 0 - SUCCESS
+                terminalreporter.write("SVG profile created in {svg}.\n".format(svg=self.svg_name))
+            else:
+                if self.svg_err == 1:
+                    # 1 - GPROF2DOT ERROR
+                    terminalreporter.write("Error creating SVG profile in {svg}.\n"
+                                           "Command failed: {cmd}".format(svg=self.svg_name, cmd=self.gprof2dot_cmd))
+                elif self.svg_err == 2:
+                    # 2 - DOT ERROR
+                    terminalreporter.write("Error creating SVG profile in {svg}.\n"
+                                           "Command succeeded: {cmd} \n"
+                                           "Command failed: {cmd2}".format(svg=self.svg_name, cmd=self.gprof2dot_cmd,
+                                                                           cmd2=self.dot_cmd))
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_protocol(self, item, nextitem):
