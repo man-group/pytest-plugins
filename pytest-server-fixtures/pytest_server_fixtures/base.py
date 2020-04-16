@@ -92,9 +92,12 @@ def get_ephemeral_port(port=0, host=None, cache_host=True):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host, port))
             port = s.getsockname()[1]
+            s.shutdown(socket.SHUT_RDWR)
             s.close()
             return port
-        except socket.error:
+        except socket.error as e:
+            if e.errno == errno.ENOTCONN:
+                return port
             port = random.randrange(1024, 32768)
 
 
