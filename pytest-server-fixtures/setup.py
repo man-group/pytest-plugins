@@ -35,7 +35,7 @@ extras_require = {
     'jenkins':  ["python-jenkins"],
     'mongodb':  ["pymongo>=3.6.0"],
     'postgres': ["psycopg2"],
-    'rethinkdb':  ["rethinkdb<2.4.0"],
+    'rethinkdb':  ["rethinkdb>=2.4.7"],
     'redis':  ["redis"],
     's3': ["boto3"],
     'docker': ["docker"],

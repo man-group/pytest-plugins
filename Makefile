@@ -10,7 +10,7 @@ EXTRA_DEPS = setuptools-git \
              pymongo        \
              psycopg2       \
              boto3          \
-             "rethinkdb<2.4.0" \
+             "rethinkdb>=2.4.7" \
              docker         \
              kubernetes
 
