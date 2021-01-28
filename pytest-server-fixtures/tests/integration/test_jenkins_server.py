@@ -1,7 +1,11 @@
 import os.path
 from pytest import raises
 
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    # python 2
+    from mock import patch
 
 
 # patch out any changes you want to the Jenkins server here:

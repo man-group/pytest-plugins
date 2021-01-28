@@ -29,7 +29,7 @@ install_requires = ['pytest-fixture-config',
                     ]
 
 tests_require = [
-                 'mock'
+                 'mock; python_version<"3.3"'
                  ]
 
 entry_points = {

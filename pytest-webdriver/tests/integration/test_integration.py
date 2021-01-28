@@ -1,4 +1,9 @@
-from mock import Mock, sentinel, patch
+try:
+    from unittest.mock import Mock, sentinel, patch
+except ImportError:
+    # python 2
+    from mock import Mock, sentinel, patch
+
 import pytest
 import selenium
 
@@ -13,4 +18,3 @@ def test_webdriver(pyramid_server, webdriver):
     assert webdriver.root_uri == 'http://www.example.com'
     webdriver.get('http://www.example.com')
     assert webdriver.current_url == 'http://www.example.com/'
-    

@@ -26,7 +26,7 @@ install_requires = ['six',
                     'contextlib2;python_version<"3"',
                     'pytest',
                     'path.py',
-                    'mock',
+                    'mock; python_version<"3.3"',
                     'termcolor'
                     ]
 

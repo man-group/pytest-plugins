@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 from pytest_verbose_parametrize import pytest_generate_tests
 
@@ -73,4 +76,3 @@ def test_unicode_parameters():
     metafunc = get_metafunc(("test_param", [u"111", u"¬˚ß∆∂", u"😀 😁 😂 🤣 😃 😄 😅 😆"]))
     pytest_generate_tests(metafunc)
     assert metafunc.function.parametrize.kwargs['ids'] == [u"111", u"¬˚ß∆∂", u"😀 😁 😂 🤣 😃 😄 😅 😆"]
-

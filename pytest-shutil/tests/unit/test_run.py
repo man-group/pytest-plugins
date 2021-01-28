@@ -3,7 +3,13 @@ from uuid import uuid4
 from subprocess import PIPE, STDOUT
 
 import pytest
-from mock import Mock, patch, sentinel, DEFAULT, call
+
+try:
+    from unittest.mock import Mock, patch, sentinel, DEFAULT, call
+except ImportError:
+    # python 2
+    from mock import Mock, patch, sentinel, DEFAULT, call
+
 from six.moves import cPickle
 
 from pytest_shutil import run
