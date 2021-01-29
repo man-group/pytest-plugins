@@ -31,9 +31,9 @@ function install_python_packaging {
 
 function install_python {
   local py=$1
-  apt-get install -y $py $py-dev
+  apt-get install -y "$py" "$py"-dev
   curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $py
-  install_python_packaging $py
+  install_python_packaging "$py"
 }
 
 
@@ -41,7 +41,7 @@ function choco_install {
   local args=$*
   # choco fails randomly with network errors on travis, have a few goes
   for i in {1..5}; do
-      choco install $args && return 0
+      choco install "$args" && return 0
       echo 'choco install failed, log tail follows:'
       tail -500 C:/ProgramData/chocolatey/logs/chocolatey.log
       echo 'sleeping for a bit and retrying'.
@@ -86,7 +86,7 @@ function install_windows_py37 {
 
 function init_venv {
   local py=$1
-  virtualenv venv --python=$py
+  virtualenv venv --python="$py"
   if [ -f venv/Scripts/activate ]; then
       . venv/Scripts/activate
   else
@@ -184,7 +184,7 @@ EOF
   kubectl get node
 
   # allow master node to run pods since we are creating a single-node cluster
-  kubectl taint node $(hostname -s) node-role.kubernetes.io/master-
+  kubectl taint node "$(hostname -s)" node-role.kubernetes.io/master-
 
   # copy kubeconfig
   cp -f /etc/kubernetes/admin.conf /home/vagrant/.kube/config
