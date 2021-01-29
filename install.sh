@@ -219,3 +219,25 @@ function install_all {
   install_chrome_headless
 }
 
+case "$1" in
+    "") ;;
+    install_base_tools) "$@" ; exit;;
+    install_python_ppa) "$@"; exit;;
+    install_python python2.7) "$@"; exit;;
+    install_python python3.5) "$@"; exit;;
+    install_python python3.6) "$@"; exit;;
+    install_python python3.7) "$@"; exit;;
+    install_black) "$@"; exit;;
+    update_apt_sources) "$@"; exit;;
+    install_system_deps) "$@"; exit;;
+    install_postgresql) "$@"; exit;;
+    install_redis) "$@"; exit;;
+    install_rethinkdb) "$@"; exit;;
+    install_jenkins) "$@"; exit;;
+    install_mongodb) "$@"; exit;;
+    install_apache) "$@"; exit;;
+    install_minio) "$@"; exit;;
+    install_chrome_headless) "$@"; exit;;
+    *) log_error "Unkown function: $1()"; exit 2;;
+esac
+
