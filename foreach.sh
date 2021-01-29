@@ -12,7 +12,7 @@ if [ "$1" = '--changed' ]; then
     shift
     # Package list, filtered to ones changed since last tag
     LAST_TAG=$(git tag -l v\* | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -1)
-    PACKAGES=$(git diff --name-only ${LAST_TAG} | grep pytest- | cut -d'/' -f1 | sort | uniq)
+    PACKAGES=$(git diff --name-only "${LAST_TAG}" | grep pytest- | cut -d'/' -f1 | sort | uniq)
 else
     # Package list, in order of ancestry
     # removed pytest-qt-app
@@ -33,7 +33,7 @@ fi
 
 for pkg in $PACKAGES; do
    export PKG=$pkg
-   (cd $pkg
+   (cd "$pkg"
     if [ $QUIET -eq 1 ]; then
         bash -c "$*"
     else
