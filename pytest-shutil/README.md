@@ -23,7 +23,7 @@ The workspace fixture is simply a temporary directory at function-scope with a f
     pytest_plugins = ['pytest_shutil']
     
     def test_something(workspace):
-        # Workspaces contain a handle to the path.py path object (see https://pathpy.readthedocs.io/)
+        # Workspaces contain a handle to the path `path` object (see https://path.readthedocs.io/)
         path = workspace.workspace         
         script = path / 'hello.sh'
         script.write_text('#!/bin/sh\n echo hello world!')
