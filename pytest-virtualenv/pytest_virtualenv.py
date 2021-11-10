@@ -2,7 +2,6 @@
 """
 import os
 import sys
-from distutils import sysconfig
 
 from pytest import yield_fixture
 from pkg_resources import working_set
@@ -197,7 +196,8 @@ class VirtualEnv(Workspace):
                  'src_dir': pkg.location,
                  'name': pkg.project_name,
                  'version': pkg.version,
-                 'pyversion': sysconfig.get_python_version(),
+                 'pyversion': '{sys.version_info[0]}.{sys.version_info[1]}'
+                 .format(**globals()),
                  }
 
             d['egg_file'] = Path(pkg.location) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
