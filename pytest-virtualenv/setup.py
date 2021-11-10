@@ -26,6 +26,7 @@ install_requires = ['pytest-fixture-config',
                     'pytest-shutil',
                     'pytest',
                     'virtualenv',
+                    'importlib-metadata',
                     ]
 
 tests_require = [

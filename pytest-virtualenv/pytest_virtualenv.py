@@ -3,8 +3,8 @@
 import os
 import sys
 
+import importlib_metadata as metadata
 from pytest import yield_fixture
-from pkg_resources import working_set
 try:
     from path import Path
 except ImportError:
@@ -177,8 +177,12 @@ class VirtualEnv(Workspace):
             False: Runs 'python setup.py develop'
             None (default): installs the egg if available in dist/, otherwise develops it
         """
-        installed = [p for p in working_set if p.project_name == pkg_name]
-        if not installed or installed[0].location.endswith('.egg'):
+        def location(dist):
+            return dist.locate_file('')
+
+        installed = [
+            dist for dist in metadata.distributions() if dist.name == pkg_name]
+        if not installed or location(installed[0]).endswith('.egg'):
             if sys.platform == 'win32':
                 # In virtualenv on windows "Scripts" folder is used instead of "bin".
                 installer = str(self.virtualenv / 'Scripts' / installer + '.exe')
@@ -190,17 +194,17 @@ class VirtualEnv(Workspace):
             # This is to circumvent #! line length limits :(
             cmd = '%s %s %s' % (self.python, installer, pkg_name)
         else:
-            pkg = installed[0]
+            dist = installed[0]
             d = {'python': self.python,
                  'easy_install': self.easy_install,
-                 'src_dir': pkg.location,
-                 'name': pkg.project_name,
-                 'version': pkg.version,
+                 'src_dir': location(dist),
+                 'name': dist.name,
+                 'version': dist.version,
                  'pyversion': '{sys.version_info[0]}.{sys.version_info[1]}'
                  .format(**globals()),
                  }
 
-            d['egg_file'] = Path(pkg.location) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
+            d['egg_file'] = Path(location(dist)) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
             if build_egg and not d['egg_file'].isfile():
                 self.run('cd %(src_dir)s; %(python)s setup.py -q bdist_egg' % d, capture=True)
 
@@ -222,8 +226,8 @@ class VirtualEnv(Workspace):
             raise ValueError('invalid package_type parameter (%s)' % str(package_type))
 
         res = {}
-        code = "from pkg_resources import working_set\n"\
-               "for i in working_set: print(i.project_name + ' ' + i.version + ' ' + i.location)"
+        code = "import importlib_metadata as metadata\n"\
+               "for i in metadata.distributions(): print(i.name + ' ' + i.version + ' ' + i.locate_file(''))"
         lines = self.run([self.python, "-c", code], capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
