@@ -27,14 +27,16 @@ class Profiling(object):
     svg = False
     svg_name = None
     profs = []
+    stripdirs = False
     combined = None
     svg_err = None
     dot_cmd = None
     gprof2dot_cmd = None
 
-    def __init__(self, svg, dir=None, element_number=20):
+    def __init__(self, svg, dir=None, element_number=20, stripdirs=False):
         self.svg = svg
         self.dir = 'prof' if dir is None else dir[0]
+        self.stripdirs = stripdirs
         self.element_number = element_number
         self.profs = []
         self.gprof2dot = os.path.abspath(os.path.join(os.path.dirname(sys.executable), 'gprof2dot'))
@@ -86,7 +88,10 @@ class Profiling(object):
     def pytest_terminal_summary(self, terminalreporter):
         if self.combined:
             terminalreporter.write("Profiling (from {prof}):\n".format(prof=self.combined))
-            pstats.Stats(self.combined, stream=terminalreporter).strip_dirs().sort_stats('cumulative').print_stats(self.element_number)
+            stats = pstats.Stats(self.combined, stream=terminalreporter)
+            if self.stripdirs:
+              stats.strip_dirs()
+            stats.sort_stats('cumulative').print_stats(self.element_number)
         if self.svg_name:
             if not self.svg_err:
                 # 0 - SUCCESS
@@ -140,6 +145,8 @@ def pytest_addoption(parser):
                     help="configure the dump directory of profile data files")
     group.addoption("--element-number", action="store", type="int", default=20,
                     help="defines how many elements will display in a result")
+    group.addoption("--strip-dirs", action="store_true",
+                    help="configure to show/hide the leading path information from file names")
 
 
 def pytest_configure(config):
@@ -148,4 +155,5 @@ def pytest_configure(config):
     if profile_enable:
         config.pluginmanager.register(Profiling(config.getvalue('profile_svg'),
                                                 config.getvalue('pstats_dir'),
-                                                element_number=config.getvalue('element_number')))
+                                                element_number=config.getvalue('element_number'),
+                                                stripdirs=config.getvalue('strip_dirs')))
