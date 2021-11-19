@@ -121,9 +121,8 @@ class DevpiServer(HTTPTestServer):
             log.info("Extracting initial server data from {}".format(self.data))
             zipfile.ZipFile(self.data, 'r').extractall(self.server_dir)
         else:
-            self.run([sys.executable, '-c', 'import sys; from devpi_server.main import main; sys.exit(main())',
+            self.run([os.path.join(sys.exec_prefix, "bin", "devpi-init"),
                     '--serverdir', self.server_dir,
-                    '--init',
                     ])
 
 
