@@ -96,15 +96,16 @@ function init_venv {
 
 
 function update_apt_sources {
-  wget -qO- https://download.rethinkdb.com/apt/pubkey.gpg | apt-key add -
-  . /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | tee /etc/apt/sources.list.d/rethinkdb.list
+  wget -qO- https://download.rethinkdb.com/repository/raw/pubkey.gpg | apt-key add -
+  . /etc/lsb-release && echo "deb https://download.rethinkdb.com/repository/ubuntu-$DISTRIB_CODENAME $DISTRIB_CODENAME main" | tee /etc/apt/sources.list.d/rethinkdb.list
 
-  wget -q -O - https://pkg.jenkins.io/debian/jenkins-ci.org.key | apt-key add -
+  wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
   sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
 
   apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
   echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 
+  apt install ca-certificates
   apt-get update
 }
 
@@ -137,7 +138,7 @@ function install_jenkins {
 }
 
 function install_mongodb {
-  apt-get install -y mongodb-org mongodb-org-server
+  apt-get install -y mongodb mongodb-server
 }
 
 function install_apache {
