@@ -51,7 +51,7 @@ Here's a noddy test case showing the main functionality:
         # POST a document to the server.
         assert pyramid_server.post('/login', 'guest:password123').response_code == 200
         
-        # ``path.py`` path object to the running config file
+        # path ``path`` object to the running config file (see https://path.readthedocs.io/)
         assert pyramid_server.working_config.endswith('testing.ini')
 ```        
         

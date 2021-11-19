@@ -115,7 +115,7 @@ All test fixtures share the following properties at runtime:
 | `hostname`  | Hostname that server is listening on
 | `port`      | Port number that the server is listening on
 | `dead`      | True/False: am I dead yet?
-| `workspace` | `path.py` object for the temporary directory the server is running out of
+| `workspace` | [`path`](https://path.readthedocs.io/) object for the temporary directory the server is running out of
 
 ## MongoDB
 
