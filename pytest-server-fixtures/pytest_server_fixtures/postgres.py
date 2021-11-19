@@ -103,18 +103,22 @@ class PostgresServer(TestServer):
 
     def check_server_up(self):
         from psycopg2 import OperationalError
+        conn = None
         try:
             print("Connecting to Postgres at localhost:{}".format(self.port))
-            with self.connect('postgres') as conn:
-                conn.set_session(autocommit=True)
-                with conn.cursor() as cursor:
-                    cursor.execute("CREATE DATABASE " + self.database_name)
+            conn = self.connect('postgres')
+            conn.set_session(autocommit=True)
+            with conn.cursor() as cursor:
+                cursor.execute("CREATE DATABASE " + self.database_name)
             self.connection = self.connect(self.database_name)
             with open(self.workspace / 'db' / 'postmaster.pid', 'r') as f:
                 self.pid = int(f.readline().rstrip())
             return True
         except OperationalError as e:
             print("Could not connect to test postgres: {}".format(e))
+        finally:
+            if conn:
+                conn.close()
         return False
 
     def connect(self, database=None):
