@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.hostname = "pytest-plugins-dev"
-  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.box = "bento/ubuntu-20.04"
   config.vm.network "private_network", type: "dhcp"
   config.vm.provision "docker"
   config.vm.provision "file", source: "install.sh", destination: "/tmp/install.sh"
