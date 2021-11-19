@@ -8,7 +8,7 @@ test-tmpl: &test-tmpl
 
 job-tmpl: &job-tmpl
   machine:
-    image: ubuntu-1604:201903-01
+    image: ubuntu-2004:202010-01
 
   working_directory: ~/src
 
