@@ -6,6 +6,7 @@ NEW_INDEX = {
         u"acl_upload": [u"testuser"],
         u"bases": [],
         u"mirror_whitelist": [],
+        u"mirror_whitelist_inheritance": u"intersection",
         u"projects": [],
         u"type": u"stage",
         u"volatile": True,
