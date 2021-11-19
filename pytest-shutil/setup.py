@@ -27,7 +27,7 @@ install_requires = ['six',
                     'pytest',
                     'path; python_version >= "3.5"',
                     'path.py; python_version < "3.5",
-                    'mock',
+                    'mock; python_version<"3.3"',
                     'termcolor'
                     ]
 

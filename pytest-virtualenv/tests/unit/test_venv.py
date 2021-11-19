@@ -1,4 +1,7 @@
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import pytest_virtualenv as venv
 from pytest_shutil import env

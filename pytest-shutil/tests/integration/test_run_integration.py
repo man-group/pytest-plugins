@@ -8,7 +8,10 @@ import inspect
 import textwrap
 from uuid import uuid4
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from pytest_shutil import run, workspace
 from pytest_shutil.env import no_cov

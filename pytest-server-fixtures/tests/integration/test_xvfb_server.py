@@ -4,7 +4,12 @@ import time
 
 from itertools import chain, repeat
 
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    # python 2
+    from mock import patch
+
 import pytest
 from pytest import raises
 

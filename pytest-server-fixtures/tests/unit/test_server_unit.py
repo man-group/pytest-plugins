@@ -1,4 +1,8 @@
-from mock import create_autospec, sentinel, call, patch, Mock
+try:
+    from unittest.mock import create_autospec, sentinel, call, patch, Mock
+except ImportError:
+    # python 2
+    from mock import create_autospec, sentinel, call, patch, Mock
 
 from pytest_server_fixtures.base import TestServer as _TestServer  # So that pytest doesnt think this is a test case
 

@@ -27,7 +27,7 @@ install_requires = ['py',
                     'selenium',
                     ]
 
-tests_require = ['mock',
+tests_require = ['mock; python_version<"3.3"',
                  ]
 
 entry_points = {

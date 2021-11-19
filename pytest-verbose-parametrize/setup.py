@@ -25,7 +25,7 @@ install_requires = ['pytest',
                     'six',
                     ]
 
-tests_require = ['mock',
+tests_require = ['mock; python_version<"3.3"',
                  'pytest-virtualenv',
                  'coverage',
                  ]

@@ -8,7 +8,12 @@ import pytest_profiling
 reload_module(pytest_profiling)
 
 from pytest_profiling import Profiling, pytest_addoption, pytest_configure
-from mock import Mock, ANY, patch, sentinel
+
+try:
+    from unittest.mock import Mock, ANY, patch, sentinel
+except ImportError:
+    # python 2
+    from mock import Mock, ANY, patch, sentinel
 
 
 def test_creates_prof_dir():

@@ -1,6 +1,10 @@
 import pytest
 
-from mock import sentinel, patch, Mock
+try:
+    from unittest.mock import sentinel, patch, Mock
+except ImportError:
+    # python 2
+    from mock import sentinel, patch, Mock
 
 from pytest_server_fixtures.serverclass.kubernetes import KubernetesServer
 
@@ -16,4 +20,3 @@ def test_init(mock_init):
     mock_init.assert_called_with(sentinel.cmd,
                                  sentinel.get_args,
                                  sentinel.env)
-

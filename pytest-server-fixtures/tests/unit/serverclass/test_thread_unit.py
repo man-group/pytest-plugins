@@ -1,4 +1,8 @@
-from mock import sentinel, patch, Mock
+try:
+    from unittest.mock import sentinel, patch, Mock
+except ImportError:
+    # python 2
+    from mock import sentinel, patch, Mock
 
 from pytest_server_fixtures import CONFIG
 from pytest_server_fixtures.serverclass.thread import ThreadServer
@@ -19,4 +23,3 @@ def test_init(mock_init):
     assert ts._hostname == sentinel.listen_hostname
     assert ts._workspace == sentinel.workspace
     assert ts._cwd == sentinel.cwd
-

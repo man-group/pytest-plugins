@@ -1,4 +1,9 @@
-from mock import Mock, sentinel, patch
+try:
+    from unittest.mock import Mock, sentinel, patch
+except ImportError:
+    # python 2
+    from mock import Mock, sentinel, patch
+
 import pytest
 import selenium
 

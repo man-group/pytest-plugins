@@ -11,7 +11,12 @@ import textwrap
 from contextlib import closing
 import subprocess
 
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    # python 2
+    from mock import patch
+
 import execnet
 from six.moves import cPickle  # @UnresolvedImport
 
