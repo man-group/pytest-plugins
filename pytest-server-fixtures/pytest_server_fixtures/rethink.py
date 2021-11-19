@@ -53,10 +53,10 @@ def rethink_unique_db(rethink_server_sess):
     """
     dbid = uuid.uuid4().hex
     conn = rethink_server_sess.conn
-    rethinkdb.db_create(dbid).run(conn)
+    r.db_create(dbid).run(conn)
     conn.use(dbid)
     yield conn
-    rethinkdb.db_drop(dbid).run(conn)
+    r.db_drop(dbid).run(conn)
 
 
 @pytest.yield_fixture(scope="module")
@@ -68,11 +68,11 @@ def rethink_module_db(rethink_server_sess):
     dbid = uuid.uuid4().hex
     conn = rethink_server_sess.conn
     log.info("Making database")
-    rethinkdb.db_create(dbid).run(conn)
+    r.db_create(dbid).run(conn)
     conn.use(dbid)
     yield conn
     log.info("Dropping database")
-    rethinkdb.db_drop(dbid).run(conn)
+    r.db_drop(dbid).run(conn)
 
 
 @pytest.fixture(scope="module")
@@ -86,11 +86,8 @@ def rethink_make_tables(request, rethink_module_db):
     conn = rethink_module_db
     for table_name, primary_key in reqd_table_list:
         try:
-            rethinkdb.db(conn.db).table_create(table_name,
-                                               primary_key=primary_key,
-                                               ).run(conn)
-            log.info('Made table "{0}" with key "{1}"'
-                     .format(table_name, primary_key))
+            r.db(conn.db).table_create(table_name, primary_key=primary_key,).run(conn)
+            log.info('Made table "{0}" with key "{1}"'.format(table_name, primary_key))
         except rethinkdb.errors.RqlRuntimeError as err:
             log.debug('Table "{0}" not made: {1}'.format(table_name, err.message))
 
@@ -103,8 +100,9 @@ def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
         This is a useful approach, because of the long time taken to
         create a new RethinkDB table, compared to the time to empty one.
     """
-    tables_to_emptied = (table[0] for table
-                         in getattr(request.module, 'FIXTURE_TABLES'))
+    tables_to_emptied = (
+        table[0] for table in getattr(request.module, 'FIXTURE_TABLES')
+    )
     conn = rethink_module_db
 
     for table_name in tables_to_emptied:
@@ -118,8 +116,10 @@ class RethinkDBServer(TestServerV2):
 
     def __init__(self, **kwargs):
         # defer loading of rethinkdb
+        global r
         global rethinkdb
         import rethinkdb
+        from rethinkdb import r
 
         super(RethinkDBServer, self).__init__(**kwargs)
         self._driver_port = self._get_port(28015)
@@ -174,9 +174,8 @@ class RethinkDBServer(TestServerV2):
             return False
 
         try:
-            self.conn = rethinkdb.connect(host=self.hostname,
-                                          port=self.port, db='test')
+            self.conn = r.connect(host=self.hostname, port=self.port, db='test')
             return True
-        except rethinkdb.RqlDriverError as err:
+        except rethinkdb.errors.RqlDriverError as err:
             log.warning(err)
         return False
