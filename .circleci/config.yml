@@ -132,11 +132,6 @@ job-tmpl: &job-tmpl
 
 version: 2
 jobs:
-  py27:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python2.7"
-
   py35:
     <<: *job-tmpl
     environment:
@@ -169,13 +164,9 @@ workflows:
   version: 2
   pytest-plugins:
     jobs:
-      - py27
-      - py35
       - py36
       - py37
       - coveralls:
           requires:
-            - py27
-            - py35
             - py36
             - py37
