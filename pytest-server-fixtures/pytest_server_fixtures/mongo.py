@@ -127,9 +127,9 @@ class MongoTestServer(TestServerV2):
 
         log.info("Connecting to Mongo at %s:%s" % (self.hostname, self.port))
         try:
-            self.api = pymongo.MongoClient(self.hostname, self.port,
-                                           serverselectiontimeoutms=200)
-            self.api.list_database_names()
+            with pymongo.MongoClient(self.hostname, self.port, serverselectiontimeoutms=200) as initial_api:
+                initial_api.list_database_names()
+
             # Configure the client with default timeouts in case the server goes slow
             self.api = pymongo.MongoClient(self.hostname, self.port)
             return True
