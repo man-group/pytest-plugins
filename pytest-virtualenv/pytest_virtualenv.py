@@ -1,19 +1,25 @@
 """ Python virtual environment fixtures
 """
 import os
+import pathlib
+import re
+import shutil
+import subprocess
 import sys
+from enum import Enum
 
 import importlib_metadata as metadata
+import pkg_resources
 from pytest import yield_fixture
-try:
-    from path import Path
-except ImportError:
-    from path import path as Path
 
 from pytest_shutil.workspace import Workspace
 from pytest_shutil import run, cmdline
 from pytest_fixture_config import Config, yield_requires_config
 
+
+class PackageVersion(Enum):
+    LATEST = 1
+    CURRENT = 2
 
 class FixtureConfig(Config):
     __slots__ = ('virtualenv_executable')
@@ -43,7 +49,7 @@ def virtualenv():
         ----------
         virtualenv (`path.path`)    : Path to this virtualenv's base directory
         python (`path.path`)        : Path to this virtualenv's Python executable
-        easy_install (`path.path`)  : Path to this virtualenv's easy_install executable
+        pip (`path.path`)           : Path to this virtualenv's pip executable
         .. also inherits all attributes from the `workspace` fixture
     """
     venv = VirtualEnv()
@@ -112,11 +118,11 @@ class VirtualEnv(Workspace):
         if sys.platform == 'win32':
             # In virtualenv on windows "Scripts" folder is used instead of "bin".
             self.python = self.virtualenv / 'Scripts' / 'python.exe'
-            self.easy_install = self.virtualenv / 'Scripts' / 'easy_install.exe'
+            self.pip = self.virtualenv / 'Scripts' / 'pip.exe'
             self.coverage = self.virtualenv / 'Scripts' / 'coverage.exe'
         else:
             self.python = self.virtualenv / 'bin' / 'python'
-            self.easy_install = self.virtualenv / "bin" / "easy_install"
+            self.pip = self.virtualenv / "bin" / "pip"
             self.coverage = self.virtualenv / 'bin' / 'coverage'
 
         if env is None:
@@ -140,6 +146,7 @@ class VirtualEnv(Workspace):
         cmd.extend(self.args)
         cmd.append(str(self.virtualenv))
         self.run(cmd)
+        self._importlib_metadata_installed = False
 
     def run(self, args, **kwargs):
         """
@@ -166,60 +173,74 @@ class VirtualEnv(Workspace):
         coverage = [str(self.python), str(self.coverage)]
         return run.run_with_coverage(*args, coverage=coverage, **kwargs)
 
-    def install_package(self, pkg_name, installer='easy_install', build_egg=None):
+    def install_package(self, pkg_name, version=PackageVersion.LATEST, installer="pip", installer_command="install"):
         """
         Install a given package name. If it's already setup in the
         test runtime environment, it will use that.
-        :param build_egg:  `bool`
-            Only used when the package is installed as a source checkout, otherwise it
-            runs the installer to get it from PyPI.
-            True: builds an egg and installs it
-            False: Runs 'python setup.py develop'
-            None (default): installs the egg if available in dist/, otherwise develops it
+        :param pkg_name: `str`
+            Name of the package to be installed
+        :param version: `str` or `PackageVersion`
+            If PackageVersion.LATEST then installs the latest version of the package from upstream
+            If PackageVersion.CURRENT then installs the same version that's installed in the current virtual environment
+                                      that's running the tests If the package is an egg-link, then copy it over. If the
+                                      package is not in the parent, then installs the latest version
+            If the value is a string, then it will be used as the version to install
+        :param installer: `str`
+            The installer used to install packages, `pip` by default
+        `param installer_command: `str`
+            The command passed to the installed, `install` by default. So the resulting default install command is
+            `<venv>/Scripts/pip.exe install` on windows and `<venv>/bin/pip install` elsewhere
         """
-        def location(dist):
-            return dist.locate_file('')
-
-        installed = [
-            dist for dist in metadata.distributions() if dist.name == pkg_name]
-        if not installed or location(installed[0]).endswith('.egg'):
-            if sys.platform == 'win32':
-                # In virtualenv on windows "Scripts" folder is used instead of "bin".
-                installer = str(self.virtualenv / 'Scripts' / installer + '.exe')
-            else:
-                installer = str(self.virtualenv / 'bin' / installer)
-            if not self.debug:
-                installer += ' -q'
-            # Note we're running this as 'python easy_install foobar', instead of 'easy_install foobar'
-            # This is to circumvent #! line length limits :(
-            cmd = '%s %s %s' % (self.python, installer, pkg_name)
+        if sys.platform == 'win32':
+            # In virtualenv on windows "Scripts" folder is used instead of "bin".
+            installer = str(self.virtualenv / 'Scripts' / installer + '.exe')
         else:
-            dist = installed[0]
-            d = {'python': self.python,
-                 'easy_install': self.easy_install,
-                 'src_dir': location(dist),
-                 'name': dist.name,
-                 'version': dist.version,
-                 'pyversion': '{sys.version_info[0]}.{sys.version_info[1]}'
-                 .format(**globals()),
-                 }
+            installer = str(self.virtualenv / 'bin' / installer)
+        if not self.debug:
+            installer += ' -q'
 
-            d['egg_file'] = Path(location(dist)) / 'dist' / ('%(name)s-%(version)s-py%(pyversion)s.egg' % d)
-            if build_egg and not d['egg_file'].isfile():
-                self.run('cd %(src_dir)s; %(python)s setup.py -q bdist_egg' % d, capture=True)
-
-            if build_egg or (build_egg is None and d['egg_file'].isfile()):
-                cmd = '%(python)s %(easy_install)s %(egg_file)s' % d
+        if version == PackageVersion.LATEST:
+            self.run(
+                "{python} {installer} {installer_command} {spec}".format(
+                    python=self.python, installer=installer, installer_command=installer_command, spec=pkg_name
+                )
+            )
+        elif version == PackageVersion.CURRENT:
+            dist = next(
+                iter([dist for dist in metadata.distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
+            )
+            if dist:
+                egg_link = _get_egg_link(dist.name)
+                if egg_link:
+                    self._install_editable_package(egg_link, dist)
+                else:
+                    spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=dist.version)
+                    self.run(
+                        "{python} {installer} {installer_command} {spec}".format(
+                            python=self.python, installer=installer, installer_command=installer_command, spec=spec
+                        )
+                    )
             else:
-                cmd = 'cd %(src_dir)s; %(python)s setup.py -q develop' % d
-
-        self.run(cmd, capture=False)
+                self.run(
+                    "{python} {installer} {installer_command} {spec}".format(
+                        python=self.python, installer=installer, installer_command=installer_command, spec=pkg_name
+                    )
+                )
+        else:
+            spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=version)
+            self.run(
+                "{python} {installer} {installer_command} {spec}".format(
+                    python=self.python, installer=installer, installer_command=installer_command, spec=spec
+                )
+            )
 
     def installed_packages(self, package_type=None):
         """
         Return a package dict with
             key = package name, value = version (or '')
         """
+        # Lazily install importlib_metadata in the underlying virtual environment
+        self._install_importlib_metadata()
         if package_type is None:
             package_type = PackageEntry.ANY
         elif package_type not in PackageEntry.PACKAGE_TYPES:
@@ -227,9 +248,43 @@ class VirtualEnv(Workspace):
 
         res = {}
         code = "import importlib_metadata as metadata\n"\
-               "for i in metadata.distributions(): print(i.name + ' ' + i.version + ' ' + i.locate_file(''))"
+               "for i in metadata.distributions(): print(i.name + ' ' + i.version + ' ' + str(i.locate_file('')))"
         lines = self.run([self.python, "-c", code], capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
             name, version, location = line.split()
             res[name] = PackageEntry(name, version, location)
         return res
+
+    def _install_importlib_metadata(self):
+        if not self._importlib_metadata_installed:
+            self.install_package("importlib_metadata", version=PackageVersion.CURRENT)
+            self._importlib_metadata_installed = True
+
+    def _install_editable_package(self, egg_link, package):
+        python_dir = "python{}.{}".format(sys.version_info.major, sys.version_info.minor)
+        shutil.copy(egg_link, self.virtualenv / "lib" / python_dir / "site-packages" / egg_link.name)
+        easy_install_pth_path = self.virtualenv / "lib" / python_dir / "site-packages" / "easy-install.pth"
+        with open(easy_install_pth_path, "a") as pth, open(egg_link) as egg_link:
+            pth.write(egg_link.read())
+            pth.write("\n")
+        for spec in package.requires:
+            if not _is_extra_requirement(spec):
+                dependency = next(pkg_resources.parse_requirements(spec), None)
+                if dependency and (not dependency.marker or dependency.marker.evaluate()):
+                    self.install_package(dependency.name, version=PackageVersion.CURRENT)
+
+
+def _normalize(name):
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def _get_egg_link(pkg_name):
+    for path in sys.path:
+        egg_link = pathlib.Path(path) / (pkg_name + ".egg-link")
+        if egg_link.is_file():
+            return egg_link
+    return None
+
+
+def _is_extra_requirement(spec):
+    return any(x.replace(" ", "").startswith("extra==") for x in spec.split(";"))
