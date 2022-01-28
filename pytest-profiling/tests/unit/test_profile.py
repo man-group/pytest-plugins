@@ -35,17 +35,24 @@ def test_combines_profs():
 def test_generates_svg():
     plugin = Profiling(True)
     plugin.profs = [sentinel.prof]
-    with patch('pstats.Stats'):
-        with patch('pipes.Template') as Template:
-            plugin.pytest_sessionfinish(Mock(), Mock())
-    assert any('gprof2dot' in args[0][0] for args in Template.return_value.append.call_args_list)
-    assert Template.return_value.copy.called
 
+    dot_proc = Mock()
+    gprof_proc = Mock()
+    dot_proc.communicate.return_value = ('out1','err1')
+    gprof_proc.communicate.return_value = ('out2','err2')
+
+    with patch('pstats.Stats'):
+        with patch('subprocess.Popen') as popen:
+            popen.side_effect = (dot_proc, gprof_proc)
+            plugin.pytest_sessionfinish(Mock(), Mock())
+    assert popen.mock_calls[0][1][0][0] == 'dot'
+    assert 'gprof2dot' in popen.mock_calls[1][1][0][0]
 
 def test_writes_summary():
     plugin = Profiling(False)
     plugin.profs = [sentinel.prof]
     terminalreporter, stats = Mock(), Mock()
+
     with patch('pstats.Stats', return_value=stats) as Stats:
         plugin.pytest_sessionfinish(Mock(), Mock())
         plugin.pytest_terminal_summary(terminalreporter)
@@ -57,8 +64,13 @@ def test_writes_summary_svg():
     plugin = Profiling(True)
     plugin.profs = [sentinel.prof]
     terminalreporter = Mock()
+    dot_proc = Mock()
+    gprof_proc = Mock()
+    dot_proc.communicate.return_value = ('out1','err1')
+    gprof_proc.communicate.return_value = ('out2','err2')
     with patch('pstats.Stats'):
-        with patch('pipes.Template'):
+        with patch('subprocess.Popen') as popen:
+            popen.side_effect = (dot_proc, gprof_proc)
             plugin.pytest_sessionfinish(Mock(), Mock())
         plugin.pytest_terminal_summary(terminalreporter)
     assert 'SVG' in terminalreporter.write.call_args[0][0]

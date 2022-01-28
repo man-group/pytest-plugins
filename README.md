@@ -5,11 +5,13 @@ OS | Build | Coverage |
  ![Linux](img/linux.png) | [![CircleCI (Linux)](https://circleci.com/gh/man-group/pytest-plugins/tree/master.svg?style=svg)](https://circleci.com/gh/man-group/pytest-plugins/tree/master) | [![Coverage Status](https://coveralls.io/repos/github/manahl/pytest-plugins/badge.svg?branch=master)](https://coveralls.io/github/manahl/pytest-plugins?branch=master)
  ![Windows](img/windows.png) | [![Travic CI (Windows)](https://travis-ci.org/man-group/pytest-plugins.svg?branch=master)](https://travis-ci.org/man-group/pytest-plugins) |
 
+Click on the plugin names below for their individual READMEs.
+
 Plugin | Description | Supported OS |
 ------ | ----------- | ------------ |
 | [pytest-server-fixtures](pytest-server-fixtures) |  Extensible server-running framework with a suite of well-known databases and webservices included | ![Linux](img/linux.png)
 | [pytest-shutil](pytest-shutil) | Unix shell and environment management tools |![Linux](img/linux.png)
-| [pytest-profiling](pytest-profiling) | Profiling plugin with tabular heat graph output and gprof support for C-Extensions |![Linux](img/linux.png)
+| [pytest-profiling](pytest-profiling) | Profiling plugin with tabular heat graph output and gprof support for C-Extensions |![Linux](img/linux.png) ![Windows](img/windows.png)
 | [pytest-devpi-server](pytest-devpi-server) | DevPI server fixture |![Linux](img/linux.png)
 | [pytest-pyramid-server](pytest-pyramid-server) | Pyramid server fixture |![Linux](img/linux.png)
 | [pytest-webdriver](pytest-webdriver) | Selenium webdriver fixture |![Linux](img/linux.png)

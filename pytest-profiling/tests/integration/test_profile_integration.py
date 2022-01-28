@@ -28,7 +28,7 @@ def virtualenv():
 
 def test_profile_profiles_tests(pytestconfig, virtualenv):
     output = virtualenv.run_with_coverage(
-        ["-m", "pytest", "--profile", "tests/unit/test_example.py"],
+        ["-m", "pytest", "-sv", "--profile", "tests/unit/test_example.py"],
         pytestconfig,
         cd=virtualenv.workspace,
     )
@@ -37,9 +37,10 @@ def test_profile_profiles_tests(pytestconfig, virtualenv):
 
 def test_profile_generates_svg(pytestconfig, virtualenv):
     output = virtualenv.run_with_coverage(
-        ["-m", "pytest", "--profile-svg", "tests/unit/test_example.py"],
+        ["-m", "pytest", "-sv", "--profile-svg", "tests/unit/test_example.py"],
         pytestconfig,
         cd=virtualenv.workspace,
+        capture_stdout=False
     )
     assert any(
         [

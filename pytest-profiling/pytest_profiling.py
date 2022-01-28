@@ -2,17 +2,19 @@
 
 from __future__ import absolute_import
 
+import logging
 import sys
 import os
 import cProfile
 import pstats
 import errno
 from hashlib import md5
-from subprocess import Popen, PIPE
+import subprocess
 
 import six
 import pytest
 
+LOG = logging.getLogger(__name__)
 LARGE_FILENAME_HASH_LEN = 8
 
 
@@ -39,7 +41,12 @@ class Profiling(object):
         self.stripdirs = stripdirs
         self.element_number = element_number
         self.profs = []
-        self.gprof2dot = os.path.abspath(os.path.join(os.path.dirname(sys.executable), 'gprof2dot'))
+
+        # Find gprof2dot
+        bin_dir = os.path.dirname(sys.executable)
+        if sys.platform == 'win32':
+            bin_dir = os.path.join(bin_dir, 'Scripts')
+        self.gprof2dot = os.path.abspath(os.path.join(bin_dir, 'gprof2dot'))
         if not os.path.isfile(self.gprof2dot):
             # Can't see gprof in the local bin dir, we'll just have to hope it's on the path somewhere
             self.gprof2dot = 'gprof2dot'
@@ -66,19 +73,21 @@ class Profiling(object):
                 # the 2 commands that we wish to execute
                 gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined]
                 dot_args = ["dot", "-Tsvg", "-o", self.svg_name]
+
                 self.dot_cmd = " ".join(dot_args)
                 self.gprof2dot_cmd = " ".join(gprof2dot_args)
+                print('Generating SVG: {} | {}'.format(self.gprof2dot_cmd, self.dot_cmd))
 
                 # A handcrafted Popen pipe actually seems to work on both windows and unix:
                 # do it in 2 subprocesses, with a pipe in between
-                pdot = Popen(dot_args, stdin=PIPE, shell=True)
-                pgprof = Popen(gprof2dot_args, stdout=pdot.stdin, shell=True)
-                (stdoutdata1, stderrdata1) = pgprof.communicate()
-                (stdoutdata2, stderrdata2) = pdot.communicate()
-                if stderrdata1 is not None or pgprof.poll() > 0:
+                pgprof = subprocess.Popen(gprof2dot_args, stdout=subprocess.PIPE)
+                pdot = subprocess.Popen(dot_args, stdin=pgprof.stdin)
+                pgprof.stdout.close()
+                pdot.wait()
+                if pgprof.poll() > 0:
                     # error: gprof2dot
                     self.svg_err = 1
-                elif stderrdata2 is not None or pdot.poll() > 0:
+                elif pdot.poll() > 0:
                     # error: dot
                     self.svg_err = 2
                 else:
