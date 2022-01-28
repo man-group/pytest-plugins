@@ -108,11 +108,16 @@ class VirtualEnv(Workspace):
         path to the virtualenv base dir
     env : 'list'
         environment variables used in creation of virtualenv
-
+    delete_workspace: `None or bool`
+        If True then the workspace will be deleted
+        If False then the workspace will be kept
+        If None (default) then the workspace will be deleted if workspace is also None, but it will be kept otherwise
     """
     # TODO: update to use pip, remove distribute
-    def __init__(self, env=None, workspace=None, name='.env', python=None, args=None):
-        Workspace.__init__(self, workspace)
+    def __init__(self, env=None, workspace=None, name='.env', python=None, args=None, delete_workspace=None):
+        if delete_workspace is None:
+            delete_workspace = workspace is None
+        Workspace.__init__(self, workspace, delete_workspace)
         self.virtualenv = self.workspace / name
         self.args = args or []
         if sys.platform == 'win32':

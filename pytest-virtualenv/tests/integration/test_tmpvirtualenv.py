@@ -1,4 +1,5 @@
 import os
+import pathlib
 import subprocess
 import sys
 import textwrap
@@ -73,3 +74,45 @@ def test_install_latest():
     with venv.VirtualEnv() as v:
         v.install_package("flask")
         assert v.installed_packages()["Flask"].version != "1.1.1"
+
+
+def test_keep_named_workspace(tmp_path):
+    workspace = tmp_path / "new-workspace"
+    workspace.mkdir()
+    with venv.VirtualEnv(workspace=str(workspace)) as v:
+        pass
+    assert workspace.exists()
+
+
+def test_really_keep_named_workspace(tmp_path):
+    workspace = tmp_path / "new-workspace"
+    workspace.mkdir()
+    with venv.VirtualEnv(workspace=str(workspace), delete_workspace=False) as v:
+        pass
+    assert workspace.exists()
+
+
+def test_delete_named_workspace(tmp_path):
+    workspace = tmp_path / "new-workspace"
+    workspace.mkdir()
+    with venv.VirtualEnv(workspace=str(workspace), delete_workspace=True) as v:
+        pass
+    assert not workspace.exists()
+
+
+def test_delete_unamed_workspace():
+    with venv.VirtualEnv() as v:
+        workspace = pathlib.Path(v.workspace)
+    assert not workspace.exists()
+
+
+def test_really_delete_unamed_workspace():
+    with venv.VirtualEnv(delete_workspace=True) as v:
+        workspace = pathlib.Path(v.workspace)
+    assert not workspace.exists()
+
+
+def test_keep_unamed_workspace():
+    with venv.VirtualEnv(delete_workspace=False) as v:
+        workspace = pathlib.Path(v.workspace)
+    assert workspace.exists()
