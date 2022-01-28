@@ -8,7 +8,7 @@ EXTRA_DEPS = setuptools-git \
              python-jenkins \
              redis          \
              pymongo        \
-             psycopg2       \
+             psycopg2-binary\
              boto3          \
              rethinkdb      \
              docker         \

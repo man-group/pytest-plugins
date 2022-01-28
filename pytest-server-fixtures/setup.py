@@ -30,7 +30,7 @@ install_requires = ['pytest',
 extras_require = {
     'jenkins':  ["python-jenkins"],
     'mongodb':  ["pymongo>=3.6.0"],
-    'postgres': ["psycopg2"],
+    'postgres': ["psycopg2-binary"],
     'rethinkdb':  ["rethinkdb"],
     'redis':  ["redis"],
     's3': ["boto3"],
