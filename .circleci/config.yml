@@ -3,6 +3,7 @@ test-tmpl: &test-tmpl
   command: |
     . ../venv/bin/activate
     export DEBUG=1
+    export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
