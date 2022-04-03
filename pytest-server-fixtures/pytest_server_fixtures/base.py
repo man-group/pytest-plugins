@@ -104,7 +104,7 @@ class ProcessReader(threading.Thread):
         self.process = process
         self.stream = stream
         super(ProcessReader, self).__init__()
-        self.setDaemon(True)
+        self.daemon = True
 
     def run(self):
         while self.process.poll() is None:
