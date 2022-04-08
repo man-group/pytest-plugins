@@ -2,7 +2,7 @@ import psutil
 
 def test_start_and_stop(httpd_server):
     assert httpd_server.check_server_up()
-    pid = int((httpd_server.workspace / 'run' / 'httpd.pid').read_text())
+    pid = httpd_server.pid
     httpd_server.kill()
     assert not httpd_server.check_server_up()
     still_running = [i for i in psutil.process_iter()
