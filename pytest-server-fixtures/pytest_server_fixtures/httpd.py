@@ -1,4 +1,3 @@
-import functools
 import os
 import platform
 import socket
@@ -125,8 +124,7 @@ class HTTPDServer(HTTPTestServer):
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
 
-        # Discover externally accessable hostname so selenium can get to it
-        kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
+        kwargs['hostname'] = kwargs.get('hostname', CONFIG.fixture_hostname)
 
         super(HTTPDServer, self).__init__(**kwargs)
 
