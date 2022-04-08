@@ -11,6 +11,6 @@ def test_mongo_server(mongo_server):
 @pytest.mark.parametrize('count', range(3))
 def test_mongo_server_multi(count, mongo_server):
     coll = mongo_server.api.some_database.some_collection
-    assert coll.count_documents() == 0
+    assert coll.count_documents({}) == 0
     coll.insert_one({'a': 'b'})
-    assert coll.count_documents() == 1
+    assert coll.count_documents({}) == 1
