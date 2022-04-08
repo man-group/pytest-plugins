@@ -222,7 +222,7 @@ Here's an example on how to run up one of these servers:
 
 ```python
 def test_connection(s3_bucket):
-    bucket = s3_bucket.client.Bucket(s3_bucket.bucket_name)
+    bucket = s3_bucket.client.Bucket(s3_bucket.name)
     assert bucket is not None
 ```
 
