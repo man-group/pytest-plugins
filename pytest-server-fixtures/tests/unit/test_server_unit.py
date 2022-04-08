@@ -29,7 +29,7 @@ def test_kill():
     self.run.side_effect = ['100\n', '', '']
     with patch('os.kill') as kill:
         with patch('socket.gethostbyname', return_value=sentinel.ip):
-            _TestServer._find_and_kill(self, 2, sentinel.signal)
+            _TestServer._find_and_kill_by_port(self, 2, sentinel.signal)
     assert self.run.call_args_list == [call("netstat -anp 2>/dev/null | grep sentinel.ip:sentinel.port "
                                             "| grep LISTEN | awk '{ print $7 }' | cut -d'/' -f1", capture=True, cd='/'),
                                        call("netstat -anp 2>/dev/null | grep sentinel.ip:sentinel.port "
