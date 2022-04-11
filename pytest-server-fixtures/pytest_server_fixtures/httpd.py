@@ -159,11 +159,16 @@ class HTTPDServer(HTTPTestServer):
 
     @property
     def pid(self):
-        return int((self.workspace / 'run' / 'httpd.pid').read_text())
+        try:
+            return int((self.workspace / 'run' / 'httpd.pid').read_text())
+        except FileNotFoundError:
+            return None
 
     @property
     def run_cmd(self):
         return [CONFIG.httpd_executable, '-f', self.config]
 
     def kill(self, retries=5):
-        self.kill_by_pid(self.pid, retries)
+        pid = self.pid
+        if pid is not None:
+            self.kill_by_pid(self.pid, retries)
