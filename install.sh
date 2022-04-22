@@ -118,7 +118,8 @@ function install_system_deps {
     x11-utils \
     subversion \
     graphviz \
-    pandoc
+    pandoc \
+    net-tools
 }
 
 function install_postgresql {
