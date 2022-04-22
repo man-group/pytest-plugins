@@ -22,15 +22,15 @@ def test_init():
     ts.workspace = ws
 
 
-def test_kill():
-    self = create_autospec(_TestServer, dead=False,
-                           hostname=sentinel.hostname,
-                           port=sentinel.port)
-    self.run.side_effect = ['100\n', '', '']
+def test_kill_by_port():
+    server = _TestServer(hostname=sentinel.hostname, port=sentinel.port)
+    server.run = Mock(side_effect=['100\n', '', ''])
+    server._signal = Mock()
     with patch('socket.gethostbyname', return_value=sentinel.ip):
-        _TestServer._find_and_kill_by_port(self, 2, sentinel.signal)
-    assert self.run.call_args_list == [call("netstat -anp 2>/dev/null | grep sentinel.ip:sentinel.port "
+        server._find_and_kill_by_port(2, sentinel.signal)
+        server.dead = True
+    assert server.run.call_args_list == [call("netstat -anp 2>/dev/null | grep sentinel.ip:sentinel.port "
                                             "| grep LISTEN | awk '{ print $7 }' | cut -d'/' -f1", capture=True, cd='/'),
                                        call("netstat -anp 2>/dev/null | grep sentinel.ip:sentinel.port "
                                             "| grep LISTEN | awk '{ print $7 }' | cut -d'/' -f1", capture=True, cd='/')]
-    assert self._signal.call_args_list == [call(100, sentinel.signal)]
+    assert server._signal.call_args_list == [call(100, sentinel.signal)]
