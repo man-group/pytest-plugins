@@ -28,6 +28,9 @@ _SESSION_HOST = None
 class ServerNotDead(Exception):
     pass
 
+class CannotFindServer(Exception):
+    pass
+
 
 def get_ephemeral_host(cached=True, regen_cache=False):
     """
@@ -302,34 +305,67 @@ class TestServer(Workspace):
         log.debug("Server now awake")
         self.dead = False
 
-    def _find_and_kill(self, retries, signal):
-        log.debug("Killing server running at {}:{} using signal {}".format(self.hostname, self.port, signal))
-        for _ in range(retries):
-            if OSX:
-                netstat_cmd = "lsof -n -i:{} | grep LISTEN | awk '{{ print $2 }}'".format(self.port)
+
+    def _signal(self, pid, signal):
+        try:
+            log.debug(f'Signalling pid {pid} with signal {signal}')
+            os.kill(pid, signal)
+        except OSError as oe:
+            if oe.errno == errno.ESRCH:  # Process doesn't appear to exist.
+                log.error("For some reason couldn't find PID {} to kill.".format(pid))
             else:
-                netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
-                            "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
-            pids = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
+                raise
 
+    def _kill_with(self, pid, sig, retries=5):
+        for _ in range(retries):
+            self._signal(pid, sig)
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                return True
+            time.sleep(self.kill_retry_delay)
+        return False
+
+    def kill_by_pid(self, pid, retries=5):
+        if self.server:
+            self.server.exit = True
+        if self.dead:
+            return
+        if not self._kill_with(pid, self.kill_signal, retries):
+            log.error(f"Server not dead after {retries} retries, trying with SIGKILL")
+            if not self._kill_with(signal.SIGKILL, retries):
+                raise ServerNotDead(f"Server not dead after {retries} retries")
+
+    def _find_pids_by_port(self):
+        if OSX:
+            netstat_cmd = "lsof -n -i:{} | grep LISTEN | awk '{{ print $2 }}'".format(self.port)
+        else:
+            netstat_cmd = ("netstat -anp 2>/dev/null | grep %s:%s | grep LISTEN | "
+                           "awk '{ print $7 }' | cut -d'/' -f1" % (socket.gethostbyname(self.hostname), self.port))
+        pids = [p.strip() for p in self.run(netstat_cmd, capture=True, cd='/').split('\n') if p.strip()]
+        if pids:
+            log.debug(f"Found pids: {pids}")
+        else:
+            log.debug(f"No pids found")
+        return pids
+
+    def _find_and_kill_by_port(self, retries, signal):
+        log.debug("Killing server running at {}:{} using signal {}".format(self.hostname, self.port, signal))
+        pids = self._find_pids_by_port()
+        if not pids:
+            raise CannotFindServer()
+        for _ in range(retries):
             if not pids:
-                # No PIDs remaining, server has died.
-                break
-
+                return
             for pid in pids:
                 try:
                     pid = int(pid)
                 except ValueError:
                     log.error("Can't determine port, process shutting down or owned by someone else")
                 else:
-                    try:
-                        os.kill(pid, signal)
-                    except OSError as oe:
-                        if oe.errno == errno.ESRCH:  # Process doesn't appear to exist.
-                            log.error("For some reason couldn't find PID {} to kill.".format(p))
-                        else:
-                            raise
+                    self._signal(pid, signal)
             time.sleep(self.kill_retry_delay)
+            pids = self._find_pids_by_port()
         else:
             raise ServerNotDead("Server not dead after %d retries" % retries)
 
@@ -347,13 +383,16 @@ class TestServer(Workspace):
             return
 
         try:
-            self._find_and_kill(retries, self.kill_signal)
+            self._find_and_kill_by_port(retries, self.kill_signal)
+        except CannotFindServer:
+            log.debug(f"Server can't be found listening on port {self.port}")
+            return
         except ServerNotDead:
             log.error("Server not dead after %d retries, trying with SIGKILL" % retries)
-        try:
-            self._find_and_kill(retries, signal.SIGKILL)
-        except ServerNotDead:
-            log.error("Server still not dead, giving up")
+            try:
+                self._find_and_kill_by_port(retries, signal.SIGKILL)
+            except ServerNotDead:
+                log.error("Server still not dead, giving up")
 
     def teardown(self):
         """ Called when tearing down this instance, eg in a context manager

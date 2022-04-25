@@ -8,7 +8,7 @@ EXTRA_DEPS = setuptools-git \
              python-jenkins \
              redis          \
              pymongo        \
-             psycopg2       \
+             psycopg2-binary\
              boto3          \
              rethinkdb      \
              docker         \
@@ -17,18 +17,21 @@ EXTRA_DEPS = setuptools-git \
 
 COPY_FILES = VERSION CHANGES.md common_setup.py MANIFEST.in LICENSE
 UPLOAD_OPTS =
+PYPI_INDEX =
+
+PIP_INSTALL_ARGS := $(shell [ ! -z "${PYPI_INDEX}" ] && echo --index ${PYPI_INDEX} )
 
 # removed from PHONY:  circleci_sip circleci_pyqt
 .PHONY: extras copyfiles wheels eggs sdists install develop test upload clean
 
 extras:
-	pip install $(EXTRA_DEPS)
+	pip install ${PIP_INSTALL_ARGS} ${EXTRA_DEPS}
 
 copyfiles:
-	./foreach.sh 'for file in $(COPY_FILES); do cp ../$$file .; done'
+	./foreach.sh 'for file in ${COPY_FILES}; do cp ../$$file .; done'
 
 wheels: copyfiles
-	pip install -U wheel
+	pip install ${PIP_INSTALL_ARGS} -U wheel
 	./foreach.sh --changed 'python setup.py bdist_wheel'
 
 eggs: copyfiles
@@ -38,12 +41,12 @@ sdists: copyfiles
 	./foreach.sh --changed 'python setup.py sdist'
 
 install: copyfiles
-	pip install -U wheel
+	pip install ${PIP_INSTALL_ARGS} -U wheel
 	./foreach.sh 'python setup.py bdist_wheel'
-	./foreach.sh 'pip install dist/*.whl'
+	./foreach.sh 'pip install ${PIP_INSTALL_ARGS} dist/*.whl'
 
 develop: copyfiles extras
-	./foreach.sh 'pip install -e.[tests]'
+	./foreach.sh 'pip install ${PIP_INSTALL_ARGS} -e.[tests]'
 
 test:
 	rm -f FAILED-*

@@ -51,7 +51,13 @@ To run all the tests:
     make test
 ```
 
-To setup test environment in Vagrant (requires virtualbox):
+## Vagrant
+
+Some of the plugins have complex dependencies, particularly `pytest-server-fixtures`.
+To make it easier to develop, there is a `Vagrantfile` which will setup a virtual machine
+with all the dependencies installed to run the tests.
+
+To set up the environment in Vagrant (requires virtualbox) and run the tests:
 
 ```bash
     $ vagrant up
@@ -59,6 +65,7 @@ To setup test environment in Vagrant (requires virtualbox):
 
     # ..... inside vagrant ....
     . venv/bin/activate
+    cd src
     make develop
     make test
 ```
@@ -71,4 +78,21 @@ This example will build all the wheel distributions:
 ```bash
     ./foreach.sh python setup.py bdist_wheel
 ```
+
+### Only-Changed mode
+
+To run a command only on packages that have changed since the last tagged release, use `--changed`.
+This example will only upload packages that need releasing:
+
+```bash
+    ./foreach.sh python setup.py bdist_wheel upload
+```
+
+### Quiet mode
+
+To run a command with no extra output other than from what you run, use `--quiet`
+```bash
+    ./foreach.sh --quiet grep PY3
+```
+
 

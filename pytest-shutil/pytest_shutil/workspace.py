@@ -136,7 +136,7 @@ class Workspace(object):
     def teardown(self):
         if self.delete is not None and not self.delete:
             return
-        if self.workspace.isdir():
+        if hasattr(self, 'workspace') and self.workspace.isdir():
             log.debug("")
             log.debug("=======================================================")
             log.debug("pytest_shutil deleting workspace %s" % self.workspace)

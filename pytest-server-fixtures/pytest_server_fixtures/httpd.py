@@ -1,4 +1,3 @@
-import functools
 import os
 import platform
 import socket
@@ -125,8 +124,7 @@ class HTTPDServer(HTTPTestServer):
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
 
-        # Discover externally accessable hostname so selenium can get to it
-        kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
+        kwargs['hostname'] = kwargs.get('hostname', CONFIG.fixture_hostname)
 
         super(HTTPDServer, self).__init__(**kwargs)
 
@@ -160,5 +158,17 @@ class HTTPDServer(HTTPTestServer):
             self.log_dir.mkdir()
 
     @property
+    def pid(self):
+        try:
+            return int((self.workspace / 'run' / 'httpd.pid').read_text())
+        except FileNotFoundError:
+            return None
+
+    @property
     def run_cmd(self):
         return [CONFIG.httpd_executable, '-f', self.config]
+
+    def kill(self, retries=5):
+        pid = self.pid
+        if pid is not None:
+            self.kill_by_pid(self.pid, retries)

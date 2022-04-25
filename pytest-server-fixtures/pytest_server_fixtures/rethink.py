@@ -1,4 +1,3 @@
-import socket
 import uuid
 import logging
 
@@ -11,7 +10,7 @@ from .base2 import TestServerV2
 
 
 log = logging.getLogger(__name__)
-rethinkdb = None
+r = None
 
 
 def _rethink_server(request):
@@ -81,6 +80,7 @@ def rethink_make_tables(request, rethink_module_db):
         module attribute FIXTURE_TABLES.
 
     """
+    import rethinkdb
     reqd_table_list = getattr(request.module, 'FIXTURE_TABLES')
     log.debug("Do stuff before all module tests with {0}".format(reqd_table_list))
     conn = rethink_module_db
@@ -106,7 +106,7 @@ def rethink_empty_db(request, rethink_module_db, rethink_make_tables):
     conn = rethink_module_db
 
     for table_name in tables_to_emptied:
-        rethinkdb.db(conn.db).table(table_name).delete().run(conn)
+        r.db(conn.db).table(table_name).delete().run(conn)
         log.debug('Emptied "{0}" before test'.format(table_name))
     yield conn
 
@@ -119,18 +119,18 @@ class RethinkDBServer(TestServerV2):
         global r
         global rethinkdb
         import rethinkdb
-        from rethinkdb import r
+        r = rethinkdb.RethinkDB()
 
         super(RethinkDBServer, self).__init__(**kwargs)
         self._driver_port = self._get_port(28015)
         self._cluster_port = self._get_port(29015)
         self._http_port = self._get_port(8080)
-        self.db = None
+        self.conn = None
 
 
     @property
     def cmd(self):
-        return "rethindb"
+        return "rethinkdb"
 
     @property
     def cmd_local(self):
@@ -167,6 +167,7 @@ class RethinkDBServer(TestServerV2):
 
     def check_server_up(self):
         """Test connection to the server."""
+        import rethinkdb
         log.info("Connecting to RethinkDB at {0}:{1}".format(
             self.hostname, self.port))
 

@@ -32,10 +32,13 @@ function install_python_packaging {
 function install_python {
   local py=$1
   apt-get install -y $py $py-dev
-  curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $py
+  if [ "$py" = "python3.6" ]; then
+    curl --silent --show-error --retry 5  https://bootstrap.pypa.io/pip/3.6/get-pip.py | $py
+  else
+    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $py
+  fi
   install_python_packaging $py
 }
-
 
 function choco_install {
   local args=$*
@@ -115,7 +118,8 @@ function install_system_deps {
     x11-utils \
     subversion \
     graphviz \
-    pandoc
+    pandoc \
+    net-tools
 }
 
 function install_postgresql {

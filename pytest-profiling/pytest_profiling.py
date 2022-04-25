@@ -8,7 +8,7 @@ import cProfile
 import pstats
 import errno
 from hashlib import md5
-from subprocess import Popen, PIPE
+import subprocess
 
 import six
 import pytest
@@ -71,8 +71,8 @@ class Profiling(object):
 
                 # A handcrafted Popen pipe actually seems to work on both windows and unix:
                 # do it in 2 subprocesses, with a pipe in between
-                pdot = Popen(dot_args, stdin=PIPE, shell=True)
-                pgprof = Popen(gprof2dot_args, stdout=pdot.stdin, shell=True)
+                pdot = subprocess.Popen(dot_args, stdin=subprocess.PIPE, shell=True)
+                pgprof  = subprocess.Popen(gprof2dot_args, stdout=pdot.stdin, shell=True)
                 (stdoutdata1, stderrdata1) = pgprof.communicate()
                 (stdoutdata2, stderrdata2) = pdot.communicate()
                 if stderrdata1 is not None or pgprof.poll() > 0:

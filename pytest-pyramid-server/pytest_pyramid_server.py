@@ -20,6 +20,7 @@ from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
 from pytest import yield_fixture
 
+from pytest_server_fixtures import CONFIG
 from pytest_server_fixtures.http import HTTPTestServer
 
 
@@ -83,8 +84,7 @@ class PyramidTestServer(HTTPTestServer):
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
 
-        # Discover externally accessable hostname so selenium can get to it
-        kwargs['hostname'] = kwargs.get('hostname', socket.gethostbyname(os.uname()[1]))
+        kwargs['hostname'] = kwargs.get('hostname', CONFIG.fixture_hostname)
 
         super(PyramidTestServer, self).__init__(preserve_sys_path=True, **kwargs)
 
@@ -112,8 +112,8 @@ class PyramidTestServer(HTTPTestServer):
         except configparser.NoOptionError:
             parser.set('app:main', 'url_prefix', '')
 
-        # Set the uri to be the external hostname and the url prefix
-        self._uri = "http://%s:%s/%s" % (os.uname()[1], self.port, parser.get('app:main', 'url_prefix'))
+        # Set the uri to be the hostname and the url prefix
+        self._uri = "http://%s:%s/%s" % (self.hostname, self.port, parser.get('app:main', 'url_prefix'))
 
     @property
     def run_cmd(self):

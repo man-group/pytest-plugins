@@ -1,14 +1,6 @@
-import os
-import tempfile
-import shutil
-import subprocess
-import time
-import errno
 import logging
-import getpass
 
 import pytest
-
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import yield_requires_config
 

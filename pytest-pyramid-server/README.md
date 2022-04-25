@@ -76,7 +76,7 @@ To do this you can use the underlying server class directly - this is an implene
                                                        'my_dbpass: 'bar'}}
            ) as server:
                assert not server.dead
-               assert 'my_dbname = foo' in server.working_config.text()
+               assert 'my_dbname = foo' in server.working_config.read_text()
                
         # Server should now be dead
         assert server.dead   
