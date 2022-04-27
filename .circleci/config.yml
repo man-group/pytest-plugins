@@ -1,7 +1,6 @@
 
 test-tmpl: &test-tmpl
   command: |
-    . ../venv/bin/activate
     export DEBUG=1
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
@@ -15,42 +14,36 @@ job-tmpl: &job-tmpl
     - run: env
     - checkout
     - run:
-        name: Create venv and install extras
-        command: bash -c ". install.sh && init_venv $PYTHON"
-
-    - run:
         name: Update Apt-Sources
-        command: sudo bash -c ". install.sh && update_apt_sources"
+        command: sudo bash -cx ". install.sh && update_apt_sources"
     - run:
         name: Install System Dependencies
-        command: sudo bash -c ". install.sh && install_system_deps"
+        command: sudo bash -cx ". install.sh && install_system_deps"
     - run:
         name: Install Postgresql
-        command: sudo bash -c ". install.sh && install_postgresql"
+        command: sudo bash -cx ". install.sh && install_postgresql"
     - run:
         name: Install Redis
-        command: sudo bash -c ". install.sh && install_redis"
+        command: sudo bash -cx ". install.sh && install_redis"
     - run:
         name: Install Rethinkdb
-        command: sudo bash -c ". install.sh && install_rethinkdb"
+        command: sudo bash -cx ". install.sh && install_rethinkdb"
     - run:
         name: Install Mongodb
-        command: sudo bash -c ". install.sh && install_mongodb"
+        command: sudo bash -cx ". install.sh && install_mongodb"
     - run:
         name: Install Apache
-        command: sudo bash -c ". install.sh && install_apache"
+        command: sudo bash -cx ". install.sh && install_apache"
     - run:
         name: Install Minio
-        command: sudo bash -c ". install.sh && install_minio"
+        command: sudo bash -cx ". install.sh && install_minio"
     - run:
         name: Install Chrome Headless
-        command: sudo bash -c ". install.sh && install_chrome_headless"
+        command: sudo bash -cx ". install.sh && install_chrome_headless"
 
     - run:
         name: Build and install dists
-        command: |
-          . venv/bin/activate
-          make develop
+        command: make develop
     - run:
         name: Run Tests - pytest-fixture-config
         working_directory: ~/src/pytest-fixture-config
@@ -105,7 +98,6 @@ job-tmpl: &job-tmpl
           mkdir junit
           ./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
           ./foreach.sh 'cp .coverage.* .. || true'
-          . venv/bin/activate
           coverage combine
           coverage report
           pip install urllib3[secure]
