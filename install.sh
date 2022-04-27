@@ -124,7 +124,7 @@ function install_system_deps {
 
 function install_postgresql {
   apt-get install -y postgresql postgresql-contrib libpq-dev
-  service postgresql stop; update-rc.d postgresql disable;
+  service postgresql stop || true; update-rc.d postgresql disable;
 }
 
 function install_redis {
@@ -133,12 +133,12 @@ function install_redis {
 
 function install_rethinkdb {
   apt-get install -y rethinkdb
-  service rethinkdb stop; update-rc.d rethinkdb disable;
+  service rethinkdb stop || true; update-rc.d rethinkdb disable;
 }
 
 function install_jenkins {
   apt-get install -y jenkins
-  service jenkins stop; update-rc.d jenkins disable;
+  service jenkins stop || true; update-rc.d jenkins disable;
 }
 
 function install_mongodb {
@@ -147,7 +147,7 @@ function install_mongodb {
 
 function install_apache {
   apt-get install -y apache2
-  service apache2 stop; update-rc.d apache2 disable;
+  service apache2 stop || true; update-rc.d apache2 disable;
 }
 
 function install_minio {
