@@ -1,6 +1,7 @@
 
 test-tmpl: &test-tmpl
   command: |
+    export USER=circleci
     export DEBUG=1
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
