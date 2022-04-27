@@ -8,21 +8,12 @@ test-tmpl: &test-tmpl
     cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
-  machine:
-    image: ubuntu-2004:202010-01
 
   working_directory: ~/src
 
   steps:
     - run: env
     - checkout
-    - run:
-        name: Install Python
-        command: |
-          set -x
-          sudo bash -c ". install.sh && install_python_ppa && install_python $PYTHON"
-          rm -rf /opt/circleci/.pyenv
-
     - run:
         name: Create venv and install extras
         command: bash -c ". install.sh && init_venv $PYTHON"
@@ -135,11 +126,15 @@ version: 2
 jobs:
   py36:
     <<: *job-tmpl
+    docker:
+      image: cimg/python:3.6.15
     environment:
       PYTHON: "python3.6"
 
   py37:
     <<: *job-tmpl
+    docker:
+      image: cimg/python:3.7.13
     environment:
       PYTHON: "python3.7"
 
