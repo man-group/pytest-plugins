@@ -127,14 +127,14 @@ jobs:
   py36:
     <<: *job-tmpl
     docker:
-      image: cimg/python:3.6.15
+      - image: cimg/python:3.6.15
     environment:
       PYTHON: "python3.6"
 
   py37:
     <<: *job-tmpl
     docker:
-      image: cimg/python:3.7.13
+      - image: cimg/python:3.7.13
     environment:
       PYTHON: "python3.7"
 
