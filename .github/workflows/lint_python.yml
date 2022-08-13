@@ -22,9 +22,9 @@ jobs:
       - run: pip install execnet psutil pyramid six  # Should be in requirements.txt or pyproject.toml
       - run: |
           for module in "pytest-server-fixtures pytest-virtualenv"; do
-            pushd $module
-            pip install --editable .
-            popd
+            pushd $module;
+            pip install --editable .;
+            popd;
           done
       - run: mkdir --parents --verbose .mypy_cache
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
