@@ -20,11 +20,13 @@ jobs:
       - run: isort --check-only --profile black . || true
       - run: pip install -r requirements.txt || pip install --editable . || pip install . || true
       - run: pip install execnet psutil pyramid six  # Should be in requirements.txt or pyproject.toml
-      - run: |
-          for module in "pytest-server-fixtures pytest-virtualenv"; do
-            pushd $module;
-            pip install --editable .;
-            popd;
+      - env:
+          MODULES: 'pytest-server-fixtures,pytest-virtualenv'
+        run: |
+          for MODULE in "${MODULES[@]}"; do
+            pushd $MODULE
+            pip install --editable .
+            popd
           done
       - run: mkdir --parents --verbose .mypy_cache
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
