@@ -19,9 +19,9 @@ jobs:
                       --show-source --statistics
       - run: isort --check-only --profile black . || true
       - run: pip install -r requirements.txt || pip install --editable . || pip install . || true
-      - run: pip install execnet psutil pyramid six  # Should be in requirements.txt or pyproject.toml
+      - run: pip install docker execnet docker kubernetes psutil pyramid selenium six  # Should be in requirements.txt or pyproject.toml
       - env:
-          MODULES: 'pytest-server-fixtures pytest-virtualenv'
+          MODULES: 'pytest-server-fixtures pytest_listener pytest_profiling pytest-virtualenv'
         run: |
           for MODULE in $MODULES ; do
             echo $MODULE
