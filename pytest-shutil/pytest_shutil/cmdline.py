@@ -12,8 +12,10 @@ from tempfile import mkdtemp
 
 try:  # Python 2
     str_type = basestring
+    raw_input = raw_input
 except NameError:  # Python 3
     str_type = str
+    raw_input = input
 
 
 def get_log():
