@@ -23,7 +23,7 @@ jobs:
       - env:
           MODULES: ('pytest-server-fixtures' 'pytest-virtualenv')
         run: |
-          for MODULE in "${MODULES[@]}"; do
+          for MODULE in $MODULES ; do
             echo $MODULE
             pushd $MODULE
             pip install --editable .
