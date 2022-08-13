@@ -31,7 +31,7 @@ jobs:
           done
       - run: mkdir --parents --verbose .mypy_cache
       - run: mypy --ignore-missing-imports --install-types --non-interactive . || true
-      - run: pytest . || true
+      - run: pytest --exclude pytest-plugins/pytest-verbose-parametrize/tests/integration/parametrize_ids/tests/unit/test_example.py . || true
       - run: pytest --doctest-modules . || true
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
       - run: safety check
