@@ -21,7 +21,7 @@ jobs:
       - run: pip install -r requirements.txt || pip install --editable . || pip install . || true
       - run: pip install execnet psutil pyramid six  # Should be in requirements.txt or pyproject.toml
       - env:
-          MODULES: 'pytest-server-fixtures' 'pytest-virtualenv'
+          MODULES: 'pytest-server-fixtures pytest-virtualenv'
         run: |
           for MODULE in $MODULES ; do
             echo $MODULE
