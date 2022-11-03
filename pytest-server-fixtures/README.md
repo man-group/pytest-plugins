@@ -90,7 +90,7 @@ The fixtures are configured using the following evironment variables:
 | `SERVER_FIXTURES_SERVER_CLASS` | Server class used to run the fixtures, choose from `thread`, `docker` and `kubernetes` | `thread`
 | `SERVER_FIXTURES_K8S_NAMESPACE` | (Kubernetes only) Specify the Kubernetes namespace used to launch fixtures. | `None` (same as the test host)
 | `SERVER_FIXTURES_K8S_LOCAL_TEST` | (Kubernetes only) Set to `True` to allow integration tests to run (See [Integration Tests](#integration-tests)). | `False`
-| `SERVER_FIXTURES_MONGO_BIN`     | Directory containing the `mongodb` executable | "" (relies on `$PATH`)
+| `SERVER_FIXTURES_MONGO_BIN`     | Absolute path to mongod executable | "" (relies on mongod access via `$PATH`)
 | `SERVER_FIXTURES_MONGO_IMAGE`   | (Docker only) Docker image for mongo | `mongo:3.6`
 | `SERVER_FIXTURES_PG_CONFIG`     | Postgres pg_config executable | `pg_config`
 | `SERVER_FIXTURES_REDIS`         | Redis server executable | `redis-server`
