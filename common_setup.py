@@ -51,8 +51,8 @@ def common_setup(src_dir):
     # Convert Markdown to RST for PyPI
     try:
         import pypandoc
-        long_description = pypandoc.convert(readme_file, 'rst')
-        changelog = pypandoc.convert(changelog_file, 'rst')
+        long_description = pypandoc.convert_text(readme_file, 'rst', format='md')
+        changelog = pypandoc.convert_text(changelog_file, 'rst', format='md')
     except (IOError, ImportError, OSError):
         long_description = open(readme_file).read()
         changelog = open(changelog_file).read()
