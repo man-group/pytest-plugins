@@ -51,7 +51,7 @@ def webdriver(request):
     """ Connects to a remote selenium webdriver and returns the browser handle.
         Scoped on a per-function level so you get one browser window per test.
         Creates screenshots automatically on test failures.
-        
+
         Attributes
         ----------
         root_uri:  URI to the pyramid_server fixture if it's detected in the test run
@@ -65,7 +65,13 @@ def webdriver(request):
     except LookupError:
         pass
 
-    if CONFIG.browser.lower() == 'phantomjs':
+    # Documentation says if SELENIUM_URI is set then Remote Webdriver should be used
+    if CONFIG.uri:
+        driver = webdriver.Remote(
+            CONFIG.uri,
+            browser_to_use(webdriver, CONFIG.browser)
+        )
+    elif CONFIG.browser.lower() == 'phantomjs':
         driver = webdriver.PhantomJS(executable_path=CONFIG.phantomjs)
     elif CONFIG.browser.lower() == 'chrome':
         chrome_options = webdriver.ChromeOptions()
@@ -74,6 +80,7 @@ def webdriver(request):
         chrome_options.add_argument('--disable-dev-shm-usage')
         driver = webdriver.Chrome(chrome_options=chrome_options)
     else:
+        # Fall back to Remote
         selenium_uri = CONFIG.uri
         if not selenium_uri:
             selenium_uri = 'http://{0}:{1}'.format(CONFIG.host, CONFIG.port)
