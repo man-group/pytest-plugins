@@ -10,7 +10,8 @@ def test_umask(workspace):
         f.touch()
     assert (f.stat().st_mode & 0o777) == 0o464
 
-def test_pretty_formatter():
+def test_pretty_formatter(monkeypatch):
+    monkeypatch.setenv("FORCE_COLOR", "1")
     f = cmdline.PrettyFormatter()
     f.title('A Title')
     f.hr()
