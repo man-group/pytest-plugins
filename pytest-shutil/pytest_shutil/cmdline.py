@@ -52,6 +52,8 @@ def chdir(dirname):
 class PrettyFormatter(object):
     def __init__(self, color=True):
         from termcolor import colored
+        if color is False:
+            os.environ["FORCE_COLOR"] = "true"
         self.color = color
         self.colored = colored
         self.buffer = []
