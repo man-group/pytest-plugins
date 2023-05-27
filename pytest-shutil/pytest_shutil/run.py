@@ -3,7 +3,7 @@
 """
 import sys
 import os
-import imp
+import importlib.util
 import logging
 from functools import update_wrapper
 import inspect
@@ -112,7 +112,10 @@ def run_module_as_main(module, argv=[]):
     filename = os.path.splitext(filename)[0] + ".py"
 
     with patch("sys.argv", new=argv):
-        imp.load_source('__main__', os.path.join(where, filename))
+        spec = importlib.util.spec_from_file_location(
+            "__main__", os.path.join(where, filename))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
 
 
 def _evaluate_fn_source(src, *args, **kwargs):
