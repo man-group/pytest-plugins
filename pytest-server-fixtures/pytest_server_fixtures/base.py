@@ -14,8 +14,6 @@ import logging
 import random
 import errno
 
-from six import string_types
-
 from pytest_server_fixtures import CONFIG
 from pytest_shutil.workspace import Workspace
 
@@ -106,13 +104,13 @@ class ProcessReader(threading.Thread):
         self.stderr = stderr
         self.process = process
         self.stream = stream
-        super(ProcessReader, self).__init__()
+        super().__init__()
         self.daemon = True
 
     def run(self):
         while self.process.poll() is None:
             l = self.stream.readline()
-            if not isinstance(l, string_types):
+            if not isinstance(l, str):
                 l = l.decode('utf-8')
 
             if l.strip():
