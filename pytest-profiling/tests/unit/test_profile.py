@@ -2,6 +2,7 @@
 # the top-level code in pytest_profiling will be omitted from
 # coverage, so force it to be reloaded within this test unit under coverage
 
+import os.path
 from six.moves import reload_module  # @UnresolvedImport
 
 import pytest_profiling
@@ -69,8 +70,10 @@ def test_writes_summary():
     with patch("pstats.Stats", return_value=stats) as Stats:
         plugin.pytest_sessionfinish(Mock(), Mock())
         plugin.pytest_terminal_summary(terminalreporter)
+    combined = os.path.abspath(
+        os.path.join(os.path.curdir, "prof", "combined.prof"))
     assert "Profiling" in terminalreporter.write.call_args[0][0]
-    assert Stats.called_with(stats, stream=terminalreporter)
+    Stats.assert_called_with(combined, stream=terminalreporter)
 
 
 def test_writes_summary_svg():
