@@ -21,7 +21,7 @@ install_requires = ['six',
                     'execnet',
                     'contextlib2;python_version<"3"',
                     'pytest',
-                    'path; python_version >= "3.5"',
+                    'path>=16.12.0; python_version >= "3.5"',
                     'path.py; python_version < "3.5"',
                     'mock; python_version<"3.3"',
                     'termcolor'
