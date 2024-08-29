@@ -1,0 +1,53 @@
+*.py[cod]
+.cache
+.mypy_cache
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+.eggs
+
+# Unit test / coverage reports
+.coverage
+.coverage.*
+junit.xml
+coverage.xml
+htmlcov
+FAILED-*
+*.log
+
+# IDEs
+.project
+.pydevproject
+.settings
+TAGS
+/venv/
+/pip-log.txt
+.idea
+*.swp
+.vscode
+
+# Copied files
+*/MANIFEST.in
+*/CHANGES.md
+*/VERSION
+*/LICENSE
+*/common_setup.py
+/pyqt
+/sip
+
+# macOS
+.DS_Store
+
+# vagrant
+.vagrant
