@@ -1,5 +1,8 @@
 #!/bin/bash
 set -eo pipefail
+# Debug for now
+set -x
+
 
 # Suppress the "dpkg-preconfigure: unable to re-open stdin: No such file or directory" error
 export DEBIAN_FRONTEND=noninteractive
@@ -12,6 +15,7 @@ function install_base_tools {
     curl \
     wget \
     git \
+    git-lfs \
     unzip
 }
 
@@ -31,11 +35,17 @@ function install_python_packaging {
 
 function install_python {
   local py=$1
-  apt-get install -y $py $py-dev
+  sudo apt-get install -y $py $py-dev
   if [ "$py" = "python3.6" ]; then
-    curl --silent --show-error --retry 5  https://bootstrap.pypa.io/pip/3.6/get-pip.py | $py
+    sudo apt-get install python3.6-distutils || {
+    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/pip/3.6/get-pip.py | sudo $py
+    sudo $py -m pip install setuptools
+    }
   else
-    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $py
+    sudo apt-get install python3.7-distutils || {
+      curl --silent --show-error --retry 5 https://bootstrap.pypa.io/pip/3.7/get-pip.py | sudo $py
+      sudo $py -m pip install setuptools
+    }
   fi
   install_python_packaging $py
 }
@@ -99,14 +109,15 @@ function init_venv {
 
 
 function update_apt_sources {
-  wget -qO- https://download.rethinkdb.com/repository/raw/pubkey.gpg | apt-key add -
-  . /etc/lsb-release && echo "deb https://download.rethinkdb.com/repository/ubuntu-$DISTRIB_CODENAME $DISTRIB_CODENAME main" | tee /etc/apt/sources.list.d/rethinkdb.list
+  # Add Jenkins GPG key and repository
+  curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | gpg --dearmor -o /usr/share/keyrings/jenkins-archive-keyring.gpg
+  echo "deb [signed-by=/usr/share/keyrings/jenkins-archive-keyring.gpg] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-  wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
-  sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
-
-  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-  echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+  # Add MongoDB GPG key and repository
+  curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+     sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
+     --dearmor
+  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list  
 
   apt install ca-certificates
   apt-get update
@@ -129,11 +140,6 @@ function install_postgresql {
 
 function install_redis {
   apt-get install -y redis-server
-}
-
-function install_rethinkdb {
-  apt-get install -y rethinkdb
-  service rethinkdb stop; update-rc.d rethinkdb disable;
 }
 
 function install_jenkins {
@@ -159,9 +165,9 @@ function install_minio {
 function install_chrome_headless {
   wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome-stable_current_amd64.deb
   dpkg -i --force-depends /tmp/google-chrome-stable_current_amd64.deb || apt-get install -f -y
-  wget -q https://chromedriver.storage.googleapis.com/2.43/chromedriver_linux64.zip -O /tmp/chromedriver_linux64.zip
+  wget -q https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.86/linux64/chromedriver-linux64.zip -O /tmp/chromedriver_linux64.zip
   unzip /tmp/chromedriver_linux64.zip
-  mv chromedriver /usr/local/bin/
+  mv chromedriver-linux64/chromedriver /usr/local/bin/
   chmod a+x /usr/local/bin/chromedriver
 }
 
@@ -216,7 +222,6 @@ function install_all {
   install_system_deps
   install_postgresql
   install_redis
-  install_rethinkdb
   install_jenkins
   install_mongodb
   install_apache

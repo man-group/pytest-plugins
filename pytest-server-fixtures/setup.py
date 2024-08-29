@@ -31,7 +31,6 @@ extras_require = {
     'jenkins':  ["python-jenkins"],
     'mongodb':  ["pymongo>=3.6.0"],
     'postgres': ["psycopg2-binary"],
-    'rethinkdb':  ["rethinkdb"],
     'redis':  ["redis"],
     's3': ["boto3"],
     'docker': ["docker"],
@@ -50,7 +49,6 @@ entry_points = {
         'mongodb_server = pytest_server_fixtures.mongo',
         'postgres_server = pytest_server_fixtures.postgres',
         'redis_server = pytest_server_fixtures.redis',
-        'rethinkdb_server = pytest_server_fixtures.rethink',
         'xvfb_server = pytest_server_fixtures.xvfb',
         's3 = pytest_server_fixtures.s3',
     ]
