@@ -1,5 +1,7 @@
 
 ## Changelog
+### 1.8.0
+ * pytest-server-fixtures: Removed RethinkDB support.
 
 ### 1.7.0
  * All: Support pytest >= 4.0.0

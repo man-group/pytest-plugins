@@ -12,7 +12,6 @@ and databases.
 * [MongoDB](#mongodb)
 * [Postgres](#postgres)
 * [Redis](#redis)
-* [RethinkDB](#rethinkdb)
 * [S3 Minio](#s3-minio)
 * [Apache httpd](#apache-httpd)
 * [Simple HTTP Server](#simple-http-server)
@@ -30,7 +29,6 @@ and databases.
 | MongoDB | mongodb
 | Postgres | postgres
 | Redis | redis
-| RethinkDB | rethinkdb
 | S3 Minio | s3
 | Apache Httpd | <none>
 | Simple HTTP Server | <none>
@@ -74,7 +72,6 @@ entry points):
                       'pytest_server_fixtures.mongo',
                       'pytest_server_fixtures.postgres',
                       'pytest_server_fixtures.redis',
-                      'pytest_server_fixtures.rethink',
                       'pytest_server_fixtures.xvfb',
                       ]
 ```
@@ -95,8 +92,6 @@ The fixtures are configured using the following evironment variables:
 | `SERVER_FIXTURES_PG_CONFIG`     | Postgres pg_config executable | `pg_config`
 | `SERVER_FIXTURES_REDIS`         | Redis server executable | `redis-server`
 | `SERVER_FIXTURES_REDIS_IMAGE`   | (Docker only) Docker image for redis | `redis:5.0.2-alpine`
-| `SERVER_FIXTURES_RETHINK`       | RethinkDB server executable |  `rethinkdb`
-| `SERVER_FIXTURES_RETHINK_IMAGE` | (Docker only) Docker image for rethinkdb | `rethink:2.3.6`
 | `SERVER_FIXTURES_HTTPD`         | Httpd server executable | `apache2`
 | `SERVER_FIXTURES_HTTPD_MODULES` | Httpd modules directory | `/usr/lib/apache2/modules`
 | `SERVER_FIXTURES_JAVA`          | Java executable used for running Jenkins server | `java`
@@ -224,72 +219,6 @@ Here's an example on how to run up one of these servers:
 def test_connection(s3_bucket):
     bucket = s3_bucket.client.Bucket(s3_bucket.name)
     assert bucket is not None
-```
-
-## RethinkDB
-
-
-The `rethink` module contains the following fixtures:
-
-| Fixture Name | Description
-| ------------ | -----------
-| `rethink_server`       | Function-scoped Redis server
-| `rethink_server_sess` | Session-scoped Redis server
-| `rethink_unique_db` | Session-scoped unique db
-| `rethink_module_db` | Module-scoped unique db
-| `rethink_make_tables` | Module-scoped fixture to create named tables
-| `rethink_empty_db` | Function-scoped fixture to empty tables created in `rethink_make_tables`
-
-The server fixtures have the following properties
-
-| Property | Description
-| -------- | -----------
-| `conn` | `rethinkdb.Connection` to the `test` database on the running server
-
-
-Here's an example on how to run up one of these servers:
-
-```python
-def test_rethink(rethink_server):
-    conn = rethink_server.conn
-    conn.table_create('my_table').run(conn)
-    inserted = conn.table('my_table').insert({'foo': 'bar'}).run(conn)
-    assert conn.get(inserted.generated_keys[0])['foo'] == 'bar
-```
-
-### Creating Tables
-
-You can create tables for every test in your module like so:
-
-```python
-FIXTURE_TABLES = ['accounts','transactions']
-
-def test_table_creation(rethink_module_db, rethink_make_tables):
-    conn = rethink_module_db
-    assert conn.table_list().run(conn) == ['accounts', 'transactions']
-```
-
-### Emptying Databases
-
-RehinkDb is annecdotally slower to create tables that it is to empty them
-(at least at time of writing), so we have a fixture that will empty out
-tables between tests for us that were created with the `rethink_make_tables`
-fixture above:
-
-
-```python
-FIXTURE_TABLES = ['accounts','transactions']
-
-def test_put_things_in_db(rethink_module_db, rethink_make_tables):
-    conn = rethink_module_db
-    conn.table('accounts').insert({'foo': 'bar'}).run(conn)
-    conn.table('transactions').insert({'baz': 'qux'}).run(conn)
-
-
-def test_empty_db(rethink_empty_db):
-    conn = rethink_empty_db
-    assert not conn.table('accounts').run(conn)
-    assert not conn.table('transactions').run(conn)
 ```
 
 # Apache httpd
@@ -444,7 +373,6 @@ pytest_shutil.workspace.Workspace
      |
      *--mongo.MongoTestServer
      *--redis.RedisTestServer
-     *--rethink.RethinkDBServer
   *--base.TestServer
      |
      *--http.HTTPTestServer

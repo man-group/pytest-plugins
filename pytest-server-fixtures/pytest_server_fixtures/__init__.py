@@ -20,8 +20,6 @@ class FixtureConfig(Config):
         'pg_config_executable',
         'redis_executable',
         'redis_image',
-        'rethink_executable',
-        'rethink_image',
         'httpd_executable',
         'httpd_image',
         'httpd_modules',
@@ -55,8 +53,6 @@ DEFAULT_SERVER_FIXTURES_MONGO_IMAGE = 'mongo:3.6'
 DEFAULT_SERVER_FIXTURES_PG_CONFIG = 'pg_config'
 DEFAULT_SERVER_FIXTURES_REDIS = 'redis-server'
 DEFAULT_SERVER_FIXTURES_REDIS_IMAGE = 'redis:5.0.2-alpine'
-DEFAULT_SERVER_FIXTURES_RETHINK = 'rethinkdb'
-DEFAULT_SERVER_FIXTURES_RETHINK_IMAGE = 'rethinkdb:2.3.6'
 DEFAULT_SERVER_FIXTURES_HTTPD = 'apache2'
 DEFAULT_SERVER_FIXTURES_HTTPD_IMAGE = 'httpd:2.4.37'
 DEFAULT_SERVER_FIXTURES_HTTPD_MODULES = '/usr/lib/apache2/modules'
@@ -82,8 +78,6 @@ CONFIG = FixtureConfig(
     pg_config_executable=os.getenv('SERVER_FIXTURES_PG_CONFIG', DEFAULT_SERVER_FIXTURES_PG_CONFIG),
     redis_executable=os.getenv('SERVER_FIXTURES_REDIS', DEFAULT_SERVER_FIXTURES_REDIS),
     redis_image=os.getenv('SERVER_FIXTURES_REDIS_IMAGE', DEFAULT_SERVER_FIXTURES_REDIS_IMAGE),
-    rethink_executable=os.getenv('SERVER_FIXTURES_RETHINK', DEFAULT_SERVER_FIXTURES_RETHINK),
-    rethink_image=os.getenv('SERVER_FIXTURES_RETHINK_IMAGE', DEFAULT_SERVER_FIXTURES_RETHINK_IMAGE),
     httpd_executable=os.getenv('SERVER_FIXTURES_HTTPD', DEFAULT_SERVER_FIXTURES_HTTPD),
     httpd_modules=os.getenv('SERVER_FIXTURES_HTTPD_MODULES', DEFAULT_SERVER_FIXTURES_HTTPD_MODULES),
     httpd_image=os.getenv('SERVER_FIXTURES_HTTPD_IMAGE', DEFAULT_SERVER_FIXTURES_HTTPD_IMAGE),
