@@ -36,13 +36,16 @@ function install_python_packaging {
 function install_python {
   local py=$1
   sudo apt-get install -y $py $py-dev
-  local version=$(echo $py | cut -d'.' -f1-2)
-
+  local version=$(echo $py | grep -oP '(?<=python)\d+\.\d+')
+  
   if [ "$version" = "3.6" ] || [ "$version" = "3.7" ]; then
     sudo apt-get install ${py}-distutils || {
     curl --silent --show-error --retry 5 https://bootstrap.pypa.io/pip/$version/get-pip.py | sudo $py
     sudo $py -m pip install setuptools
     }
+  elif [ "$version" = "3.10" ] || [ "$version" = "3.11" ] || [ "$version" = "3.12" ]; then
+    sudo apt-get install ${py}-distutils
+    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $py
   else
     sudo apt-get install ${py}-distutils
   fi
