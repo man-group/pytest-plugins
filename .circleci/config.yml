@@ -134,9 +134,39 @@ jobs:
     environment:
       PYTHON: "python3.7"
 
+  py38:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.8"
+
+  py39:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.9"
+
+  py310:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.10"
+
+  py311:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.11"
+
+  py312:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.12"
+
 workflows:
   version: 2
   pytest-plugins:
     jobs:
       - py36
       - py37
+      - py38
+      - py39
+      - py310
+      - py311
+      - py312
