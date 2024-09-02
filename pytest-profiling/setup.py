@@ -1,8 +1,10 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
+from wheel.bdist_wheel import bdist_wheel
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common_setup import common_setup
 
 classifiers = [
@@ -15,6 +17,11 @@ classifiers = [
     'Operating System :: POSIX',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
 ]
 
 install_requires = ['six',

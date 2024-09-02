@@ -4,7 +4,7 @@ import os
 import logging
 
 from setuptools.command.test import test as TestCommand
-from setuptools.command.egg_info import egg_info as EggInfoCommand
+from wheel.bdist_wheel import bdist_wheel
 
 
 class PyTest(TestCommand):
@@ -20,28 +20,14 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        global pytest_args
         logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s', level='DEBUG')
-
         # import here, cause outside the eggs aren't loaded
         import pytest
-
         self.pytest_args.extend(['--junitxml', 'junit.xml'])
         logger = logging.getLogger(__name__)
-        logger.info("Pytest args are {}".format(str(self.pytest_args)))
-        errno = pytest.main(self.pytest_args)
+        logger.info("Pytest args are {}".format(str(PyTest.pytest_args)))
+        errno = pytest.main(PyTest.pytest_args)
         sys.exit(errno)
-
-
-class EggInfo(EggInfoCommand):
-    """ Customisation of the package metadata creation. Changes are:
-         - Save the test requirements into an extra called 'tests'
-    """
-    def run(self):
-        if self.distribution.extras_require is None:
-            self.distribution.extras_require = {}
-        self.distribution.extras_require['tests'] = self.distribution.tests_require
-        EggInfoCommand.run(self)
 
 
 def common_setup(src_dir):
@@ -56,8 +42,10 @@ def common_setup(src_dir):
         long_description = pypandoc.convert_file(readme_file, 'rst')
         changelog = pypandoc.convert_file(changelog_file, 'rst')
     except (IOError, ImportError, OSError):
-        long_description = open(readme_file).read()
-        changelog = open(changelog_file).read()
+        with open(readme_file) as f:
+            long_description = f.read()
+        with open(changelog_file) as f:
+            changelog = f.read()
 
     # Gather trailing arguments for pytest, this can't be done using setuptools' api
     if 'test' in sys.argv:
@@ -70,9 +58,9 @@ def common_setup(src_dir):
             # Version is shared between all the projects in this repo
             version=open(version_file).read().strip(),
             long_description='\n'.join((long_description, changelog)),
-            url='https://github.com/manahl/pytest-plugins',
+            url='https://github.com/man-group/pytest-plugins',
             license='MIT license',
             platforms=['unix', 'linux'],
-            cmdclass={'test': PyTest, 'egg_info': EggInfo},
+            cmdclass={'test': PyTest, 'bdist_wheel': bdist_wheel},
             include_package_data=True
             )
