@@ -6,7 +6,15 @@ test-tmpl: &test-tmpl
     export DEBUG=1
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
-    cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
+    set -x
+    pwd 
+    cat *.egg-info/top_level.txt
+    pytest --version
+    pytest -svvvvvv -ra tests/
+    pytest -svvvvvvv -ra $(cat *.egg-info/top_level.txt)
+    coverage run -p --source=$(cat *.egg-info/top_level.txt | tr '\n' ',') -m pytest -sv -ra $(cat *.egg-info/top_level.txt)
+
+    cat *.egg-info/top_level.txt  | xargs -I {} coverage run -p --source={} -m pytest -sv -ra {} || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
   machine:
