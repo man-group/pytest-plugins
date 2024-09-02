@@ -27,6 +27,8 @@ class PyTest(TestCommand):
         import pytest
 
         self.pytest_args.extend(['--junitxml', 'junit.xml'])
+        logger = logging.getLogger(__name__)
+        logger.info("Pytest args are {}".format(str(self.pytest_args)))
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
 
