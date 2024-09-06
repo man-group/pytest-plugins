@@ -38,7 +38,8 @@ class EggInfo(EggInfoCommand):
     def run(self):
         if self.distribution.extras_require is None:
             self.distribution.extras_require = {}
-        self.distribution.extras_require['tests'] = self.distribution.tests_require
+        if 'tests' not in self.distribution.extras_require and hasattr(self.distribution, 'tests_require'):
+            self.distribution.extras_require['tests'] = self.distribution.tests_require
         EggInfoCommand.run(self)
 
 
