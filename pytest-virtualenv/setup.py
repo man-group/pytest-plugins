@@ -25,10 +25,6 @@ install_requires = ['pytest-fixture-config',
                     'importlib-metadata',
                     ]
 
-extras_require = {
-    'test': ['mock; python_version<"3.3"'],
-}
-
 entry_points = {
     'pytest11': [
         'virtualenv = pytest_virtualenv',
@@ -44,7 +40,6 @@ if __name__ == '__main__':
         author_email='eeaston@gmail.com',
         classifiers=classifiers,
         install_requires=install_requires,
-        extras_require=extras_require,
         py_modules=['pytest_virtualenv'],
         entry_points=entry_points,
     ))
