@@ -7,13 +7,8 @@ import shutil
 import logging
 import subprocess
 
-try:
-    from path import Path
-except ImportError:
-    from path import path as Path
-
+from pathlib import Path
 import pytest
-from six import string_types
 
 from . import cmdline
 
@@ -23,15 +18,15 @@ log = logging.getLogger(__name__)
 @pytest.yield_fixture()
 def workspace():
     """ Function-scoped temporary workspace that cleans up on exit.
-    
+
     Attributes
     ----------
     workspace (`path.path`):  Path to the workspace directory.
     debug (bool):             If set to True, will log more debug when running commands.
-    delete (bool):            If True, will always delete the workspace on teardown; 
-    ..                        If None, delete the workspace unless teardown occurs via an exception; 
+    delete (bool):            If True, will always delete the workspace on teardown;
+    ..                        If None, delete the workspace unless teardown occurs via an exception;
     ..                        If False, never delete the workspace on teardown.
-        
+
     """
     ws = Workspace()
     yield ws
@@ -99,7 +94,7 @@ class Workspace(object):
         cd : `str`
             Path to chdir to, defaults to workspace root
         """
-        if isinstance(cmd, string_types):
+        if isinstance(cmd, str):
             shell = True
         else:
             # Some of the command components might be path objects or numbers
@@ -116,7 +111,7 @@ class Workspace(object):
                 p = subprocess.Popen(cmd, shell=shell, **kwargs)
             (out, _) = p.communicate()
 
-            if out is not None and not isinstance(out, string_types):
+            if out is not None and not isinstance(out, str):
                 out = out.decode('utf-8')
 
             if self.debug and capture:
