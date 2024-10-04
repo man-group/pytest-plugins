@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 NEW_INDEX = {
     u"result": {
@@ -23,7 +24,7 @@ def test_server(devpi_server):
 
 
 def test_upload(devpi_server):
-    pkg_dir = devpi_server.workspace / "pkg"
+    pkg_dir: Path = devpi_server.workspace / "pkg"
     pkg_dir.mkdir(exist_ok=True)
     setup_py = pkg_dir / "setup.py"
     setup_py.write_text(
@@ -33,7 +34,6 @@ setup(name='test-foo',
       version='1.2.3')
 """
     )
-    pkg_dir.chdir()
     devpi_server.api("upload")
     res = devpi_server.api(
         "getjson", "/{}/{}".format(devpi_server.user, devpi_server.index)
