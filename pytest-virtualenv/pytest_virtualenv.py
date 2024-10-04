@@ -4,7 +4,6 @@ import os
 import pathlib
 import re
 import shutil
-import subprocess
 import sys
 from enum import Enum
 
@@ -137,7 +136,7 @@ class VirtualEnv(Workspace):
 
         self.env['VIRTUAL_ENV'] = str(self.virtualenv)
 
-        self.env['PATH'] = str(self.python.dirname()) + ((os.path.pathsep + self.env["PATH"])
+        self.env['PATH'] = str(os.path.dirname(self.python)) + ((os.path.pathsep + self.env["PATH"])
                                                          if "PATH" in self.env else "")
         if 'PYTHONPATH' in self.env:
             del(self.env['PYTHONPATH'])

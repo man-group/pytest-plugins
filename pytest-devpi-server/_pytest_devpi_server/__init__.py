@@ -88,7 +88,7 @@ class DevpiServer(HTTPTestServer):
     @property
     def run_cmd(self):
         res = [sys.executable, '-c', 'import sys; from devpi_server.main import main; sys.exit(main())',
-                '--serverdir', self.server_dir,
+                '--serverdir', str(self.server_dir),
                 '--host', self.hostname,
                 '--port', str(self.port)
                 ]
@@ -103,7 +103,7 @@ class DevpiServer(HTTPTestServer):
         """
         client_args = ['devpi']
         client_args.extend(args)
-        client_args.extend(['--clientdir', self.client_dir])
+        client_args.extend(['--clientdir', str(self.client_dir)])
         log.info(' '.join(client_args))
         captured = cStringIO()
         stdout = sys.stdout
@@ -118,10 +118,10 @@ class DevpiServer(HTTPTestServer):
     def pre_setup(self):
         if self.data:
             log.info("Extracting initial server data from {}".format(self.data))
-            zipfile.ZipFile(self.data, 'r').extractall(self.server_dir)
+            zipfile.ZipFile(self.data, 'r').extractall(str(self.server_dir))
         else:
             self.run([os.path.join(sys.exec_prefix, "bin", "devpi-init"),
-                    '--serverdir', self.server_dir,
+                    '--serverdir', str(self.server_dir),
                     ])
 
 

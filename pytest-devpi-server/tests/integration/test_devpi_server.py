@@ -24,7 +24,7 @@ def test_server(devpi_server):
 
 def test_upload(devpi_server):
     pkg_dir = devpi_server.workspace / "pkg"
-    pkg_dir.mkdir_p()
+    pkg_dir.mkdir(exist_ok=True)
     setup_py = pkg_dir / "setup.py"
     setup_py.write_text(
         """

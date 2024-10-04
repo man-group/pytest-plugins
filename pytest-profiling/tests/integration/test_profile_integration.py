@@ -19,7 +19,7 @@ def virtualenv():
 
         venv.install_package("pytest-cov")
         venv.install_package("pytest-profiling")
-        copy_tree(test_dir, venv.workspace)
+        copy_tree(str(test_dir), str(venv.workspace))
         shutil.rmtree(
             venv.workspace / "tests" / "unit" / "__pycache__", ignore_errors=True
         )

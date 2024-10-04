@@ -139,7 +139,7 @@ class InlinePyramidTestServer(PyramidTestServer):
         """
         print('\n==================================================================================')
         print("Starting wsgiref pyramid test server on host %s port %s" % (self.hostname, self.port))
-        wsgi_app = loadapp('config:' + self.working_config)
+        wsgi_app = loadapp('config:' + str(self.working_config))
         self.server = make_server(self.hostname, self.port, wsgi_app)
         worker = threading.Thread(target=self.server.serve_forever)
         worker.daemon = True
