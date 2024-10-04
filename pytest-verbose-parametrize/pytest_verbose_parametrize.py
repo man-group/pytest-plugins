@@ -1,7 +1,4 @@
-try:
-    from collections.abc import Iterable
-except ImportError:
-    from collections import Iterable
+from collections.abc import Iterable
 from six import string_types, text_type
 
 
