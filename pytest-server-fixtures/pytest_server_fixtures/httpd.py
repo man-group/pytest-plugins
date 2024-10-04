@@ -1,14 +1,10 @@
 import os
 import platform
-import socket
 import string
 import logging
 
 import pytest
-try:
-    from path import Path
-except ImportError:
-    from path import path as Path
+from pathlib import Path
 
 from pytest_fixture_config import yield_requires_config
 from pytest_server_fixtures import CONFIG

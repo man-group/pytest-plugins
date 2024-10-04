@@ -11,10 +11,7 @@ import glob
 import shutil
 import threading
 
-try:
-    from path import Path
-except ImportError:
-    from path import path as Path
+from pathlib import Path
 
 from wsgiref.simple_server import make_server
 from paste.deploy.loadwsgi import loadapp
@@ -30,16 +27,16 @@ class ConfigNotFoundError(Exception):
 
 @yield_fixture(scope='session')
 def pyramid_server(request):
-    """ Session-scoped Pyramid server run in a subprocess, out of a temp dir. 
+    """ Session-scoped Pyramid server run in a subprocess, out of a temp dir.
         This is a 'real' server that you can point a Selenium webdriver at.
-    
+
         This fixture searches for its configuration in the current working directory
         called 'testing.ini'. All .ini files in the cwd will be copied to the tempdir
-        so that config chaining still works. 
-        
+        so that config chaining still works.
+
         The fixture implementation in `PyramidTestServer` has more flexible configuration
-        options, use it directly to define more fine-grained fixtures. 
-        
+        options, use it directly to define more fine-grained fixtures.
+
         Methods
         -------
         get_config() : Return current configuration as a dict.
@@ -47,11 +44,11 @@ def pyramid_server(request):
         ..             Retry failures by default.
         post()       : Post payload to url relative to the server root.
         ..             Retry failures by default.
-        
+
         Attributes
         ----------
         working_config  (`path.path`): Path to the config file used by the server at runtime
-        .. also inherits all attributes from the `workspace` fixture 
+        .. also inherits all attributes from the `workspace` fixture
     """
     with PyramidTestServer() as server:
         server.start()
@@ -97,7 +94,7 @@ class PyramidTestServer(HTTPTestServer):
         for filename in glob.glob(os.path.join(self.config_dir, '*.ini')):
             shutil.copy(filename, self.workspace)
 
-        Path.copy(self.original_config, self.working_config)
+        shutil.copy(str(self.original_config), str(self.working_config))
 
         parser = configparser.ConfigParser()
         parser.read(self.original_config)

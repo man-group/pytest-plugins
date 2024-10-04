@@ -9,7 +9,6 @@ import zipfile
 import logging
 from six.moves import cStringIO
 
-import pkg_resources
 from pytest import yield_fixture, fixture
 import devpi_server as _devpi_server
 from devpi.main import main as devpi_client
@@ -20,16 +19,16 @@ log = logging.getLogger(__name__)
 
 @yield_fixture(scope='session')
 def devpi_server(request):
-    """ Session-scoped Devpi server run in a subprocess, out of a temp dir. 
+    """ Session-scoped Devpi server run in a subprocess, out of a temp dir.
         Out-of-the-box it creates a single user an index for that user, then
         uses that index.
-        
+
         Methods
         -------
-        api():    Client API method, directly bound to the devpi-client command-line tool.  Examples:   
+        api():    Client API method, directly bound to the devpi-client command-line tool.  Examples:
         ...          api('index', '-c', 'myindex') to create an index called 'myindex'
         ...          api('getjson', '/user/myindex') to return the json string describing this index
-        
+
         Attributes
         ----------
         uri:          Server URI
@@ -38,9 +37,9 @@ def devpi_server(request):
         index:        Initially created index name
         server_dir:   Path to server database
         client_dir:   Path to client directory
-           
-        .. also inherits all attributes from the `workspace` fixture 
-        
+
+        .. also inherits all attributes from the `workspace` fixture
+
         For more fine-grained control over these attributes, use the class directly and pass in
         constructor arguments.
     """
@@ -51,7 +50,7 @@ def devpi_server(request):
 
 @fixture
 def devpi_function_index(request, devpi_server):
-    """ Creates and activates an index for your current test function. 
+    """ Creates and activates an index for your current test function.
     """
     index_name = '/'.join((devpi_server.user, request.function.__name__))
     devpi_server.api('index', '-c', index_name)
@@ -70,7 +69,7 @@ class DevpiServer(HTTPTestServer):
             Run in offline mode. Defaults to True
         data:  `str`
            Filesystem path to a zipfile archive of the initial server data directory.
-           If not set and in offline mode, it uses a pre-canned snapshot of a 
+           If not set and in offline mode, it uses a pre-canned snapshot of a
            newly-created empty server.
         """
         self.debug = debug
