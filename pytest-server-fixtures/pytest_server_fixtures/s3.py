@@ -11,7 +11,6 @@ import logging
 import os
 
 import pytest
-from future.utils import text_type
 from pytest_fixture_config import requires_config
 
 from . import CONFIG
@@ -47,7 +46,7 @@ def s3_bucket(s3_server):  # pylint: disable=redefined-outer-name
     returning a BucketInfo namedtuple with `s3_bucket.client` and `s3_bucket.name` fields
     """
     client = s3_server.get_s3_client()
-    bucket_name = text_type(uuid.uuid4())
+    bucket_name = str(uuid.uuid4())
     client.create_bucket(Bucket=bucket_name)
     return BucketInfo(client, bucket_name)
 
@@ -96,6 +95,6 @@ class MinioServer(HTTPTestServer):
             "server",
             "--address",
             "{}:{}".format(self.hostname, self.port),
-            text_type(self.datadir),
+            str(self.datadir),
         ]
         return cmdargs
