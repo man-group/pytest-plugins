@@ -190,7 +190,7 @@ def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=None):
         Raises execnet.RemoteError on exception.
     """
     pkl_fn, preargs = (_evaluate_fn_source, (fn,)) if isinstance(fn, str) else _make_pickleable(fn)
-    spec = '//'.join(filter(None, ['popen', 'python=' + python, 'chdir=' + cd if cd else None]))
+    spec = '//'.join(filter(None, ['popen', 'python=' + python, 'chdir=' + str(cd) if cd else None]))
 
     def inner(*args, **kwargs):
         # execnet sends stdout to /dev/null :(

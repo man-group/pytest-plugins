@@ -1,4 +1,3 @@
-import stat
 import os
 
 from pytest_shutil import cmdline
@@ -17,7 +16,7 @@ def test_pretty_formatter(monkeypatch):
     f.hr()
     f.p('A Paragraph', 'red')
     assert f.buffer == [
-        '\x1b[1m\x1b[34m  A Title\x1b[0m', 
+        '\x1b[1m\x1b[34m  A Title\x1b[0m',
         '\x1b[1m\x1b[34m--------------------------------------------------------------------------------\x1b[0m',
         '\x1b[31mA Paragraph\x1b[0m'
         ]
@@ -33,8 +32,8 @@ def test_tempdir():
 def test_copy_files(workspace):
     d1 = workspace.workspace / 'd1'
     d2 = workspace.workspace / 'd2'
-    d1.makedirs()
-    d2.makedirs()
+    os.makedirs(d1)
+    os.makedirs(d2)
     (d1 / 'foo').touch()
     (d1 / 'bar').touch()
     cmdline.copy_files(d1, d2)

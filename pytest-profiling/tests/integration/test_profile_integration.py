@@ -19,7 +19,7 @@ def virtualenv():
 
         venv.install_package("pytest-cov")
         venv.install_package("pytest-profiling")
-        copy_tree(test_dir, venv.workspace)
+        copy_tree(str(test_dir), str(venv.workspace))
         shutil.rmtree(
             venv.workspace / "tests" / "unit" / "__pycache__", ignore_errors=True
         )
@@ -44,7 +44,7 @@ def test_profile_generates_svg(pytestconfig, virtualenv):
     assert any(
         [
             "test_example:1:test_foo" in i
-            for i in (virtualenv.workspace / "prof/combined.svg").lines()
+            for i in (virtualenv.workspace / "prof/combined.svg").open().readlines()
         ]
     )
 
@@ -58,7 +58,7 @@ def test_profile_long_name(pytestconfig, virtualenv):
         pytestconfig,
         cd=virtualenv.workspace,
     )
-    assert (virtualenv.workspace / "prof/fbf7dc37.prof").isfile()
+    assert (virtualenv.workspace / "prof/fbf7dc37.prof").is_file()
 
 
 def test_profile_chdir(pytestconfig, virtualenv):

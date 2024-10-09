@@ -11,7 +11,7 @@ def test_start_and_stop(httpd_server):
 
 
 def test_logs(httpd_server):
-    files = [i.basename() for i in httpd_server.log_dir.files()]
+    files = [i.name for i in httpd_server.log_dir.iterdir()]
     for log in ('access.log', 'error.log'):
         assert log in files
 

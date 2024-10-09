@@ -23,11 +23,8 @@ install_requires = ['pytest-server-fixtures',
                     'devpi-server>=3.0.1',
                     'devpi-client',
                     'six',
-                    'ruamel.yaml>=0.15;python_version == "2.7"',
-                    'ruamel.yaml>=0.15;python_version > "3.4"',
+                    'ruamel.yaml>=0.15',
                     ]
-
-tests_require = []
 
 entry_points = {
     'pytest11': [
@@ -44,7 +41,6 @@ if __name__ == '__main__':
         author_email='eeaston@gmail.com',
         classifiers=classifiers,
         install_requires=install_requires,
-        tests_require=tests_require,
         packages=find_packages(exclude='tests'),
         entry_points=entry_points,
     ))

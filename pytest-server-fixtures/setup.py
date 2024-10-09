@@ -38,7 +38,6 @@ extras_require = {
 }
 
 tests_require = [
-                 'mock; python_version<"3.3"',
                  'psutil',
                  ]
 
