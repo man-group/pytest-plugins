@@ -1,6 +1,6 @@
 ## Changelog
 ### 1.8.0 (2024-10-??)
- * All: Drop support for Python < 3.6, removing compatibility code.
+ * All: Drop support for Python 2 and <3.6, removing compatibility code.
  * All: Use stdlib unittest.mock instead of mock package.
  * All: Removed usage of path.py and path in favour of pathlib. #174 #224
  * pytest-devpi-server: Run devpi-init for initialisation. #179

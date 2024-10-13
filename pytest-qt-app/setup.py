@@ -36,8 +36,6 @@ if __name__ == '__main__':
     kwargs.update(dict(
         name='pytest-qt-app',
         description='QT app fixture for py.test',
-        long_description=open('README.md').read(),
-        long_description_content_type='text/markdown',
         author='Edward Easton',
         author_email='eeaston@gmail.com',
         classifiers=classifiers,

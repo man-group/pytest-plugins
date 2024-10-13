@@ -36,8 +36,6 @@ if __name__ == '__main__':
     kwargs.update(dict(
         name='pytest-listener',
         description='A simple network listener',
-        long_description=open('README.md').read(),
-        long_description_content_type='text/markdown',
         author='Tim Couper',
         author_email='drtimcouper@gmail.com',
         classifiers=classifiers,

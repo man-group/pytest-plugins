@@ -48,15 +48,8 @@ def common_setup(src_dir):
     readme_file = os.path.join(this_dir, 'README.md')
     changelog_file = os.path.join(this_dir, 'CHANGES.md')
     version_file = os.path.join(this_dir, 'VERSION')
-
-    # Convert Markdown to RST for PyPI
-    try:
-        import pypandoc
-        long_description = pypandoc.convert_file(readme_file, 'rst')
-        changelog = pypandoc.convert_file(changelog_file, 'rst')
-    except (IOError, ImportError, OSError):
-        long_description = open(readme_file).read()
-        changelog = open(changelog_file).read()
+    long_description = open(readme_file).read()
+    changelog = open(changelog_file).read()
 
     # Gather trailing arguments for pytest, this can't be done using setuptools' api
     if 'test' in sys.argv:
@@ -66,12 +59,14 @@ def common_setup(src_dir):
     PyTest.src_dir = src_dir
 
     return dict(
-            # Version is shared between all the projects in this repo
-            version=open(version_file).read().strip(),
-            long_description='\n'.join((long_description, changelog)),
-            url='https://github.com/manahl/pytest-plugins',
-            license='MIT license',
-            platforms=['unix', 'linux'],
-            cmdclass={'test': PyTest, 'egg_info': EggInfo},
-            include_package_data=True
-            )
+        # Version is shared between all the projects in this repo
+        version=open(version_file).read().strip(),
+        long_description='\n'.join((long_description, changelog)),
+        long_description_content_type='text/markdown',
+        url='https://github.com/man-group/pytest-plugins',
+        license='MIT license',
+        platforms=['unix', 'linux'],
+        cmdclass={'test': PyTest, 'egg_info': EggInfo},
+        include_package_data=True,
+        python_requires='>=3.6',
+    )

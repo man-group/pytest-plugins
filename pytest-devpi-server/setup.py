@@ -23,8 +23,7 @@ install_requires = ['pytest-server-fixtures',
                     'devpi-server>=3.0.1',
                     'devpi-client',
                     'six',
-                    'ruamel.yaml>=0.15;python_version == "2.7"',
-                    'ruamel.yaml>=0.15;python_version > "3.4"',
+                    'ruamel.yaml>=0.15',
                     ]
 
 tests_require = []
@@ -40,8 +39,6 @@ if __name__ == '__main__':
     kwargs.update(dict(
         name='pytest-devpi-server',
         description='DevPI server fixture for py.test',
-        long_description=open('README.md').read(),
-        long_description_content_type='text/markdown',
         author='Edward Easton',
         author_email='eeaston@gmail.com',
         classifiers=classifiers,
