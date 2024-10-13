@@ -37,6 +37,8 @@ if __name__ == '__main__':
     kwargs.update(dict(
         name='pytest-profiling',
         description='Profiling plugin for py.test',
+        long_description=open('README.md').read(),
+        long_description_content_type='text/markdown',
         author='Ed Catmur',
         author_email='ed@catmur.co.uk',
         classifiers=classifiers,

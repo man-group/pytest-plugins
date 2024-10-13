@@ -58,7 +58,9 @@ if __name__ == '__main__':
     kwargs = common_setup('pytest_server_fixtures')
     kwargs.update(dict(
         name='pytest-server-fixtures',
-        description='Extensible server fixures for py.test',
+        description='Extensible server fixtures for py.test',
+        long_description=open('README.md').read(),
+        long_description_content_type='text/markdown',
         author='Edward Easton',
         author_email='eeaston@gmail.com',
         classifiers=classifiers,

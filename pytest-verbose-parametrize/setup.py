@@ -37,6 +37,8 @@ if __name__ == '__main__':
     kwargs.update(dict(
         name='pytest-verbose-parametrize',
         description='More descriptive output for parametrized py.test tests',
+        long_description=open('README.md').read(),
+        long_description_content_type='text/markdown',
         author='Edward Easton',
         author_email='eeaston@gmail.com',
         classifiers=classifiers,

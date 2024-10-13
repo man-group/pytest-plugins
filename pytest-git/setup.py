@@ -41,6 +41,8 @@ if __name__ == '__main__':
     kwargs.update(dict(
         name='pytest-git',
         description='Git repository fixture for py.test',
+        long_description=open('README.md').read(),
+        long_description_content_type='text/markdown',
         platforms=['unix', 'linux'],
         author='Edward Easton',
         author_email='eeaston@gmail.com',
