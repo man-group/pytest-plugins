@@ -1,5 +1,4 @@
-from __future__ import print_function
-
+import http.client
 import os
 import socket
 import logging
@@ -9,7 +8,6 @@ import sys
 import pytest
 import requests
 from contextlib import contextmanager
-from six.moves import http_client
 
 from pytest_shutil.env import unset_env
 from pytest_server_fixtures import CONFIG
@@ -83,7 +81,7 @@ class HTTPTestServer(TestServer):
                 with self.handle_proxy():
                     returned = requests.get('http://%s:%d/%s' % (self.hostname, self.port, path))
                 return returned.json() if as_json else returned
-            except (http_client.BadStatusLine, requests.ConnectionError) as e:
+            except (http.client.BadStatusLine, requests.ConnectionError) as e:
                 time.sleep(int(i) / 10)
                 pass
         raise e
@@ -109,7 +107,7 @@ class HTTPTestServer(TestServer):
                 with self.handle_proxy():
                     returned = requests.post('http://%s:%d/%s' % (self.hostname, self.port, path), data=data, headers=headers)
                 return returned.json() if as_json else returned
-            except (http_client.BadStatusLine, requests.ConnectionError) as e:
+            except (http.client.BadStatusLine, requests.ConnectionError) as e:
                 time.sleep(int(i) / 10)
                 pass
         raise e
