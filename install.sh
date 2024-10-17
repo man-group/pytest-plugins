@@ -117,7 +117,7 @@ function update_apt_sources {
   curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
      sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
      --dearmor
-  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list  
+  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 
   apt install ca-certificates
   apt-get update
@@ -165,7 +165,10 @@ function install_minio {
 function install_chrome_headless {
   wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome-stable_current_amd64.deb
   dpkg -i --force-depends /tmp/google-chrome-stable_current_amd64.deb || apt-get install -f -y
-  wget -q https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.86/linux64/chromedriver-linux64.zip -O /tmp/chromedriver_linux64.zip
+  json=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json)
+  version=$(echo "$json" | jq -r '.channels.Stable.version')
+  url="https://storage.googleapis.com/chrome-for-testing-public/$version/linux64/chromedriver-linux64.zip"
+  wget -q "$url" -O /tmp/chromedriver_linux64.zip
   unzip /tmp/chromedriver_linux64.zip
   mv chromedriver-linux64/chromedriver /usr/local/bin/
   chmod a+x /usr/local/bin/chromedriver
