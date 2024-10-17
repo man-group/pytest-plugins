@@ -160,7 +160,7 @@ jobs:
     environment:
       PYTHON: "python3.7"
 
-  test-pypi-release:
+  pypi-release:
     docker:
       - image: cimg/python:3.11.0
     steps:
@@ -175,7 +175,7 @@ jobs:
             sudo apt install -y python3-pip
             sudo pip install pipenv
             pipenv install twine
-            pipenv run twine upload --skip-existing --verbose --repository testpypi dist/*
+            pipenv run twine upload --skip-existing --verbose dist/*
 
 
   publish-github-release:
@@ -203,9 +203,6 @@ jobs:
       - run:
           name: "Publish release on GitHub"
           command: |
-            cat /tmp/to-release/VERSION
-            cat /tmp/to-release/latest_changes.md
-            ls -la /tmp/to-release/dist
             VERSION=$(cat /tmp/to-release/VERSION)
             CHANGES=$(cat /tmp/to-release/latest_changes.md)
             ghr -t ${GITHUB_TOKEN} \
@@ -215,7 +212,6 @@ jobs:
                 -n ${VERSION} \
                 -b "${CHANGES}" \
                 -soft \
-                -draft \
                 ${VERSION} /tmp/to-release/dist
 
 
@@ -225,19 +221,20 @@ workflows:
     jobs:
       - py36
       - py37
-      - test-pypi-release:
+      - pypi-release:
           requires:
             - py36
             - py37
-#      - pypi-release:
-#          requires:
-#            - test-pypi-release
+          filters:
+            branches:
+              only:
+                - master
       - publish-github-release:
           requires:
             - py36
             - py37
-#          filters:
-#            branches:
-#              only:
-#                - master
+          filters:
+            branches:
+              only:
+                - master
 
