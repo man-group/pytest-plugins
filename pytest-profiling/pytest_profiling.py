@@ -143,7 +143,7 @@ def pytest_addoption(parser):
                     help="generate profiling graph (using gprof2dot and dot -Tsvg)")
     group.addoption("--pstats-dir", nargs=1,
                     help="configure the dump directory of profile data files")
-    group.addoption("--element-number", action="store", type="int", default=20,
+    group.addoption("--element-number", action="store", type=int, default=20,
                     help="defines how many elements will display in a result")
     group.addoption("--strip-dirs", action="store_true",
                     help="configure to show/hide the leading path information from file names")

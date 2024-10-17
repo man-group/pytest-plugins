@@ -12,6 +12,7 @@ reload_module(pytest_profiling)
 import os
 import subprocess
 
+import pytest
 from pytest_profiling import Profiling, pytest_addoption, pytest_configure
 
 try:
@@ -94,12 +95,19 @@ def test_writes_summary_svg():
 
 
 def test_adds_options():
-    parser = Mock()
+    parser = pytest.Parser()
     pytest_addoption(parser)
-    parser.getgroup.assert_called_with("Profiling")
-    group = parser.getgroup.return_value
-    group.addoption.assert_any_call("--profile", action="store_true", help=ANY)
-    group.addoption.assert_any_call("--profile-svg", action="store_true", help=ANY)
+    group = parser.getgroup("Profiling")
+    options = {
+        option.dest: option for option in group.options
+    }
+    assert set(options.keys()) == {"profile", "profile_svg", "pstats_dir", "element_number", "strip_dirs"}
+    assert options["profile"]._attrs["action"] == "store_true"
+    assert options["profile_svg"]._attrs["action"] == "store_true"
+    assert options["pstats_dir"]._attrs["nargs"] == 1
+    assert options["strip_dirs"]._attrs["action"] == "store_true"
+    assert options["element_number"]._attrs["action"] == "store"
+    assert options["element_number"]._attrs["default"] == 20
 
 
 def test_configures():
