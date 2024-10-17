@@ -7,7 +7,7 @@ test-tmpl: &test-tmpl
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
     set -x
-    pwd 
+    pwd
     cat *.egg-info/top_level.txt
     pytest --version
     pytest -svvvvvv -ra tests/
@@ -245,7 +245,7 @@ jobs:
                 -n ${VERSION} \
                 -b "${CHANGES}" \
                 -soft \
-                ${VERSION} /tmp/to-release/dist
+                "v${VERSION}" /tmp/to-release/dist
 
 
 workflows:
