@@ -1,9 +1,39 @@
-
 ## Changelog
-### 1.8.0
- * pytest-server-fixtures: Removed RethinkDB support.
+### 1.8.0 (2024-10-??)
+ * All: Drop support for Python 2 and <3.6, removing compatibility code.
+ * All: Use stdlib unittest.mock instead of mock package.
+ * All: Removed usage of path.py and path in favour of pathlib. #174 #224
+ * pytest-devpi-server: Run devpi-init for initialisation. #179
+ * pytest-server-fixtures: BREAKING CHANGE: Removed RethinkDB support, as the project is no longer maintained.
+ * pytest-server-fixtures: Allowed passing through HTTP headers to the server. #149
+ * pytest-server-fixtures: Fixed threading log debug messages. #146
+ * pytest-server-fixtures: Removed usage of deprecated Thread.setDaemon. #202
+ * pytest-server-fixtures: Explicitly close initial Mongo client. #198
+ * pytest-server-fixtures: Don't use context manager for CREATE DATABASE #186
+ * pytest-shutil: Removed contextlib2 requirement. #144
+ * pytest-shutil: Fixed forcing color through termcolor. #217
+ * pytest-shutil: Replaced deprecated imp module #219
+ * pytest-profiling: Added support to hide/show the full path of file. #95
+ * pytest-profiling: Fixed SVG file generation on Windows. #93
+ * pytest-profiling: Remove pinning of more-itertools. #194
+ * pytest-profiling: Add support to define element number for print_stats() #96
+ * pytest-profiling: Fix mock in test_writes_summary #223
+ * pytest-virtualenv: Modernised package. #188 #185 #182 #163
+ * pytest-virtualenv: Fixed virtualenv creation on Windows. #142
+ * pytest-virtualenv: Added delete_workspace parameter to VirtualEnv. #195
+ * pytest-virtualenv: Removed extras_require. #240
+ * ci: Remove usage of deprecated distutils. #189
+ * ci: Disabled jenkins server tests on CircleCI to improve build time.
+ * ci: Fixed `collections` import for py 3.11 compatibility #222
 
-### 1.7.0
+
+### 1.7.1 (2019-05-28)
+* pytest-profiling: Fix pytest-profiling to profile fixtures. #48
+* pytest-devpi-server: Fixed Python 3.4 support updating "ruamel.yaml" requirements. #138
+* ci: Added  PYTEST_DONT_REWRITE in order to suppress module already imported. #123
+
+
+### 1.7.0 (2019-02-21)
  * All: Support pytest >= 4.0.0
  * All: Support Python 3.7
  * pytest-server-fixtures: if host not defined on your machine, default to localhost

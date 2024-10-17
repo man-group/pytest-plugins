@@ -1,6 +1,7 @@
 
 test-tmpl: &test-tmpl
   command: |
+    pwd
     . ../venv/bin/activate
     export DEBUG=1
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
@@ -11,7 +12,7 @@ job-tmpl: &job-tmpl
   machine:
     image: ubuntu-2004:edge
 
-  working_directory: ~/src
+  working_directory: /home/circleci/src
 
   steps:
     - run: env
@@ -59,51 +60,51 @@ job-tmpl: &job-tmpl
           make develop
     - run:
         name: Run Tests - pytest-fixture-config
-        working_directory: ~/src/pytest-fixture-config
+        working_directory: /home/circleci/src/pytest-fixture-config
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-shutil
-        working_directory: ~/src/pytest-shutil
+        working_directory: /home/circleci/src/pytest-shutil
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-server-fixtures
-        working_directory: ~/src/pytest-server-fixtures
+        working_directory: /home/circleci/src/pytest-server-fixtures
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-pyramid-server
-        working_directory: ~/src/pytest-pyramid-server
+        working_directory: /home/circleci/src/pytest-pyramid-server
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-devpi-server
-        working_directory: ~/src/pytest-devpi-server
+        working_directory: /home/circleci/src/pytest-devpi-server
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-listener
-        working_directory: ~/src/pytest-listener
+        working_directory: /home/circleci/src/pytest-listener
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-svn
-        working_directory: ~/src/pytest-svn
+        working_directory: /home/circleci/src/pytest-svn
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-git
-        working_directory: ~/src/pytest-git
+        working_directory: /home/circleci/src/pytest-git
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-virtualenv
-        working_directory: ~/src/pytest-virtualenv
+        working_directory: /home/circleci/src/pytest-virtualenv
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-webdriver
-        working_directory: ~/src/pytest-webdriver
+        working_directory: /home/circleci/src/pytest-webdriver
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-profiling
-        working_directory: ~/src/pytest-profiling
+        working_directory: /home/circleci/src/pytest-profiling
         <<: *test-tmpl
     - run:
         name: Run Tests - pytest-verbose-parametrize
-        working_directory: ~/src/pytest-verbose-parametrize
+        working_directory: /home/circleci/src/pytest-verbose-parametrize
         <<: *test-tmpl
     - run:
         name: Archive Junit and Coverage
@@ -121,6 +122,31 @@ job-tmpl: &job-tmpl
     - run:
         name: Explode if tests have failed
         command: compgen -G FAILED-* && exit 1 || true
+    - run:
+        name: Build artifacts
+        command: |
+          . venv/bin/activate
+          make wheels
+          make sdists
+          mkdir dist
+          mv */dist/* dist
+    - run:
+        name: Move artifacts to workspace
+        command: |
+          mkdir -p /tmp/to-release/dist
+          if [ "$PYTHON" = "python3.6" ]; then
+            cp -r /home/circleci/src/dist /tmp/to-release/
+            cp /home/circleci/src/VERSION /tmp/to-release/VERSION
+            cp /home/circleci/src/CHANGES.md /tmp/to-release/CHANGES.md
+          fi
+    # Save artifacts. This is silly but wildcards aren't supported.
+    - store_artifacts:
+        path: /home/circleci/src/dist/
+    - persist_to_workspace:
+        root: /tmp/to-release/
+        paths:
+          - ./*
+          - ./dist/*
 
 version: 2
 jobs:
@@ -134,9 +160,81 @@ jobs:
     environment:
       PYTHON: "python3.7"
 
+  pypi-release:
+    docker:
+      - image: cimg/python:3.11.0
+    steps:
+      - attach_workspace:
+          at: /tmp/to-release
+      - run:
+          name: Upload to TestPyPI
+          command: | # install twine and publish to Test PyPI
+            cd /tmp/to-release
+            sudo add-apt-repository universe -y
+            sudo apt-get update
+            sudo apt install -y python3-pip
+            sudo pip install pipenv
+            pipenv install twine
+            pipenv run twine upload --skip-existing --verbose dist/*
+
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.13
+    steps:
+      - attach_workspace:
+          at: /tmp/to-release
+      - run:
+          name: Output useful stuff
+          command: |
+            cd /tmp/to-release/
+            VERSION_FILE="/tmp/to-release/VERSION"
+            if [ ! -f "$VERSION_FILE" ]; then
+                echo "Error: Version file not found at $VERSION_FILE"
+                exit 1
+            fi
+            VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
+            if [ -z "$VERSION" ]; then
+                echo "Error: Version file is empty"
+                exit 1
+            fi
+            # Find the lines of the changelog between releases, escape double quotes, delete empty lines
+            awk '/### '"$VERSION"'/,/^$/{print}' CHANGES.md | sed '1d;$d' > latest_changes.md
+      - run:
+          name: "Publish release on GitHub"
+          command: |
+            VERSION=$(cat /tmp/to-release/VERSION)
+            CHANGES=$(cat /tmp/to-release/latest_changes.md)
+            ghr -t ${GITHUB_TOKEN} \
+                -u ${CIRCLE_PROJECT_USERNAME} \
+                -r ${CIRCLE_PROJECT_REPONAME} \
+                -c ${CIRCLE_SHA1} \
+                -n ${VERSION} \
+                -b "${CHANGES}" \
+                -soft \
+                ${VERSION} /tmp/to-release/dist
+
+
 workflows:
   version: 2
   pytest-plugins:
     jobs:
       - py36
       - py37
+      - pypi-release:
+          requires:
+            - py36
+            - py37
+          filters:
+            branches:
+              only:
+                - master
+      - publish-github-release:
+          requires:
+            - py36
+            - py37
+          filters:
+            branches:
+              only:
+                - master
+
