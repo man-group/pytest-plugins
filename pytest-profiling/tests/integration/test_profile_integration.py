@@ -1,8 +1,22 @@
-from distutils.dir_util import copy_tree
 import shutil
+from distutils.dir_util import copy_tree
+from pathlib import Path
 
-from pkg_resources import resource_filename, get_distribution
 import pytest
+
+try:
+    from importlib.metadata import distribution
+except ImportError:
+    from importlib_metadata import distribution
+
+try:
+    from importlib.resources import as_file, files
+except ImportError:
+    from importlib_resources import as_file, files
+
+    def resource_filename(package, resource):
+        return files(package) / resource
+
 
 from pytest_virtualenv import VirtualEnv
 
@@ -10,12 +24,12 @@ from pytest_virtualenv import VirtualEnv
 @pytest.yield_fixture(scope="session")
 def virtualenv():
     with VirtualEnv() as venv:
-        test_dir = resource_filename("pytest_profiling", "tests/integration/profile")
+        test_dir = Path(__file__).parent / "profile"
 
         venv.install_package("more-itertools")
 
         # Keep pytest version the same as what's running this test to ensure P27 keeps working
-        venv.install_package("pytest=={}".format(get_distribution("pytest").version))
+        venv.install_package("pytest=={}".format(distribution("pytest").version))
 
         venv.install_package("pytest-cov")
         venv.install_package("pytest-profiling")
