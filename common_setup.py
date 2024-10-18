@@ -4,7 +4,7 @@ import os
 import logging
 
 from setuptools.command.test import test as TestCommand
-from setuptools.command.egg_info import egg_info as EggInfoCommand
+from wheel.bdist_wheel import bdist_wheel
 
 
 class PyTest(TestCommand):
@@ -20,27 +20,14 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        global pytest_args
         logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s', level='DEBUG')
-
         # import here, cause outside the eggs aren't loaded
         import pytest
-
         self.pytest_args.extend(['--junitxml', 'junit.xml'])
-        errno = pytest.main(self.pytest_args)
+        logger = logging.getLogger(__name__)
+        logger.info("Pytest args are {}".format(str(PyTest.pytest_args)))
+        errno = pytest.main(PyTest.pytest_args)
         sys.exit(errno)
-
-
-class EggInfo(EggInfoCommand):
-    """ Customisation of the package metadata creation. Changes are:
-         - Save the test requirements into an extra called 'tests'
-    """
-    def run(self):
-        if self.distribution.extras_require is None:
-            self.distribution.extras_require = {}
-        if 'tests' not in self.distribution.extras_require and hasattr(self.distribution, 'tests_require'):
-            self.distribution.extras_require['tests'] = self.distribution.tests_require
-        EggInfoCommand.run(self)
 
 
 def common_setup(src_dir):
@@ -48,9 +35,9 @@ def common_setup(src_dir):
     readme_file = os.path.join(this_dir, 'README.md')
     changelog_file = os.path.join(this_dir, 'CHANGES.md')
     version_file = os.path.join(this_dir, 'VERSION')
+
     long_description = open(readme_file).read()
     changelog = open(changelog_file).read()
-
     # Gather trailing arguments for pytest, this can't be done using setuptools' api
     if 'test' in sys.argv:
         PyTest.pytest_args = sys.argv[sys.argv.index('test') + 1:]
@@ -66,7 +53,7 @@ def common_setup(src_dir):
         url='https://github.com/man-group/pytest-plugins',
         license='MIT license',
         platforms=['unix', 'linux'],
-        cmdclass={'test': PyTest, 'egg_info': EggInfo},
+        cmdclass={'test': PyTest, 'bdist_wheel': bdist_wheel},
         include_package_data=True,
         python_requires='>=3.6',
     )

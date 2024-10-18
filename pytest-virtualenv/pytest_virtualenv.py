@@ -8,7 +8,7 @@ import sys
 from enum import Enum
 
 import importlib_metadata as metadata
-import pkg_resources
+import packaging.requirements
 from pytest import yield_fixture
 
 from pytest_shutil.workspace import Workspace
@@ -273,7 +273,7 @@ class VirtualEnv(Workspace):
             pth.write("\n")
         for spec in package.requires:
             if not _is_extra_requirement(spec):
-                dependency = next(pkg_resources.parse_requirements(spec), None)
+                dependency = packaging.requirements.Requirement(spec)
                 if dependency and (not dependency.marker or dependency.marker.evaluate()):
                     self.install_package(dependency.name, version=PackageVersion.CURRENT)
 

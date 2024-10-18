@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pytest-profiling"
+description = "Profiling plugin for py.test"
+readme = "README.md"
+readme-content-type = "text/markdown"
+license = {text = "MIT"}
+authors = [{name = "Ed Catmur", email = "ed@catmur.co.uk"}]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Utilities",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+dependencies = ["six", "pytest", "gprof2dot"]
+requires-python = ">=3.6"
+dynamic = ["version"]
+
+[tool.hatch.version]
+path = "../VERSION"
+pattern = "^(?P<version>[^']+)$"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pytest_profiling"]
+
+[project.urls]
+homepage = "https://github.com/man-group/pytest-plugins"
+
+[project.optional-dependencies]
+tests = ["pytest-virtualenv"]
+
+[project.entry-points.pytest11]
+profiling = "pytest_profiling"
+
+[tool.pytest.ini_options]
+norecursedirs = [".git", "*.egg", "build", "dist", "tests/integration/profile/tests"]
+
+[tool.wheel]
+universal = false
+
+[tool.uv]
+dev-dependencies = [
+    "importlib-metadata>=8.5.0",
+    "importlib-resources>=6.4.5",
+    "pytest-virtualenv",
+]
+
+[tool.uv.sources]
+pytest-virtualenv = { path = "../pytest-virtualenv", editable = true }
