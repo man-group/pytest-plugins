@@ -40,7 +40,7 @@ packages = ["src/pytest_profiling"]
 homepage = "https://github.com/man-group/pytest-plugins"
 
 [project.optional-dependencies]
-test = ["pytest-virtualenv"]
+tests = ["pytest-virtualenv"]
 
 [project.entry-points.pytest11]
 profiling = "pytest_profiling"
