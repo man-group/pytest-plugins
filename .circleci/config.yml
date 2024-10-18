@@ -7,7 +7,7 @@ test-tmpl: &test-tmpl
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
     set -x
-    python -m coverage run -m pytest -v -ra || touch ../FAILED-$(basename $PWD)
+    cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc -m pytest --junitxml junit.xml -sv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
   machine:
