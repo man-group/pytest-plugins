@@ -9,7 +9,6 @@ from enum import Enum
 from typing import Optional, Tuple
 
 import importlib_metadata as metadata
-import pkg_resources
 from pytest import yield_fixture
 
 from pytest_shutil.workspace import Workspace
@@ -229,7 +228,7 @@ class VirtualEnv(Workspace):
                         f"{self.python} {installer} {installer_command} -e {pkg_location}"
                     )
                 elif egg_link:
-                    self._install_editable_package(egg_link, dist)
+                    self._install_package_from_editable_egg_link(egg_link, dist)
                 else:
                     spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=dist.version)
                     self.run(
@@ -277,7 +276,9 @@ class VirtualEnv(Workspace):
             self.install_package("importlib_metadata", version=PackageVersion.CURRENT)
             self._importlib_metadata_installed = True
 
-    def _install_editable_package(self, egg_link, package):
+    def _install_package_from_editable_egg_link(self, egg_link, package):
+        import pkg_resources
+
         python_dir = "python{}.{}".format(sys.version_info.major, sys.version_info.minor)
         shutil.copy(egg_link, self.virtualenv / "lib" / python_dir / "site-packages" / egg_link.name)
         easy_install_pth_path = self.virtualenv / "lib" / python_dir / "site-packages" / "easy-install.pth"
