@@ -37,7 +37,7 @@ function install_python {
   local py=$1
   sudo apt-get install -y $py $py-dev
   local version=$(echo $py | grep -oP '(?<=python)\d+\.\d+')
-  
+
   if [ "$version" = "3.6" ] || [ "$version" = "3.7" ]; then
     sudo apt-get install ${py}-distutils || {
     curl --silent --show-error --retry 5 https://bootstrap.pypa.io/pip/$version/get-pip.py | sudo $py
@@ -142,6 +142,10 @@ function install_postgresql {
 
 function install_redis {
   apt-get install -y redis-server
+}
+
+function install_graphviz {
+  apt-get install -y graphviz
 }
 
 function install_jenkins {

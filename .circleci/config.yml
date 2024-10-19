@@ -45,6 +45,9 @@ job-tmpl: &job-tmpl
         name: Install Mongodb
         command: sudo bash -c "source ./install.sh && install_mongodb"
     - run:
+        name: Install Graphviz
+        command: sudo bash -c "source ./install.sh && install_graphviz"
+    - run:
         name: Install Apache
         command: sudo bash -c "source ./install.sh && install_apache"
     - run:
