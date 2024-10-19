@@ -6,6 +6,7 @@ import re
 import shutil
 import sys
 from enum import Enum
+from typing import Optional, Tuple
 
 import importlib_metadata as metadata
 import pkg_resources
@@ -128,7 +129,6 @@ class VirtualEnv(Workspace):
             self.python = self.virtualenv / 'bin' / 'python'
             self.pip = self.virtualenv / "bin" / "pip"
             self.coverage = self.virtualenv / 'bin' / 'coverage'
-
         if env is None:
             self.env = dict(os.environ)
         else:
@@ -151,6 +151,12 @@ class VirtualEnv(Workspace):
         cmd.append(str(self.virtualenv))
         self.run(cmd)
         self._importlib_metadata_installed = False
+        self.pip_version = self._get_pip_version()
+
+    def _get_pip_version(self) -> Tuple[int, ...]:
+        output = self.run([self.python, self.pip, '--version'], capture=True)
+        version_number_strs = output.split(" ")[1].split(".")
+        return tuple(map(int, version_number_strs))
 
     def run(self, args, **kwargs):
         """
@@ -214,8 +220,15 @@ class VirtualEnv(Workspace):
                 iter([dist for dist in metadata.distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
             )
             if dist:
+                pkg_location = (
+                    _get_editable_package_location_from_direct_url(dist.name) if self.pip_version >= (19, 3) else None
+                )
                 egg_link = _get_egg_link(dist.name)
-                if egg_link:
+                if pkg_location:
+                    self.run(
+                        f"{self.python} {installer} {installer_command} -e {pkg_location}"
+                    )
+                elif egg_link:
                     self._install_editable_package(egg_link, dist)
                 else:
                     spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=dist.version)
@@ -277,16 +290,39 @@ class VirtualEnv(Workspace):
                 if dependency and (not dependency.marker or dependency.marker.evaluate()):
                     self.install_package(dependency.name, version=PackageVersion.CURRENT)
 
-
 def _normalize(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def _get_egg_link(pkg_name):
+def _get_egg_link(package_name):
     for path in sys.path:
-        egg_link = pathlib.Path(path) / (pkg_name + ".egg-link")
+        egg_link = pathlib.Path(path) / (package_name + ".egg-link")
         if egg_link.is_file():
             return egg_link
+    return None
+
+def _get_editable_package_location_from_direct_url(package_name: str) -> Optional[str]:
+    """
+    Uses the PEP610 direct_url.json to get the installed location of a given
+    editable package.
+    Parameters
+    ----------
+    package_name: The name of the package, for example "pytest_virtualenv".
+
+    Returns
+    -------
+    The URL of the installed package, e.g. "file:///users/<username>/workspace/pytest-plugins/pytest-virtualenv/".
+    """
+
+    from importlib.metadata import distribution, PackageNotFoundError
+    try:
+        dist = distribution(package_name)
+        if dist.read_text('direct_url.json') and dist.origin.dir_info.editable:
+            return dist.origin.url
+    except PackageNotFoundError:
+        return None
+    except FileNotFoundError:
+        return None
     return None
 
 
