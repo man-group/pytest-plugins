@@ -83,7 +83,7 @@ class Profiling(object):
                                 self.err_msg = f"gprof2dot failed with return code {pgprof.returncode}"
                                 self.exit_code = pgprof.returncode
                             if pdot.returncode != 0:
-                                self.err_msg = f"dot failed with return code {pdot.returncode}: {stderr.decode()=}"
+                                self.err_msg = f"dot failed with return code {pdot.returncode}: {stderr.decode()}"
                                 self.exit_code = pdot.returncode
                             else:
                                 self.exit_code = 0
@@ -109,7 +109,7 @@ class Profiling(object):
             else:
                 terminalreporter.write(
                     f"Error when executing: {self.gprof2dot_cmd} | {self.dot_cmd} \n"
-                    f"{self.err_msg=}"
+                    f"Error message={self.err_msg}"
                 )
 
     @pytest.hookimpl(hookwrapper=True)
