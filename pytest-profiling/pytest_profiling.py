@@ -29,7 +29,8 @@ class Profiling(object):
     profs = []
     stripdirs = False
     combined = None
-    svg_err = None
+    err_msg = None
+    exit_code = None
     dot_cmd = None
     gprof2dot_cmd = None
 
@@ -71,42 +72,45 @@ class Profiling(object):
 
                 # A handcrafted Popen pipe actually seems to work on both windows and unix:
                 # do it in 2 subprocesses, with a pipe in between
-                pdot = subprocess.Popen(dot_args, stdin=subprocess.PIPE, shell=True)
-                pgprof  = subprocess.Popen(gprof2dot_args, stdout=pdot.stdin, shell=True)
-                (stdoutdata1, stderrdata1) = pgprof.communicate()
-                (stdoutdata2, stderrdata2) = pdot.communicate()
-                if stderrdata1 is not None or pgprof.poll() > 0:
-                    # error: gprof2dot
-                    self.svg_err = 1
-                elif stderrdata2 is not None or pdot.poll() > 0:
-                    # error: dot
-                    self.svg_err = 2
-                else:
-                    # success
-                    self.svg_err = 0
+                try:
+                    with subprocess.Popen(gprof2dot_args, stdout=subprocess.PIPE) as pgprof:
+                        with subprocess.Popen(
+                            dot_args, stdin=pgprof.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                        ) as pdot:
+                            pgprof.stdout.close()  # Allow pgprof to receive a SIGPIPE if pdot exits
+                            stdout, stderr = pdot.communicate()
+                            if pgprof.returncode != 0:
+                                self.err_msg = f"gprof2dot failed with return code {pgprof.returncode}"
+                                self.exit_code = pgprof.returncode
+                            if pdot.returncode != 0:
+                                self.err_msg = f"dot failed with return code {pdot.returncode}: {stderr.decode()=}"
+                                self.exit_code = pdot.returncode
+                            else:
+                                self.exit_code = 0
+
+                except subprocess.CalledProcessError as e:
+                    self.err_msg = stderr.decode()
+                    self.exit_code = 1
+                except FileNotFoundError as e:
+                    self.err_msg = str(e)
+                    self.exit_code = 1
 
     def pytest_terminal_summary(self, terminalreporter):
         if self.combined:
             terminalreporter.write("Profiling (from {prof}):\n".format(prof=self.combined))
             stats = pstats.Stats(self.combined, stream=terminalreporter)
             if self.stripdirs:
-              stats.strip_dirs()
+                stats.strip_dirs()
             stats.sort_stats('cumulative').print_stats(self.element_number)
         if self.svg_name:
-            if not self.svg_err:
+            if not self.exit_code:
                 # 0 - SUCCESS
                 terminalreporter.write("SVG profile created in {svg}.\n".format(svg=self.svg_name))
             else:
-                if self.svg_err == 1:
-                    # 1 - GPROF2DOT ERROR
-                    terminalreporter.write("Error creating SVG profile in {svg}.\n"
-                                           "Command failed: {cmd}".format(svg=self.svg_name, cmd=self.gprof2dot_cmd))
-                elif self.svg_err == 2:
-                    # 2 - DOT ERROR
-                    terminalreporter.write("Error creating SVG profile in {svg}.\n"
-                                           "Command succeeded: {cmd} \n"
-                                           "Command failed: {cmd2}".format(svg=self.svg_name, cmd=self.gprof2dot_cmd,
-                                                                           cmd2=self.dot_cmd))
+                terminalreporter.write(
+                    f"Error when executing: {self.gprof2dot_cmd} | {self.dot_cmd} \n"
+                    f"{self.err_msg=}"
+                )
 
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_protocol(self, item, nextitem):

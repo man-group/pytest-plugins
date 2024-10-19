@@ -1,4 +1,4 @@
-from distutils.dir_util import copy_tree
+from shutil import copytree
 import shutil
 
 from pkg_resources import resource_filename, get_distribution
@@ -15,7 +15,7 @@ def virtualenv():
         venv.install_package("pytest=={}".format(get_distribution("pytest").version))
         venv.install_package("pytest-cov")
         venv.install_package(resource_filename("pytest_profiling", "."))
-        copy_tree(str(test_dir), str(venv.workspace))
+        copytree(str(test_dir), str(venv.workspace), dirs_exist_ok=True)
         shutil.rmtree(
             venv.workspace / "tests" / "unit" / "__pycache__", ignore_errors=True
         )
