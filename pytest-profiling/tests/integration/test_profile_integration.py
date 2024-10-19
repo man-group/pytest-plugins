@@ -1,5 +1,5 @@
-from shutil import copytree
 import shutil
+import sys
 
 from pkg_resources import resource_filename, get_distribution
 import pytest
@@ -7,7 +7,7 @@ import pytest
 from pytest_virtualenv import VirtualEnv
 
 
-@pytest.yield_fixture(scope="session")
+@pytest.fixture(scope="session")
 def virtualenv():
     with VirtualEnv() as venv:
         test_dir = resource_filename("pytest_profiling", "tests/integration/profile")
@@ -15,7 +15,13 @@ def virtualenv():
         venv.install_package("pytest=={}".format(get_distribution("pytest").version))
         venv.install_package("pytest-cov")
         venv.install_package(resource_filename("pytest_profiling", "."))
-        copytree(str(test_dir), str(venv.workspace), dirs_exist_ok=True)
+
+        pyversion = sys.version_info
+        if (pyversion.major, pyversion.minor) < (3, 8):
+            import distutils.dir_util
+            distutils.dir_util.copy_tree(str(test_dir), str(venv.workspace))
+        else:
+            shutil.copytree(str(test_dir), str(venv.workspace), dirs_exist_ok=True)
         shutil.rmtree(
             venv.workspace / "tests" / "unit" / "__pycache__", ignore_errors=True
         )
