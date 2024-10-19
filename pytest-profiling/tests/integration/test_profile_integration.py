@@ -11,14 +11,10 @@ from pytest_virtualenv import VirtualEnv
 def virtualenv():
     with VirtualEnv() as venv:
         test_dir = resource_filename("pytest_profiling", "tests/integration/profile")
-
         venv.install_package("more-itertools")
-
-        # Keep pytest version the same as what's running this test to ensure P27 keeps working
         venv.install_package("pytest=={}".format(get_distribution("pytest").version))
-
         venv.install_package("pytest-cov")
-        venv.install_package("pytest-profiling")
+        venv.install_package(resource_filename("pytest_profiling", "."))
         copy_tree(str(test_dir), str(venv.workspace))
         shutil.rmtree(
             venv.workspace / "tests" / "unit" / "__pycache__", ignore_errors=True

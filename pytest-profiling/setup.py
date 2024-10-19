@@ -1,10 +1,5 @@
-import sys
-import os
 from setuptools import setup
-from setuptools.command.test import test as TestCommand
-from wheel.bdist_wheel import bdist_wheel
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common_setup import common_setup
 
 classifiers = [
