@@ -8,7 +8,8 @@ import sys
 from enum import Enum
 from typing import Optional, Tuple
 
-import importlib_metadata as metadata
+from importlib_metadata import distribution, distributions, PackageNotFoundError
+
 from pytest import yield_fixture
 
 from pytest_shutil.workspace import Workspace
@@ -216,7 +217,7 @@ class VirtualEnv(Workspace):
             )
         elif version == PackageVersion.CURRENT:
             dist = next(
-                iter([dist for dist in metadata.distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
+                iter([dist for dist in distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
             )
             if dist:
                 pkg_location = (
@@ -315,7 +316,6 @@ def _get_editable_package_location_from_direct_url(package_name: str) -> Optiona
     The URL of the installed package, e.g. "file:///users/<username>/workspace/pytest-plugins/pytest-virtualenv/".
     """
 
-    from importlib.metadata import distribution, PackageNotFoundError
     try:
         dist = distribution(package_name)
         if dist.read_text('direct_url.json') and dist.origin.dir_info.editable:

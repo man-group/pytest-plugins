@@ -17,11 +17,13 @@ classifiers = [
     'Programming Language :: Python :: 3.7',
 ]
 
-install_requires = ['six',
-                    'execnet',
-                    'pytest',
-                    'termcolor'
-                    ]
+install_requires = [
+    'six',
+    'execnet',
+    'pytest',
+    'termcolor',
+    'importlib_metadata;python_version<"3.8"',
+]
 
 tests_require = ['pytest',
                  ]

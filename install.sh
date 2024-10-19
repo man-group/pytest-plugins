@@ -47,7 +47,8 @@ function install_python {
     sudo apt-get install ${py}-distutils
     curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $py
   else
-    sudo apt-get install ${py}-distutils
+    sudo apt-get install ${py}
+    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $py
   fi
   install_python_packaging $py
 }

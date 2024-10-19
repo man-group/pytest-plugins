@@ -189,6 +189,11 @@ jobs:
     environment:
       PYTHON: "python3.12"
 
+  py313:
+    <<: *job-tmpl
+    environment:
+      PYTHON: "python3.13"
+
   pypi-release:
     docker:
       - image: cimg/python:3.11.0
@@ -255,6 +260,7 @@ workflows:
       - py310
       - py311
       - py312
+      - py313
       - pypi-release:
           requires:
             - py36
@@ -264,6 +270,7 @@ workflows:
             - py310
             - py311
             - py312
+            - py313
           filters:
             branches:
               only:
@@ -277,6 +284,7 @@ workflows:
             - py310
             - py311
             - py312
+            - py313
           filters:
             branches:
               only:
