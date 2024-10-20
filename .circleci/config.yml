@@ -152,47 +152,15 @@ job-tmpl: &job-tmpl
           - ./*
           - ./dist/*
 
-version: 2
+version: 2.1
 jobs:
-  py36:
+  python-ubuntu:
     <<: *job-tmpl
+    parameters:
+      python_version:
+        type: string
     environment:
-      PYTHON: "python3.6"
-
-  py37:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.7"
-
-  py38:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.8"
-
-  py39:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.9"
-
-  py310:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.10"
-
-  py311:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.11"
-
-  py312:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.12"
-
-  py313:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.13"
+      PYTHON: << parameters.python_version >>
 
   pypi-release:
     docker:
@@ -253,38 +221,28 @@ workflows:
   version: 2
   pytest-plugins:
     jobs:
-      - py36
-      - py37
-      - py38
-      - py39
-      - py310
-      - py311
-      - py312
-      - py313
+      - python-ubuntu:
+          matrix:
+            parameters:
+              python_version:
+                - "python3.6"
+                - "python3.7"
+                - "python3.8"
+                - "python3.9"
+                - "python3.10"
+                - "python3.11"
+                - "python3.12"
+                - "python3.13"
       - pypi-release:
           requires:
-            - py36
-            - py37
-            - py38
-            - py39
-            - py310
-            - py311
-            - py312
-            - py313
+            - python-ubuntu
           filters:
             branches:
               only:
                 - master
       - publish-github-release:
           requires:
-            - py36
-            - py37
-            - py38
-            - py39
-            - py310
-            - py311
-            - py312
-            - py313
+            - python-ubuntu
           filters:
             branches:
               only:
