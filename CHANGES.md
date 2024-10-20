@@ -1,5 +1,9 @@
 ## Changelog
-### 1.8.0 (2024-10-??)
+### 1.8.1 (2024-10-??)
+ * All: Windows builds added to CircleCI
+ * All: Started building py3.6-py3.13 in CircleCI
+
+### 1.8.0 (2024-10-17)
  * All: Drop support for Python 2 and <3.6, removing compatibility code.
  * All: Use stdlib unittest.mock instead of mock package.
  * All: Removed usage of path.py and path in favour of pathlib. #174 #224

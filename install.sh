@@ -55,7 +55,6 @@ function install_python {
 
 function choco_install {
   local args=$*
-  # choco fails randomly with network errors on travis, have a few goes
   for i in {1..5}; do
       choco install $args && return 0
       echo 'choco install failed, log tail follows:'
