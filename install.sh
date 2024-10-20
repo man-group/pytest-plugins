@@ -71,12 +71,6 @@ function install_windows_make {
   choco_install make --params "/InstallDir:C:\\tools\\make"
 }
 
-function install_windows_py37 {
-  choco_install python --version 3.7.5 --params "/InstallDir:C:\\Python"
-  export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-  install_python_packaging python
-}
-
 function install_windows_python() {
     if [ -z "$1" ]; then
         echo "Please provide a Python version argument, e.g., 'python3.11'"
@@ -86,8 +80,9 @@ function install_windows_python() {
     python_version="${python_arg#python}"
     major_version="${python_version%%.*}"
     minor_version="${python_version#*.}"
+    choco_package="python${major_version}${minor_version}"
     install_dir="/c/Python${major_version}${minor_version}"
-    choco_install python --version "$python_version" --params "/InstallDir:C:\\Python" -y
+    choco_install "$choco_package" --params "/InstallDir:C:\\Python" -y
     if [ $? -ne 0 ]; then
         echo "Failed to install Python $python_version"
         return 1
