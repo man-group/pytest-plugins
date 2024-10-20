@@ -1,3 +1,40 @@
+orbs:
+  win: circleci/windows@2.2.0
+
+windows-tmpl: &windows-tmpl
+  parameters:
+    python-version:
+      type: string
+  executor:
+    name: win/default
+    shell: bash.exe
+  steps:
+    - checkout
+    - run:
+        name: Set up Python
+        command: |
+          set -e
+          . install.sh
+          install_windows_make
+          install_windows_python << parameters.python_version >>
+          init_venv python
+    - run:
+        name: Install dependencies
+        command: |
+          python --version
+          make develop
+    - run:
+        name: Run tests
+        command: |
+          export DEBUG=1
+          export SERVER_FIXTURES_JENKINS_WAR=
+          export PACKAGES=$(./foreach.sh --quiet 'grep -q Windows setup.py && echo $PKG || true')
+          make test-ci
+    - store_test_results:
+        path: junit
+    - run:
+        name: Check for failures
+        command: make list-test-failures
 
 test-tmpl: &test-tmpl
   command: |
@@ -152,47 +189,22 @@ job-tmpl: &job-tmpl
           - ./*
           - ./dist/*
 
-version: 2
+version: 2.1
 jobs:
-  py36:
+  python-ubuntu:
     <<: *job-tmpl
+    parameters:
+      python_version:
+        type: string
     environment:
-      PYTHON: "python3.6"
-
-  py37:
-    <<: *job-tmpl
+      PYTHON: << parameters.python_version >>
+  python-windows:
+    <<: *windows-tmpl
+    parameters:
+      python_version:
+        type: string
     environment:
-      PYTHON: "python3.7"
-
-  py38:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.8"
-
-  py39:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.9"
-
-  py310:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.10"
-
-  py311:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.11"
-
-  py312:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.12"
-
-  py313:
-    <<: *job-tmpl
-    environment:
-      PYTHON: "python3.13"
+      PYTHON: << parameters.python_version >>
 
   pypi-release:
     docker:
@@ -253,38 +265,41 @@ workflows:
   version: 2
   pytest-plugins:
     jobs:
-      - py36
-      - py37
-      - py38
-      - py39
-      - py310
-      - py311
-      - py312
-      - py313
+      - python-windows:
+          matrix:
+            parameters:
+              python_version:
+                - "python3.6"
+                - "python3.7"
+                - "python3.8"
+                - "python3.9"
+                - "python3.10"
+                - "python3.11"
+                - "python3.12"
+      - python-ubuntu:
+          matrix:
+            parameters:
+              python_version:
+                - "python3.6"
+                - "python3.7"
+                - "python3.8"
+                - "python3.9"
+                - "python3.10"
+                - "python3.11"
+                - "python3.12"
+                - "python3.13"
       - pypi-release:
           requires:
-            - py36
-            - py37
-            - py38
-            - py39
-            - py310
-            - py311
-            - py312
-            - py313
+            - python-ubuntu
+            - python-windows
           filters:
             branches:
               only:
                 - master
       - publish-github-release:
           requires:
-            - py36
-            - py37
-            - py38
-            - py39
-            - py310
-            - py311
-            - py312
-            - py313
+            - python-ubuntu
+            - python-windows
           filters:
             branches:
               only:
