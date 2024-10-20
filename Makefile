@@ -54,7 +54,24 @@ test:
 
 test-ci:
 	rm -f FAILED-*
+	mkdir junit
 	./foreach.sh 'cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc -m pytest --junitxml junit.xml -svvvv -ra || touch ../FAILED-$$PKG'
+	./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
+
+list-test-failures:
+	if files=$(compgen -G 'FAILED-*'); then
+		if [ -n "$files" ]; then
+			echo "Error: Found failure artifacts:"
+			echo "$files"
+			exit 1
+		else
+			echo "No failure artifacts found."
+			exit 0
+		fi
+	else
+		echo "Error executing compgen"
+		exit 2
+	fi
 
 upload:
 	pip install twine

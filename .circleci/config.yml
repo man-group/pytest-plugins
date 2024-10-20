@@ -30,9 +30,11 @@ windows-tmpl: &windows-tmpl
           export SERVER_FIXTURES_JENKINS_WAR=
           export PACKAGES=$(./foreach.sh --quiet 'grep -q Windows setup.py && echo $PKG || true')
           make test-ci
+    - store_test_results:
+        path: junit
     - run:
         name: Check for failures
-        command: bash -c "! compgen -G 'FAILED-*'"
+        command: make list-test-failures
 
 test-tmpl: &test-tmpl
   command: |
