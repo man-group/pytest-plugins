@@ -203,7 +203,7 @@ class VirtualEnv(Workspace):
         """
         if sys.platform == 'win32':
             # In virtualenv on windows "Scripts" folder is used instead of "bin".
-            installer = str(self.virtualenv / 'Scripts' / installer + '.exe')
+            installer = str(self.virtualenv / 'Scripts' / installer) + '.exe'
         else:
             installer = str(self.virtualenv / 'bin' / installer)
         if not self.debug:

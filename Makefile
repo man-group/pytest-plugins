@@ -59,18 +59,12 @@ test-ci:
 	./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
 
 list-test-failures:
-	if files=$(compgen -G 'FAILED-*'); then
-		if [ -n "$files" ]; then
-			echo "Error: Found failure artifacts:"
-			echo "$files"
-			exit 1
-		else
-			echo "No failure artifacts found."
-			exit 0
-		fi
-	else
-		echo "Error executing compgen"
-		exit 2
+	@if compgen -G 'FAILED-*' > /dev/null; then \
+		echo "Error: Found failure artifacts:"; \
+		compgen -G 'FAILED-*'; \
+		exit 1; \
+	else \
+		echo "No failure artifacts found."; \
 	fi
 
 upload:
