@@ -154,7 +154,7 @@ class VirtualEnv(Workspace):
         self.pip_version = self._get_pip_version()
 
     def _get_pip_version(self) -> Tuple[int, ...]:
-        output = self.run([self.python, self.pip, '--version'], capture=True)
+        output = self.run([self.python, "-m", "pip", "--version"], capture=True)
         version_number_strs = output.split(" ")[1].split(".")
         return tuple(map(int, version_number_strs))
 
@@ -268,7 +268,7 @@ class VirtualEnv(Workspace):
                "for i in metadata.distributions(): print(i.name + ' ' + i.version + ' ' + str(i.locate_file('')))"
         lines = self.run([self.python, "-c", code], capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
-            name, version, location = line.split()
+            name, version, location = line.split(" ", 2)
             res[name] = PackageEntry(name, version, location)
         return res
 
@@ -280,9 +280,13 @@ class VirtualEnv(Workspace):
     def _install_package_from_editable_egg_link(self, egg_link, package):
         import pkg_resources
 
-        python_dir = "python{}.{}".format(sys.version_info.major, sys.version_info.minor)
-        shutil.copy(egg_link, self.virtualenv / "lib" / python_dir / "site-packages" / egg_link.name)
-        easy_install_pth_path = self.virtualenv / "lib" / python_dir / "site-packages" / "easy-install.pth"
+        if sys.platform == "win32":
+            shutil.copy(egg_link, self.virtualenv / "Lib" / "site-packages" / egg_link.name)
+            easy_install_pth_path = self.virtualenv / "Lib" / "site-packages" / "easy-install.pth"
+        else:
+            python_dir = "python{}.{}".format(sys.version_info.major, sys.version_info.minor)
+            shutil.copy(egg_link, self.virtualenv / "lib" / python_dir / "site-packages" / egg_link.name)
+            easy_install_pth_path = self.virtualenv / "lib" / python_dir / "site-packages" / "easy-install.pth"
         with open(easy_install_pth_path, "a") as pth, open(egg_link) as egg_link:
             pth.write(egg_link.read())
             pth.write("\n")
@@ -291,6 +295,7 @@ class VirtualEnv(Workspace):
                 dependency = next(pkg_resources.parse_requirements(spec), None)
                 if dependency and (not dependency.marker or dependency.marker.evaluate()):
                     self.install_package(dependency.name, version=PackageVersion.CURRENT)
+
 
 def _normalize(name):
     return re.sub(r"[-_.]+", "-", name).lower()
@@ -302,6 +307,7 @@ def _get_egg_link(package_name):
         if egg_link.is_file():
             return egg_link
     return None
+
 
 def _get_editable_package_location_from_direct_url(package_name: str) -> Optional[str]:
     """
