@@ -54,7 +54,7 @@ test:
 
 test-ci:
 	rm -f FAILED-*
-	./foreach.sh 'cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra --timeout 120 || touch ../FAILED-$$PKG'
+	./foreach.sh 'cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc -m pytest --junitxml junit.xml -svvvv -ra || touch ../FAILED-$$PKG'
 
 upload:
 	pip install twine

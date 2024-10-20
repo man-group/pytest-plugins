@@ -1,3 +1,38 @@
+orbs:
+  win: circleci/windows@2.2.0
+
+windows-tmpl: &windows-tmpl
+  parameters:
+    python-version:
+      type: string
+  executor:
+    name: win/default
+    shell: bash.exe
+  steps:
+    - checkout
+    - run:
+        name: Set up Python
+        command: |
+          set -e
+          . install.sh
+          install_windows_make
+          install_windows_python << parameters.python_version >>
+          init_venv python
+    - run:
+        name: Install dependencies
+        command: |
+          python --version
+          make develop
+    - run:
+        name: Run tests
+        command: |
+          export DEBUG=1
+          export SERVER_FIXTURES_JENKINS_WAR=
+          export PACKAGES=$(./foreach.sh --quiet 'grep -q Windows setup.py && echo $PKG || true')
+          make test-ci
+    - run:
+        name: Check for failures
+        command: bash -c "! compgen -G 'FAILED-*'"
 
 test-tmpl: &test-tmpl
   command: |
@@ -161,6 +196,13 @@ jobs:
         type: string
     environment:
       PYTHON: << parameters.python_version >>
+  python-windows:
+    <<: *windows-tmpl
+    parameters:
+      python_version:
+        type: string
+    environment:
+      PYTHON: << parameters.python_version >>
 
   pypi-release:
     docker:
@@ -221,6 +263,18 @@ workflows:
   version: 2
   pytest-plugins:
     jobs:
+      - python-windows:
+          matrix:
+            parameters:
+              python_version:
+                - "python3.6"
+                - "python3.7"
+                - "python3.8"
+                - "python3.9"
+                - "python3.10"
+                - "python3.11"
+                - "python3.12"
+                - "python3.13"
       - python-ubuntu:
           matrix:
             parameters:
