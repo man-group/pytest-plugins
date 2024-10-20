@@ -291,6 +291,7 @@ workflows:
       - pypi-release:
           requires:
             - python-ubuntu
+            - python-windows
           filters:
             branches:
               only:
@@ -298,6 +299,7 @@ workflows:
       - publish-github-release:
           requires:
             - python-ubuntu
+            - python-windows
           filters:
             branches:
               only:
