@@ -17,7 +17,7 @@ def test_installed_packages():
 def test_install_version_from_current():
     with venv.VirtualEnv() as v:
         v.install_package("flask", "1.1.1")
-        # v.install_package("virtualenv", version=venv.PackageVersion.CURRENT)
+        v.install_package("virtualenv", version=venv.PackageVersion.CURRENT)
         v.install_package("pytest-virtualenv", version=venv.PackageVersion.CURRENT)
         out = v.run([
             v.python,
