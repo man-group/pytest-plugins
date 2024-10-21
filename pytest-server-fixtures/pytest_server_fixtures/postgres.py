@@ -8,7 +8,6 @@ import subprocess
 
 import errno
 import pytest
-from six import text_type
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import requires_config
@@ -65,7 +64,7 @@ class PostgresServer(TestServer):
         try:
             self.pg_bin = subprocess.check_output([CONFIG.pg_config_executable, "--bindir"]).decode('utf-8').rstrip()
         except OSError as e:
-            msg = "Failed to get pg_config --bindir: " + text_type(e)
+            msg = "Failed to get pg_config --bindir: " + str(e)
             print(msg)
             self._fail(msg)
         initdb_path = self.pg_bin + '/initdb'
@@ -76,7 +75,7 @@ class PostgresServer(TestServer):
         try:
             subprocess.check_call([initdb_path, str(self.workspace / 'db')])
         except OSError as e:
-            msg = "Failed to launch postgres: " + text_type(e)
+            msg = "Failed to launch postgres: " + str(e)
             print(msg)
             self._fail(msg)
 
