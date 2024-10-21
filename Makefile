@@ -54,7 +54,18 @@ test:
 
 test-ci:
 	rm -f FAILED-*
-	./foreach.sh 'cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra --timeout 120 || touch ../FAILED-$$PKG'
+	mkdir junit
+	./foreach.sh 'cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc -m pytest --junitxml junit.xml -svvvv -ra || touch ../FAILED-$$PKG'
+	./foreach.sh 'cp junit.xml ../junit/junit-$PKG.xml || true'
+
+list-test-failures:
+	@if compgen -G 'FAILED-*' > /dev/null; then \
+		echo "Error: Found failure artifacts:"; \
+		compgen -G 'FAILED-*'; \
+		exit 1; \
+	else \
+		echo "No failure artifacts found."; \
+	fi
 
 upload:
 	pip install twine

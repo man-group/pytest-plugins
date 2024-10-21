@@ -6,9 +6,10 @@ import re
 import shutil
 import sys
 from enum import Enum
+from typing import Optional, Tuple
 
-import importlib_metadata as metadata
-import pkg_resources
+from importlib_metadata import distribution, distributions, PackageNotFoundError
+
 from pytest import yield_fixture
 
 from pytest_shutil.workspace import Workspace
@@ -128,7 +129,6 @@ class VirtualEnv(Workspace):
             self.python = self.virtualenv / 'bin' / 'python'
             self.pip = self.virtualenv / "bin" / "pip"
             self.coverage = self.virtualenv / 'bin' / 'coverage'
-
         if env is None:
             self.env = dict(os.environ)
         else:
@@ -151,6 +151,12 @@ class VirtualEnv(Workspace):
         cmd.append(str(self.virtualenv))
         self.run(cmd)
         self._importlib_metadata_installed = False
+        self.pip_version = self._get_pip_version()
+
+    def _get_pip_version(self) -> Tuple[int, ...]:
+        output = self.run([self.python, "-m", "pip", "--version"], capture=True)
+        version_number_strs = output.split(" ")[1].split(".")
+        return tuple(map(int, version_number_strs))
 
     def run(self, args, **kwargs):
         """
@@ -197,7 +203,7 @@ class VirtualEnv(Workspace):
         """
         if sys.platform == 'win32':
             # In virtualenv on windows "Scripts" folder is used instead of "bin".
-            installer = str(self.virtualenv / 'Scripts' / installer + '.exe')
+            installer = str(self.virtualenv / 'Scripts' / installer) + '.exe'
         else:
             installer = str(self.virtualenv / 'bin' / installer)
         if not self.debug:
@@ -211,12 +217,19 @@ class VirtualEnv(Workspace):
             )
         elif version == PackageVersion.CURRENT:
             dist = next(
-                iter([dist for dist in metadata.distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
+                iter([dist for dist in distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
             )
             if dist:
+                pkg_location = (
+                    _get_editable_package_location_from_direct_url(dist.name) if self.pip_version >= (19, 3) else None
+                )
                 egg_link = _get_egg_link(dist.name)
-                if egg_link:
-                    self._install_editable_package(egg_link, dist)
+                if pkg_location:
+                    self.run(
+                        f"{self.python} {installer} {installer_command} -e {pkg_location}"
+                    )
+                elif egg_link:
+                    self._install_package_from_editable_egg_link(egg_link, dist)
                 else:
                     spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=dist.version)
                     self.run(
@@ -255,7 +268,7 @@ class VirtualEnv(Workspace):
                "for i in metadata.distributions(): print(i.name + ' ' + i.version + ' ' + str(i.locate_file('')))"
         lines = self.run([self.python, "-c", code], capture=True).split('\n')
         for line in [i.strip() for i in lines if i.strip()]:
-            name, version, location = line.split()
+            name, version, location = line.split(" ", 2)
             res[name] = PackageEntry(name, version, location)
         return res
 
@@ -264,10 +277,16 @@ class VirtualEnv(Workspace):
             self.install_package("importlib_metadata", version=PackageVersion.CURRENT)
             self._importlib_metadata_installed = True
 
-    def _install_editable_package(self, egg_link, package):
-        python_dir = "python{}.{}".format(sys.version_info.major, sys.version_info.minor)
-        shutil.copy(egg_link, self.virtualenv / "lib" / python_dir / "site-packages" / egg_link.name)
-        easy_install_pth_path = self.virtualenv / "lib" / python_dir / "site-packages" / "easy-install.pth"
+    def _install_package_from_editable_egg_link(self, egg_link, package):
+        import pkg_resources
+
+        if sys.platform == "win32":
+            shutil.copy(egg_link, self.virtualenv / "Lib" / "site-packages" / egg_link.name)
+            easy_install_pth_path = self.virtualenv / "Lib" / "site-packages" / "easy-install.pth"
+        else:
+            python_dir = "python{}.{}".format(sys.version_info.major, sys.version_info.minor)
+            shutil.copy(egg_link, self.virtualenv / "lib" / python_dir / "site-packages" / egg_link.name)
+            easy_install_pth_path = self.virtualenv / "lib" / python_dir / "site-packages" / "easy-install.pth"
         with open(easy_install_pth_path, "a") as pth, open(egg_link) as egg_link:
             pth.write(egg_link.read())
             pth.write("\n")
@@ -282,11 +301,35 @@ def _normalize(name):
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def _get_egg_link(pkg_name):
+def _get_egg_link(package_name):
     for path in sys.path:
-        egg_link = pathlib.Path(path) / (pkg_name + ".egg-link")
+        egg_link = pathlib.Path(path) / (package_name + ".egg-link")
         if egg_link.is_file():
             return egg_link
+    return None
+
+
+def _get_editable_package_location_from_direct_url(package_name: str) -> Optional[str]:
+    """
+    Uses the PEP610 direct_url.json to get the installed location of a given
+    editable package.
+    Parameters
+    ----------
+    package_name: The name of the package, for example "pytest_virtualenv".
+
+    Returns
+    -------
+    The URL of the installed package, e.g. "file:///users/<username>/workspace/pytest-plugins/pytest-virtualenv/".
+    """
+
+    try:
+        dist = distribution(package_name)
+        if dist.read_text('direct_url.json') and dist.origin.dir_info.editable:
+            return dist.origin.url
+    except PackageNotFoundError:
+        return None
+    except FileNotFoundError:
+        return None
     return None
 
 

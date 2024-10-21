@@ -1,8 +1,4 @@
-import os
 import pathlib
-import subprocess
-import sys
-import textwrap
 
 import pytest_virtualenv as venv
 

@@ -42,24 +42,24 @@ def test_generates_svg():
     plugin.gprof2dot = "/somewhere/gprof2dot"
     plugin.profs = [sentinel.prof]
     popen1 = Mock(
-        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0)
+        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0), returncode=0
     )
     popen2 = Mock(
-        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0)
+        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0), returncode=0
     )
     with patch("pstats.Stats"):
-        with patch("subprocess.Popen", side_effect=[popen1, popen2]) as popen:
+        with patch("subprocess.Popen") as popen:
+            popen.return_value.__enter__.side_effect = [popen1, popen2]
             plugin.pytest_sessionfinish(Mock(), Mock())
-    calls = popen.mock_calls
-    assert calls[0] == call(
+    popen.assert_any_call(
         ["dot", "-Tsvg", "-o", f"{os.getcwd()}/prof/combined.svg"],
-        stdin=subprocess.PIPE,
-        shell=True,
+        stdin=popen1.stdout,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
-    assert calls[1] == call(
+    popen.assert_any_call(
         ["/somewhere/gprof2dot", "-f", "pstats", f"{os.getcwd()}/prof/combined.prof"],
-        stdout=popen1.stdin,
-        shell=True,
+        stdout=subprocess.PIPE,
     )
 
 
@@ -81,13 +81,14 @@ def test_writes_summary_svg():
     plugin.profs = [sentinel.prof]
     terminalreporter = Mock()
     popen1 = Mock(
-        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0)
+        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0), returncode=0
     )
     popen2 = Mock(
-        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0)
+        communicate=Mock(return_value=[None, None]), poll=Mock(return_value=0), returncode=0
     )
     with patch("pstats.Stats"):
-        with patch("subprocess.Popen", side_effect=[popen1, popen2]):
+        with patch("subprocess.Popen") as popen:
+            popen.return_value.__enter__.side_effect = [popen1, popen2]
             plugin.pytest_sessionfinish(Mock(), Mock())
         plugin.pytest_terminal_summary(terminalreporter)
     assert "SVG" in terminalreporter.write.call_args[0][0]
