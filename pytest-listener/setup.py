@@ -41,7 +41,7 @@ if __name__ == '__main__':
         classifiers=classifiers,
         install_requires=install_requires,
         tests_require=tests_require,
-        packages=find_packages(exclude='tests'),
+        py_modules=['pytest_listener'],
         entry_points=entry_points,
     ))
     setup(**kwargs)
