@@ -162,7 +162,7 @@ class HTTPDServer(HTTPTestServer):
 
     @property
     def run_cmd(self):
-        return [CONFIG.httpd_executable, '-f', self.config]
+        return [CONFIG.httpd_executable, '-f', str(self.config)]
 
     def kill(self, retries=5):
         pid = self.pid
