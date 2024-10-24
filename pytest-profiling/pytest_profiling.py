@@ -126,10 +126,10 @@ class Profiling(object):
         try:
             prof.dump_stats(prof_filename)
         except EnvironmentError as err:
-            if err.errno != errno.ENAMETOOLONG:
+            if err.errno not in (errno.ENAMETOOLONG, errno.EINVAL):
                 raise
 
-            if len(item.name) < LARGE_FILENAME_HASH_LEN:
+            if err.errno == errno.ENAMETOOLONG and len(item.name) < LARGE_FILENAME_HASH_LEN:
                 raise
 
             hash_str = md5(item.name.encode('utf-8')).hexdigest()[:LARGE_FILENAME_HASH_LEN]
