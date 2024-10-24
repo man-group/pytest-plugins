@@ -148,7 +148,7 @@ class ServerThread(threading.Thread):
             ProcessReader(self.p, self.p.stderr, True).start()
 
     def run(self):
-        log.debug("Running server: %s" % ' '.join(self.run_cmd))
+        log.debug("Running server: %s" % ' '.join(str(c) for c in self.run_cmd))
         log.debug("CWD: %s" % self.cwd)
         try:
             if self.run_stdin:

@@ -1,3 +1,40 @@
+orbs:
+  win: circleci/windows@2.2.0
+
+windows-tmpl: &windows-tmpl
+  parameters:
+    python-version:
+      type: string
+  executor:
+    name: win/default
+    shell: bash.exe
+  steps:
+    - checkout
+    - run:
+        name: Set up Python
+        command: |
+          set -e
+          . install.sh
+          install_windows_make
+          install_windows_python << parameters.python_version >>
+          init_venv python
+    - run:
+        name: Install dependencies
+        command: |
+          python --version
+          make develop
+    - run:
+        name: Run tests
+        command: |
+          export DEBUG=1
+          export SERVER_FIXTURES_JENKINS_WAR=
+          export PACKAGES=$(./foreach.sh --quiet 'grep -q Windows setup.py && echo $PKG || true')
+          make test-ci
+    - store_test_results:
+        path: junit
+    - run:
+        name: Check for failures
+        command: make list-test-failures
 
 test-tmpl: &test-tmpl
   command: |
@@ -6,7 +43,8 @@ test-tmpl: &test-tmpl
     export DEBUG=1
     export SERVER_FIXTURES_HOSTNAME=127.0.0.1
     export SERVER_FIXTURES_JENKINS_WAR=
-    cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc setup.py test -sv -ra || touch ../FAILED-$(basename $PWD)
+    set -x
+    cat *.egg-info/top_level.txt  | xargs -Ipysrc coverage run -p --source=pysrc -m pytest --junitxml junit.xml -svvvv -ra || touch ../FAILED-$(basename $PWD)
 
 job-tmpl: &job-tmpl
   machine:
@@ -43,6 +81,9 @@ job-tmpl: &job-tmpl
     - run:
         name: Install Mongodb
         command: sudo bash -c "source ./install.sh && install_mongodb"
+    - run:
+        name: Install Graphviz
+        command: sudo bash -c "source ./install.sh && install_graphviz"
     - run:
         name: Install Apache
         command: sudo bash -c "source ./install.sh && install_apache"
@@ -148,17 +189,22 @@ job-tmpl: &job-tmpl
           - ./*
           - ./dist/*
 
-version: 2
+version: 2.1
 jobs:
-  py36:
+  python-ubuntu:
     <<: *job-tmpl
+    parameters:
+      python_version:
+        type: string
     environment:
-      PYTHON: "python3.6"
-
-  py37:
-    <<: *job-tmpl
+      PYTHON: << parameters.python_version >>
+  python-windows:
+    <<: *windows-tmpl
+    parameters:
+      python_version:
+        type: string
     environment:
-      PYTHON: "python3.7"
+      PYTHON: << parameters.python_version >>
 
   pypi-release:
     docker:
@@ -212,27 +258,48 @@ jobs:
                 -n ${VERSION} \
                 -b "${CHANGES}" \
                 -soft \
-                ${VERSION} /tmp/to-release/dist
+                "v${VERSION}" /tmp/to-release/dist
 
 
 workflows:
   version: 2
   pytest-plugins:
     jobs:
-      - py36
-      - py37
+      - python-windows:
+          matrix:
+            parameters:
+              python_version:
+                - "python3.6"
+                - "python3.7"
+                - "python3.8"
+                - "python3.9"
+                - "python3.10"
+                - "python3.11"
+                - "python3.12"
+      - python-ubuntu:
+          matrix:
+            parameters:
+              python_version:
+                - "python3.6"
+                - "python3.7"
+                - "python3.8"
+                - "python3.9"
+                - "python3.10"
+                - "python3.11"
+                - "python3.12"
+                - "python3.13"
       - pypi-release:
           requires:
-            - py36
-            - py37
+            - python-ubuntu
+            - python-windows
           filters:
             branches:
               only:
                 - master
       - publish-github-release:
           requires:
-            - py36
-            - py37
+            - python-ubuntu
+            - python-windows
           filters:
             branches:
               only:
