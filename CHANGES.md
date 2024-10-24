@@ -1,7 +1,20 @@
 ## Changelog
-### 1.8.1 (2024-10-??)
- * All: Windows builds added to CircleCI
- * All: Started building py3.6-py3.13 in CircleCI
+### 1.8.1 (2024-11-29)
+ * All: Add a CircleCI Windows build with py3.6-py3.12 and remove references to TravisCI. (#246)
+ * All: Add Ubuntu builds for py3.6-3.13
+ * All: CircleCI release jobs now depend on both Ubuntu and Windows success.
+ * pytest-listener: Use py_modules in setup.py
+ * pytest-listener: Fix flakiness on py3.9+ on Windows when the receive time was equal to the clear_time.
+ * pytest-profiling: Small refactor to make error messages a bit clearer
+ * pytest-profiling: Fixed tests which were installing from PyPI rather than local
+ * pytest-profiling: Removed usage of deprecated `pytest.yield_fixture`.
+ * pytest-profiling: Removed usage of `distutils`, where possible.
+ * pytest-server-fixtures: Correct httpd command line
+ * pytest-server-fixtures: Minor bugfix now that workspace.workspace is a Path object.
+ * pytest-virtualenv: Added default to install editable packages by using direct_url.json, if it exists
+ * pytest-virtualenv: Fixed Windows compatibility issues
+ * ci: Remove custom hooks from `python setup.py test` since this is no longer supported.
+ * ci: Fix build-related buttons in README.md.
 
 ### 1.8.0 (2024-10-17)
  * All: Drop support for Python 2 and <3.6, removing compatibility code.
