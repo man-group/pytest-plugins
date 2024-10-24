@@ -43,7 +43,10 @@ class XvfbServer(object):
 
     def __init__(self):
         tmpdir = mkdtemp(prefix='XvfbServer.', dir=Workspace.get_base_tempdir())
-        for servernum in range(os.getpid(), 65536):
+        pid_max = 65536
+        with open('/proc/sys/kernel/pid_max') as pid_max_file:
+            pid_max = int(pid_max_file.read())
+        for servernum in range(os.getpid(), pid_max):
             if os.path.exists('/tmp/.X{0}-lock'.format(servernum)):
                 continue
             self.display = ':' + str(servernum)
