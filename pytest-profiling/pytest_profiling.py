@@ -29,6 +29,7 @@ class Profiling(object):
     profs = []
     stripdirs = False
     combined = None
+    dot = None
     err_msg = None
     exit_code = None
     dot_cmd = None
@@ -57,6 +58,7 @@ class Profiling(object):
             for prof in self.profs[1:]:
                 combined.add(prof)
             self.combined = os.path.abspath(os.path.join(self.dir, "combined.prof"))
+            self.dot = os.path.abspath(os.path.join(self.dir, "combined.dot"))
             combined.dump_stats(self.combined)
             if self.svg:
                 self.svg_name = os.path.abspath(os.path.join(self.dir, "combined.svg"))
@@ -65,28 +67,23 @@ class Profiling(object):
                 # gprof2dot -f pstats prof/combined.prof | dot -Tsvg -o prof/combined.svg
 
                 # the 2 commands that we wish to execute
-                gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined]
-                dot_args = ["dot", "-Tsvg", "-o", self.svg_name]
+                gprof2dot_args = [self.gprof2dot, "-f", "pstats", self.combined, '--output',
+                                  self.dot]
+                dot_args = ["dot", "-Tsvg", "-o", self.svg_name, self.dot]
                 self.dot_cmd = " ".join(dot_args)
                 self.gprof2dot_cmd = " ".join(gprof2dot_args)
 
-                # A handcrafted Popen pipe actually seems to work on both windows and unix:
-                # do it in 2 subprocesses, with a pipe in between
                 try:
-                    with subprocess.Popen(gprof2dot_args, stdout=subprocess.PIPE) as pgprof:
-                        with subprocess.Popen(
-                            dot_args, stdin=pgprof.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                        ) as pdot:
-                            pgprof.stdout.close()  # Allow pgprof to receive a SIGPIPE if pdot exits
-                            stdout, stderr = pdot.communicate()
-                            if pgprof.returncode != 0:
-                                self.err_msg = f"gprof2dot failed with return code {pgprof.returncode}"
-                                self.exit_code = pgprof.returncode
-                            if pdot.returncode != 0:
-                                self.err_msg = f"dot failed with return code {pdot.returncode}: {stderr.decode()}"
-                                self.exit_code = pdot.returncode
-                            else:
-                                self.exit_code = 0
+                    ret_code = subprocess.call(gprof2dot_args)
+                    if ret_code != 0:
+                        self.err_msg = f"gprof2dot failed with return code {ret_code}"
+                        self.exit_code = ret_code
+                    ret_code = subprocess.call(dot_args)
+                    if ret_code != 0:
+                        self.err_msg = f"dot failed with return code {ret_code}"
+                        self.exit_code = ret_code
+                    else:
+                        self.exit_code = 0
 
                 except subprocess.CalledProcessError as e:
                     self.err_msg = stderr.decode()
