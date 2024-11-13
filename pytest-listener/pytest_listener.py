@@ -18,12 +18,17 @@ CLEAR = json.dumps(['CLEAR']).encode('utf-8')
 TIMEOUT_DEFAULT = 10
 DEBUG = False
 logger = logging.getLogger('pytest-listener')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 
 
 @pytest.yield_fixture(scope='module')
 def listener(request):
-    """ Simple module-scoped network listener. 
-    
+    """ Simple module-scoped network listener.
+
     Methods
     -------
     send(data, timeout):  Send data to the listener
@@ -142,7 +147,7 @@ class Listener(Thread):
         if t is not None:
             if DEBUG:
                 logger.info('diff %s' % (t - self.clear_time))
-            if t < self.clear_time:
+            if t <= self.clear_time:
                 if DEBUG:
                     logger.info('%s < %s' % (t, self.clear_time))
                     logger.info('discarding cleared %s' % d)
@@ -159,11 +164,12 @@ class Listener(Thread):
         return False
 
     def receive(self, timeout=TIMEOUT_DEFAULT):
-        if timeout is not None:
-            MAX_COUNT = int(timeout) * 10
+        if timeout is None:
+            raise ValueError("timeout cannot be None")
+        max_count = int(timeout) * 10
         d = None
         count = 0
-        while d is None and count < MAX_COUNT:
+        while d is None and count < max_count:
 
             d, t = self.get_data()
             if d is None:
