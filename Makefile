@@ -31,13 +31,10 @@ copyfiles:
 
 wheels: copyfiles
 	pip install ${PIP_INSTALL_ARGS} -U wheel
-	./foreach.sh --changed 'python setup.py bdist_wheel'
-
-eggs: copyfiles
-	./foreach.sh --changed 'python setup.py bdist_egg'
+	./foreach.sh 'python setup.py bdist_wheel'
 
 sdists: copyfiles
-	./foreach.sh --changed 'python setup.py sdist'
+	./foreach.sh 'python setup.py sdist'
 
 install: copyfiles
 	pip install ${PIP_INSTALL_ARGS} -U wheel
@@ -69,7 +66,7 @@ list-test-failures:
 
 upload:
 	pip install twine
-	./foreach.sh --changed '[ -f common_setup.py ] && twine upload $(UPLOAD_OPTS) dist/*'
+	./foreach.sh'[ -f common_setup.py ] && twine upload $(UPLOAD_OPTS) dist/*'
 
 clean:
 	./foreach.sh 'rm -rf build dist *.xml *.egg-info .eggs htmlcov .cache $(COPY_FILES)'
