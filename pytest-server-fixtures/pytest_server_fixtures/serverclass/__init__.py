@@ -2,7 +2,6 @@
 Implementation of how a server fixture will run.
 """
 # flake8: noqa
-from __future__ import absolute_import
 
 def create_server(server_class, **kwargs):
     if server_class == 'thread':

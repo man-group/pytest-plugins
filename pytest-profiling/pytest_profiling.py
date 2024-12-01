@@ -1,7 +1,5 @@
 """pytest: avoid already-imported warning: PYTEST_DONT_REWRITE."""
 
-from __future__ import absolute_import
-
 import sys
 import os
 import cProfile
@@ -10,7 +8,6 @@ import errno
 from hashlib import md5
 import subprocess
 
-import six
 import pytest
 
 LARGE_FILENAME_HASH_LEN = 8
@@ -18,8 +15,8 @@ LARGE_FILENAME_HASH_LEN = 8
 
 def clean_filename(s):
     forbidden_chars = set(r'/?<>\:*|"')
-    return six.text_type("".join(c if c not in forbidden_chars and ord(c) < 127 else '_'
-                                 for c in s))
+    return str("".join(c if c not in forbidden_chars and ord(c) < 127 else '_'
+                       for c in s))
 
 
 class Profiling(object):

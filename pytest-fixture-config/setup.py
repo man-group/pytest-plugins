@@ -20,8 +20,7 @@ classifiers = [
 
 install_requires = ['pytest']
 
-tests_require = ['six',
-                 ]
+tests_require = []
 
 if __name__ == '__main__':
     kwargs = common_setup('pytest_fixture_config')

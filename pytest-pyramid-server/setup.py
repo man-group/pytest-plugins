@@ -23,7 +23,6 @@ install_requires = ['pytest-server-fixtures',
                     'pytest',
                     'pyramid',
                     'waitress',
-                    'six',
                     ]
 
 tests_require = [

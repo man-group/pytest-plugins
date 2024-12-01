@@ -3,11 +3,11 @@ Created on 25 Apr 2012
 
 @author: eeaston
 '''
+import io
 import os
 import sys
 import zipfile
 import logging
-from six.moves import cStringIO
 
 from pytest import yield_fixture, fixture
 import devpi_server as _devpi_server
@@ -105,7 +105,7 @@ class DevpiServer(HTTPTestServer):
         client_args.extend(args)
         client_args.extend(['--clientdir', str(self.client_dir)])
         log.info(' '.join(client_args))
-        captured = cStringIO()
+        captured = io.StringIO()
         stdout = sys.stdout
         sys.stdout = captured
         try:

@@ -24,8 +24,7 @@ classifiers = [
     'Programming Language :: Python :: 3.12',
 ]
 
-install_requires = ['six',
-                    'pytest',
+install_requires = ['pytest',
                     'gprof2dot',
                     ]
 

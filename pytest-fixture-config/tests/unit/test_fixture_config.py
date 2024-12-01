@@ -1,11 +1,12 @@
+import importlib
+
 import pytest
-from six.moves import reload_module
 
 # HACK: if the plugin is imported before the coverage plugin then all
 # the top-level code will be omitted from coverage, so force it to be
 # reloaded within this unit test under coverage
 import pytest_fixture_config
-reload_module(pytest_fixture_config)
+importlib.reload(pytest_fixture_config)
 
 from pytest_fixture_config import Config, requires_config, yield_requires_config
 

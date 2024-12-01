@@ -3,8 +3,8 @@ Created on 25 Apr 2012
 
 @author: eeaston
 '''
+import configparser
 import os
-from six.moves import configparser
 import sys
 import socket
 import glob

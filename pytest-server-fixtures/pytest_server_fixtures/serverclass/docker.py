@@ -1,8 +1,6 @@
 """
 Docker server class implementation.
 """
-from __future__ import absolute_import
-
 import logging
 import docker
 

@@ -3,35 +3,19 @@
 """
 import sys
 import os
+import pickle
 import importlib.util
 import logging
 from functools import update_wrapper
 import inspect
 import textwrap
-from contextlib import closing
+from contextlib import closing, ExitStack
 import subprocess
-
-try:
-    from unittest.mock import patch
-except ImportError:
-    # python 2
-    from mock import patch
+from unittest.mock import patch
 
 import execnet
-from six.moves import cPickle  # @UnresolvedImport
 
 from . import cmdline
-
-try:
-    # Python 3
-    from contextlib import ExitStack
-except ImportError:
-    from contextlib2 import ExitStack
-
-try:  # Python 2
-    str_type = basestring
-except NameError:  # Python 3
-    str_type = str
 
 
 log = logging.getLogger(__name__)
@@ -68,7 +52,7 @@ def run(cmd, stdin=None, capture_stdout=True, capture_stderr=False,
 
     (out, _) = p.communicate(stdin)
 
-    if out is not None and not isinstance(out, str_type):
+    if out is not None and not isinstance(out, str):
         try:
             out = out.decode('utf-8')
         except:
@@ -143,22 +127,20 @@ def _make_pickleable(fn):
     # return a pickleable function followed by a tuple of initial arguments
     # could use partial but this is more efficient
     try:
-        cPickle.dumps(fn, protocol=0)
-    except (TypeError, cPickle.PickleError, AttributeError):
+        pickle.dumps(fn, protocol=0)
+    except (TypeError, pickle.PickleError, AttributeError):
         pass
     else:
         return fn, ()
     if inspect.ismethod(fn):
         name, self_ = fn.__name__, fn.__self__
-        if self_ is None:  # Python 2 unbound method
-            self_ = fn.im_class
         return _invoke_method, (self_, name)
     elif inspect.isfunction(fn) and fn.__module__ in sys.modules:
         cls, name = _find_class_from_staticmethod(fn)
         if (cls, name) != (None, None):
             try:
-                cPickle.dumps((cls, name), protocol=0)
-            except cPickle.PicklingError:
+                pickle.dumps((cls, name), protocol=0)
+            except pickle.PicklingError:
                 pass
             else:
                 return _invoke_method, (cls, name)
@@ -176,9 +158,9 @@ def _run_in_subprocess_redirect_stdout(fd):
 
 
 def _run_in_subprocess_remote_fn(channel):
-    from six.moves import cPickle  # @UnresolvedImport @Reimport # NOQA
-    fn, args, kwargs = cPickle.loads(channel.receive(None))
-    channel.send(cPickle.dumps(fn(*args, **kwargs), protocol=0))
+    import pickle
+    fn, args, kwargs = pickle.loads(channel.receive(None))
+    channel.send(pickle.dumps(fn(*args, **kwargs), protocol=0))
 
 
 def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=None):
@@ -204,12 +186,12 @@ def run_in_subprocess(fn, python=sys.executable, cd=None, timeout=None):
                 stack.callback(gw.exit)
             if fix_stdout:
                 with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
-                    chan.send(cPickle.dumps((_run_in_subprocess_redirect_stdout, (fd,), {}), protocol=0))
+                    chan.send(pickle.dumps((_run_in_subprocess_redirect_stdout, (fd,), {}), protocol=0))
                     chan.receive(None)
             with closing(gw.remote_exec(_run_in_subprocess_remote_fn)) as chan:
                 payload = (pkl_fn, tuple(i for t in (preargs, args) for i in t), kwargs)
-                chan.send(cPickle.dumps(payload, protocol=0))
-                return cPickle.loads(chan.receive(timeout))
+                chan.send(pickle.dumps(payload, protocol=0))
+                return pickle.loads(chan.receive(timeout))
     return inner if isinstance(fn, str) else update_wrapper(inner, fn)
 
 

@@ -1,6 +1,5 @@
 """ Temporary directory fixtures
 """
-from __future__ import absolute_import
 import os
 import tempfile
 import shutil
