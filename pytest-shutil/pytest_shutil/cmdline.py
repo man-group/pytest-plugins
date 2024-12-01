@@ -10,12 +10,6 @@ from contextlib import contextmanager
 from tempfile import mkdtemp
 
 
-try:  # Python 2
-    str_type = basestring
-except NameError:  # Python 3
-    str_type = str
-
-
 def get_log():
     return logging.getLogger(__name__)
 

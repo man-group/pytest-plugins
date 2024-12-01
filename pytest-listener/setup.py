@@ -18,8 +18,7 @@ classifiers = [
     'Programming Language :: Python :: 3.7',
 ]
 
-install_requires = ['six',
-                    'pytest',
+install_requires = ['pytest',
                     'pytest-server-fixtures'
                     ]
 

@@ -4,7 +4,6 @@ Created on 25 Apr 2012
 @author: eeaston
 
 '''
-from __future__ import absolute_import
 import socket
 
 import pytest

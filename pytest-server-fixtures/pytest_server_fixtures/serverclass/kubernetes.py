@@ -1,7 +1,6 @@
 """
 Kubernetes server class implementation.
 """
-from __future__ import absolute_import
 
 import os
 import logging

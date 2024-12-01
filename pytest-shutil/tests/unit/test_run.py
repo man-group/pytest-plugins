@@ -1,16 +1,10 @@
+import pickle
 import sys
 from uuid import uuid4
 from subprocess import PIPE, STDOUT
+from unittest.mock import Mock, patch, sentinel, DEFAULT, call
 
 import pytest
-
-try:
-    from unittest.mock import Mock, patch, sentinel, DEFAULT, call
-except ImportError:
-    # python 2
-    from mock import Mock, patch, sentinel, DEFAULT, call
-
-from six.moves import cPickle
 
 from pytest_shutil import run
 
@@ -50,41 +44,41 @@ def test_run_as_main():
 
 
 def test_run_in_subprocess():
-    with patch.multiple('pytest_shutil.run', cPickle=DEFAULT, execnet=DEFAULT) as mocks:
+    with patch.multiple('pytest_shutil.run', pickle=DEFAULT, execnet=DEFAULT) as mocks:
         fn = Mock(__name__='fn')
         res = run.run_in_subprocess(fn, python='sentinel.python')(sentinel.arg, kw=sentinel.kw)
         mocks['execnet'].makegateway.assert_called_once_with('popen//python=sentinel.python')
         gw = mocks['execnet'].makegateway.return_value
         ((remote_fn,), _) = gw.remote_exec.call_args
         chan = gw.remote_exec.return_value
-        mocks['cPickle'].dumps.assert_called_with((fn, (sentinel.arg,), {'kw': sentinel.kw}), protocol=0)
-        chan.send.assert_called_with(mocks['cPickle'].dumps.return_value)
+        mocks['pickle'].dumps.assert_called_with((fn, (sentinel.arg,), {'kw': sentinel.kw}), protocol=0)
+        chan.send.assert_called_with(mocks['pickle'].dumps.return_value)
         chan.receive.assert_has_calls([call(None) for _i in range(gw.remote_exec.call_count)])
-        mocks['cPickle'].loads.assert_called_once_with(chan.receive.return_value)
-        assert res is mocks['cPickle'].loads.return_value
+        mocks['pickle'].loads.assert_called_once_with(chan.receive.return_value)
+        assert res is mocks['pickle'].loads.return_value
         chan.close.assert_has_calls([call() for _i in range(gw.remote_exec.call_count)])
         gw.exit.assert_called_once_with()
 
-    with patch('six.moves.cPickle') as cPickle:
+    with patch('pickle.loads') as loads, patch('pickle.dumps') as dumps:
         channel, fn = Mock(), Mock()
-        cPickle.loads.return_value = (fn, (sentinel.arg,), {'kw': sentinel.kw})
+        loads.return_value = (fn, (sentinel.arg,), {'kw': sentinel.kw})
         remote_fn(channel)
         channel.receive.assert_called_once_with(None)
-        cPickle.loads.assert_called_once_with(channel.receive.return_value)
+        loads.assert_called_once_with(channel.receive.return_value)
         fn.assert_called_once_with(sentinel.arg, kw=sentinel.kw)
-        cPickle.dumps.assert_called_once_with(fn.return_value, protocol=0)
-        channel.send.assert_called_once_with(cPickle.dumps.return_value)
+        dumps.assert_called_once_with(fn.return_value, protocol=0)
+        channel.send.assert_called_once_with(dumps.return_value)
 
 
 def test_run_in_runcd():
-    with patch.multiple('pytest_shutil.run', cPickle=DEFAULT, execnet=DEFAULT) as mocks:
+    with patch.multiple('pytest_shutil.run', pickle=DEFAULT, execnet=DEFAULT) as mocks:
         run.run_in_subprocess(Mock(__name__='fn'), python='sentinel.python',
                                cd='sentinel.cd')(sentinel.arg, kw=sentinel.kw)
         mocks['execnet'].makegateway.assert_called_once_with('popen//python=sentinel.python//chdir=sentinel.cd')
 
 
 def test_run_in_runtimeout():
-    with patch.multiple('pytest_shutil.run', cPickle=DEFAULT, execnet=DEFAULT) as mocks:
+    with patch.multiple('pytest_shutil.run', pickle=DEFAULT, execnet=DEFAULT) as mocks:
         run.run_in_subprocess(Mock(__name__='fn'), python='sentinel.python',
                                timeout=sentinel.timeout)(sentinel.arg, kw=sentinel.kw)
         gw = mocks['execnet'].makegateway.return_value
@@ -100,15 +94,15 @@ def test_run_in_runpickleable_function():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         with patch.object(run, fn.__name__, fn, create=True):
             run.run_in_subprocess(fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            assert cPickle.loads(s) == (fn, (ARG,), {'kw': KW})
+            assert pickle.loads(s) == (fn, (ARG,), {'kw': KW})
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
-            chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
+            chan.send.assert_called_with(pickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
 def test_run_in_runstr():
@@ -118,14 +112,14 @@ def test_run_in_runstr():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         run.run_in_subprocess(source, python='sentinel.python')(ARG, kw=KW)
         ((s,), _) = chan.send.call_args
-        assert cPickle.loads(s) == (run._evaluate_fn_source, (source, ARG,), {'kw': KW})
+        assert pickle.loads(s) == (run._evaluate_fn_source, (source, ARG,), {'kw': KW})
         ((remote_fn,), _) = gw.remote_exec.call_args
         ((chan.receive.return_value,), _) = chan.send.call_args
         remote_fn(chan)
-        chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
+        chan.send.assert_called_with(pickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
 def test_run_in_runnested_function():
@@ -137,14 +131,14 @@ def test_run_in_runnested_function():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         run.run_in_subprocess(fn, python='sentinel.python')(ARG, kw=KW)
         ((s,), _) = chan.send.call_args
-        assert cPickle.loads(s) == (run._evaluate_fn_source, (source, ARG,), {'kw': KW})
+        assert pickle.loads(s) == (run._evaluate_fn_source, (source, ARG,), {'kw': KW})
         ((remote_fn,), _) = gw.remote_exec.call_args
         ((chan.receive.return_value,), _) = chan.send.call_args
         remote_fn(chan)
-        chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
+        chan.send.assert_called_with(pickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
 @pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
@@ -157,23 +151,18 @@ def test_run_in_runbound_method():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         c = C()
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(c.fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
 
-            if sys.version_info < (3, 0, 0):
-                # Bound methods are not pickleable in Python 2.
-                assert cPickle.loads(s) == (run._invoke_method, (c, 'fn', ARG,), {'kw': KW})
-            else:
-                # Bound methods are pickleable in Python 3.
-                assert cPickle.loads(s) == (c.fn, (ARG,), {'kw': KW})
+            assert pickle.loads(s) == (c.fn, (ARG,), {'kw': KW})
 
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
-            chan.send.assert_called_with(cPickle.dumps((c, (ARG,), {'kw': KW}), protocol=0))
+            chan.send.assert_called_with(pickle.dumps((c, (ARG,), {'kw': KW}), protocol=0))
 
 
 @pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
@@ -182,7 +171,7 @@ def test_run_in_runbound_method_on_unpickleable_class():
         def fn(self, *args, **kwargs):
             return self, args, kwargs
     with patch('pytest_shutil.run.execnet'):
-        with pytest.raises(cPickle.PicklingError):
+        with pytest.raises(pickle.PicklingError):
             run.run_in_subprocess(C().fn, python='sentinel.python')(ARG, kw=KW)
 
 
@@ -196,16 +185,16 @@ def test_run_in_rununbound_method():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         c = C()
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(C.fn, python='sentinel.python')(c, ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            assert cPickle.loads(s) == (run._invoke_method, (C, 'fn', c, ARG,), {'kw': KW})
+            assert pickle.loads(s) == (run._invoke_method, (C, 'fn', c, ARG,), {'kw': KW})
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
-            chan.send.assert_called_with(cPickle.dumps((c, (ARG,), {'kw': KW}), protocol=0))
+            chan.send.assert_called_with(pickle.dumps((c, (ARG,), {'kw': KW}), protocol=0))
 
 
 @pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
@@ -214,7 +203,7 @@ def test_run_in_rununbound_method_on_unpickleable_class():
         def fn(self, *args, **kwargs):
             return self, args, kwargs
     with patch('pytest_shutil.run.execnet'):
-        with pytest.raises(cPickle.PicklingError):
+        with pytest.raises(pickle.PicklingError):
             run.run_in_subprocess(C.fn, python='sentinel.python')(C(), ARG, kw=KW)
 
 
@@ -229,15 +218,15 @@ def test_run_in_runstaticmethod():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(C.fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            assert cPickle.loads(s) == (run._invoke_method, (C, 'fn', ARG,), {'kw': KW})
+            assert pickle.loads(s) == (run._invoke_method, (C, 'fn', ARG,), {'kw': KW})
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
-            chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
+            chan.send.assert_called_with(pickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
 @pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
@@ -255,15 +244,15 @@ def fn(*args, **kwargs):
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(C.fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            assert cPickle.loads(s) == (run._evaluate_fn_source, (source, ARG,), {'kw': KW})
+            assert pickle.loads(s) == (run._evaluate_fn_source, (source, ARG,), {'kw': KW})
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
-            chan.send.assert_called_with(cPickle.dumps(((ARG,), {'kw': KW}), protocol=0))
+            chan.send.assert_called_with(pickle.dumps(((ARG,), {'kw': KW}), protocol=0))
 
 
 @pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
@@ -277,21 +266,16 @@ def test_run_in_runclassmethod():
     with patch('pytest_shutil.run.execnet') as execnet:
         gw = execnet.makegateway.return_value
         chan = gw.remote_exec.return_value
-        chan.receive.return_value = cPickle.dumps(sentinel.ret)
+        chan.receive.return_value = pickle.dumps(sentinel.ret)
         c = C()
         with patch.object(run, C.__name__, C, create=True):
             run.run_in_subprocess(c.fn, python='sentinel.python')(ARG, kw=KW)
             ((s,), _) = chan.send.call_args
-            if sys.version_info < (3, 0, 0):
-                # Class methods are not pickleable in Python 2.
-                assert cPickle.loads(s) == (run._invoke_method, (C, 'fn', ARG), {'kw': KW})
-            else:
-                # Class methods are pickleable in Python 3.
-                assert cPickle.loads(s) == (c.fn, (ARG,), {'kw': KW})
+            assert pickle.loads(s) == (c.fn, (ARG,), {'kw': KW})
             ((remote_fn,), _) = gw.remote_exec.call_args
             ((chan.receive.return_value,), _) = chan.send.call_args
             remote_fn(chan)
-            chan.send.assert_called_with(cPickle.dumps((C, (ARG,), {'kw': KW}), protocol=0))
+            chan.send.assert_called_with(pickle.dumps((C, (ARG,), {'kw': KW}), protocol=0))
 
 
 @pytest.mark.xfail(sys.version_info >= (3,5), reason="python3.5 api changes")
@@ -301,5 +285,5 @@ def test_run_in_runclassmethod_on_unpickleable_class():
         def fn(cls, *args, **kwargs):
             return cls, args, kwargs
     with patch('pytest_shutil.run.execnet'):
-        with pytest.raises(cPickle.PicklingError):
+        with pytest.raises(pickle.PicklingError):
             run.run_in_subprocess(C.fn, python='sentinel.python')(ARG, kw=KW)

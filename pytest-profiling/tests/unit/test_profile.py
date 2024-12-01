@@ -2,12 +2,12 @@
 # the top-level code in pytest_profiling will be omitted from
 # coverage, so force it to be reloaded within this test unit under coverage
 
+import importlib
 import os.path
-from six.moves import reload_module  # @UnresolvedImport
 
 import pytest_profiling
 
-reload_module(pytest_profiling)
+importlib.reload(pytest_profiling)
 
 import os
 import subprocess

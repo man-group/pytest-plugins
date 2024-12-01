@@ -18,11 +18,9 @@ classifiers = [
 ]
 
 install_requires = ['pytest',
-                    'six',
                     ]
 
-tests_require = ['mock; python_version<"3.3"',
-                 'pytest-virtualenv',
+tests_require = ['pytest-virtualenv',
                  'coverage',
                  ]
 

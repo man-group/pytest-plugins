@@ -18,7 +18,6 @@ classifiers = [
 ]
 
 install_requires = [
-    'six',
     'execnet',
     'pytest',
     'termcolor',

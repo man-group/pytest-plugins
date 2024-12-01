@@ -3,14 +3,13 @@
 import collections
 import json
 import logging
+import pickle
 import socket
 import time
 from threading import Thread, Event
 from time import sleep
 
 import pytest
-from six import string_types
-from six.moves import cPickle
 from pytest_server_fixtures.base import get_ephemeral_port, get_ephemeral_host
 
 TERMINATOR = json.dumps(['STOP']).encode('utf-8')
@@ -64,7 +63,7 @@ class TimedMsg(object):
         return 'TimedMsg: %s (@ %s)' % (str(self.value), self.time)
 
     def pickled(self):
-        return cPickle.dumps(self)
+        return pickle.dumps(self)
 
 
 class Listener(Thread):
@@ -119,7 +118,7 @@ class Listener(Thread):
             return None, None
 
         try:
-            data = cPickle.loads(data)
+            data = pickle.loads(data)
         except:
             try:
                 data = data.decode('utf-8')
@@ -133,7 +132,7 @@ class Listener(Thread):
         if isinstance(data, TimedMsg):
             d = data.value
             t = data.time
-        elif isinstance(data, string_types):
+        elif isinstance(data, str):
             try:
                 d = json.loads(data)
             except:

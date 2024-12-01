@@ -3,13 +3,10 @@ Created on 25 Apr 2012
 
 @author: eeaston
 '''
-from __future__ import absolute_import
-
 import os.path
 import shutil
 
 import pytest
-import six
 
 from pytest_server_fixtures import CONFIG
 from pytest_fixture_config import yield_requires_config
@@ -95,7 +92,7 @@ class JenkinsTestServer(HTTPTestServer):
         if plugins is None:
             plugins = available_plugins.keys()
         else:
-            if isinstance(plugins, six.string_types):
+            if isinstance(plugins, str):
                 plugins = [plugins]
 
             errors = []
