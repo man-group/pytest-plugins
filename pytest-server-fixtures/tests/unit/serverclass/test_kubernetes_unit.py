@@ -1,12 +1,9 @@
+from unittest.mock import sentinel, patch, Mock
+
 import pytest
 
-try:
-    from unittest.mock import sentinel, patch, Mock
-except ImportError:
-    # python 2
-    from mock import sentinel, patch, Mock
-
 from pytest_server_fixtures.serverclass.kubernetes import KubernetesServer
+
 
 @pytest.mark.skip(reason="Need a way to run this test in Kubernetes")
 @patch('pytest_server_fixtures.serverclass.docker.ServerClass.__init__')

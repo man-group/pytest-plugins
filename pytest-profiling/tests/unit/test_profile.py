@@ -4,6 +4,7 @@
 
 import importlib
 import os.path
+from unittest.mock import Mock, ANY, patch, sentinel, call
 
 import pytest_profiling
 
@@ -13,12 +14,6 @@ import os
 import subprocess
 
 from pytest_profiling import Profiling, pytest_addoption, pytest_configure
-
-try:
-    from unittest.mock import Mock, ANY, patch, sentinel, call
-except ImportError:
-    # python 2
-    from mock import Mock, ANY, patch, sentinel
 
 
 def test_creates_prof_dir():

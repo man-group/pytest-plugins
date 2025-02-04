@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock
+from unittest.mock import Mock
 
 from pytest_verbose_parametrize import pytest_generate_tests
 

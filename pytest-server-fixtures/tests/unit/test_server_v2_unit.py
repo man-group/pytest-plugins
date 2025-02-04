@@ -1,10 +1,7 @@
-try:
-    from unittest.mock import create_autospec, sentinel, call, patch, Mock
-except ImportError:
-    # python 2
-    from mock import create_autospec, sentinel, call, patch, Mock
+from unittest.mock import create_autospec, sentinel, call, patch, Mock
 
 from pytest_server_fixtures.base2 import TestServerV2 as _TestServerV2 # TODO: why as _TestServerV2?
+
 
 def test_init():
     with patch('pytest_shutil.workspace.Workspace.__init__', autospec=True) as init:

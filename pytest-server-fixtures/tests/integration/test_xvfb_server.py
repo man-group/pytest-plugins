@@ -3,12 +3,7 @@ import subprocess
 import time
 
 from itertools import chain, repeat
-
-try:
-    from unittest.mock import patch
-except ImportError:
-    # python 2
-    from mock import patch
+from unittest.mock import patch
 
 import pytest
 from pytest import raises
