@@ -5,7 +5,7 @@ import time
 from itertools import chain, repeat
 
 try:
-    from unittest.mock import patch
+    from unittest.mock import mock_open, patch
 except ImportError:
     # python 2
     from mock import patch
@@ -69,3 +69,23 @@ def test_handles_unexpected_failure_to_start():
         with raises(RuntimeError) as ex:
             XvfbServer()
         assert 'Failed to start Xvfb' in str(ex)
+
+
+def test_handles_64_bit_pids():
+    with patch('os.getpid') as mock_getpid:
+        # This just has to be larger than 65535
+        mock_getpid.return_value = 65537
+        with XvfbServer() as server:
+            assert server.display
+
+
+def test_errors_64_bit_pids():
+    with patch('os.getpid') as mock_getpid:
+        target = 'pytest_server_fixtures.xvfb.open'
+        with patch(target, mock_open(read_data='4')) as m:
+            # This just has to be larger than the returned max PID
+            mock_getpid.return_value = 7
+            with raises(RuntimeError) as ex:
+                XvfbServer()
+    m.assert_called_once_with('/proc/sys/kernel/pid_max')
+    assert 'Unable to find a free server number to start Xvfb' in str(ex)
