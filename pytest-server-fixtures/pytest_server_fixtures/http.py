@@ -17,7 +17,7 @@ from .base import TestServer
 log = logging.getLogger(__name__)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def simple_http_test_server():
     """ Function-scoped py.test fixture to serve up a directory via HTTP.
     """

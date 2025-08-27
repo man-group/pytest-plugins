@@ -14,7 +14,7 @@ class _TestQtApp(object):
 TestQtApp = _TestQtApp()
 
 
-@pytest.yield_fixture(scope="session")
+@pytest.fixture(scope="session")
 def q_application():
     """ Initialise a QT application with a Xvfb server
     """

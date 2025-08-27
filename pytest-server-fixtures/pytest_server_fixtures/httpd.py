@@ -18,7 +18,7 @@ def is_rhel():
     """"Check if OS is RHEL/Centos"""
     return 'el' in platform.uname()[2]
 
-@pytest.yield_fixture(scope='function')
+@pytest.fixture(scope='function')
 @yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 def httpd_server():
     """ Function-scoped httpd server in a local thread.

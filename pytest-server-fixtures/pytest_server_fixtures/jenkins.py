@@ -14,7 +14,7 @@ from pytest_fixture_config import yield_requires_config
 from .http import HTTPTestServer
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 @yield_requires_config(CONFIG, ['jenkins_war', 'java_executable'])
 def jenkins_server():
     """ Session-scoped Jenkins server instance
@@ -29,7 +29,7 @@ def jenkins_server():
         yield p
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.fixture(scope='module')
 @yield_requires_config(CONFIG, ['jenkins_war', 'java_executable'])
 def jenkins_server_module():
     """ Module-scoped Jenkins server instance

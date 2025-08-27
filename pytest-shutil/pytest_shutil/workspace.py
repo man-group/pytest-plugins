@@ -14,7 +14,7 @@ from . import cmdline
 log = logging.getLogger(__name__)
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def workspace():
     """ Function-scoped temporary workspace that cleans up on exit.
 

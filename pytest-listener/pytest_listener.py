@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.fixture(scope='module')
 def listener(request):
     """ Simple module-scoped network listener.
 

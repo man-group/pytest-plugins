@@ -21,7 +21,7 @@ def _mongo_server():
         test_server.teardown()
 
 
-@pytest.yield_fixture(scope='function')
+@pytest.fixture(scope='function')
 @yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server():
     """ Function-scoped MongoDB server started in a local thread.
@@ -40,7 +40,7 @@ def mongo_server():
         yield server
 
 
-@pytest.yield_fixture(scope='session')
+@pytest.fixture(scope='session')
 @yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server_sess():
     """ Same as mongo_server fixture, scoped as session instead.
@@ -49,7 +49,7 @@ def mongo_server_sess():
         yield server
 
 
-@pytest.yield_fixture(scope='class')
+@pytest.fixture(scope='class')
 @yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server_cls(request):
     """ Same as mongo_server fixture, scoped for test classes.
@@ -59,7 +59,7 @@ def mongo_server_cls(request):
         yield server
 
 
-@pytest.yield_fixture(scope='module')
+@pytest.fixture(scope='module')
 @yield_requires_config(CONFIG, ['mongo_bin'])
 def mongo_server_module():
     """ Same as mongo_server fixture, scoped for test modules.

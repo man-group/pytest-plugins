@@ -5,7 +5,7 @@ from pytest_shutil.workspace import Workspace
 from git import Repo
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def git_repo(request):
     """ Function-scoped fixture to create a new git repo in a temporary workspace.
     

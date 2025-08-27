@@ -4,7 +4,7 @@ import pytest
 from pytest_shutil.workspace import Workspace
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def svn_repo():
     """ Function-scoped fixture to create a new svn repo in a temporary workspace.
     
