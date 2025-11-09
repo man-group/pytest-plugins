@@ -89,7 +89,6 @@ class MongoTestServer(TestServerV2):
             '--port=%s' % self.port,
             '--nounixsocket',
             '--syncdelay=0',
-            '--nojournal',
             '--quiet',
         ]
 

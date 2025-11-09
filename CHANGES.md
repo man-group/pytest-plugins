@@ -1,4 +1,16 @@
-## Changelog
+# Changelog
+
+### 1.9.0
+
+* All: Update `make test` runner to use `pytest` instead of deprecated `setup.py test`
+* All: Build wheel and sdist using `python -m build`
+* pytest-server-fixtures: Update deprecated mongo 7.* to 8.2
+* pytest-profile: add support for `cProfile` regex to filter output
+* pytest-profile: update README.md args
+* pytest-virtualenv: fix: Install local dir to virtualenv in later py3
+* ci: fix py3.7-3.14 ubuntu
+* ci: Update support in tests for py3.7-14 for ubuntu 22.04
+
 ### 1.8.1 (2024-11-29)
  * All: Add a CircleCI Windows build with py3.6-py3.12 and remove references to TravisCI. (#246)
  * All: Add Ubuntu builds for py3.6-3.13

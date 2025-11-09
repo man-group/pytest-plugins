@@ -31,11 +31,12 @@ class Profiling(object):
     dot_cmd = None
     gprof2dot_cmd = None
 
-    def __init__(self, svg, dir=None, element_number=20, stripdirs=False):
+    def __init__(self, svg, dir=None, element_number=20, stripdirs=False, element_regex=None):
         self.svg = svg
         self.dir = 'prof' if dir is None else dir[0]
         self.stripdirs = stripdirs
         self.element_number = element_number
+        self.element_regex = element_regex
         self.profs = []
         self.gprof2dot = os.path.abspath(os.path.join(os.path.dirname(sys.executable), 'gprof2dot'))
         if not os.path.isfile(self.gprof2dot):
@@ -98,7 +99,12 @@ class Profiling(object):
             stats = pstats.Stats(self.combined, stream=terminalreporter)
             if self.stripdirs:
                 stats.strip_dirs()
-            stats.sort_stats('cumulative').print_stats(self.element_number)
+            if self.element_regex:
+                print_args = self.element_regex, self.element_number
+            else:
+                print_args = (self.element_number,)
+            stats.sort_stats('cumulative')
+            stats.print_stats(*print_args)
         if self.svg_name:
             if not self.exit_code:
                 # 0 - SUCCESS
@@ -144,6 +150,8 @@ def pytest_addoption(parser):
                     help="generate profiling graph (using gprof2dot and dot -Tsvg)")
     group.addoption("--pstats-dir", nargs=1,
                     help="configure the dump directory of profile data files")
+    group.addoption("--profile-element-regex", type=str, default=None,
+                    help="filters elements displayed using regex")
     group.addoption("--element-number", action="store", type=int, default=20,
                     help="defines how many elements will display in a result")
     group.addoption("--strip-dirs", action="store_true",
@@ -157,4 +165,5 @@ def pytest_configure(config):
         config.pluginmanager.register(Profiling(config.getvalue('profile_svg'),
                                                 config.getvalue('pstats_dir'),
                                                 element_number=config.getvalue('element_number'),
-                                                stripdirs=config.getvalue('strip_dirs')))
+                                                stripdirs=config.getvalue('strip_dirs'),
+                                                element_regex=config.getvalue('profile_element_regex')))

@@ -30,18 +30,16 @@ copyfiles:
 	./foreach.sh 'for file in ${COPY_FILES}; do cp ../$$file .; done'
 
 wheels: copyfiles
-	pip install ${PIP_INSTALL_ARGS} -U wheel
-	./foreach.sh --changed 'python setup.py bdist_wheel'
+	pip install ${PIP_INSTALL_ARGS} -U wheel build
+	./foreach.sh --changed 'python -m build --wheel'
 
 eggs: copyfiles
 	./foreach.sh --changed 'python setup.py bdist_egg'
 
 sdists: copyfiles
-	./foreach.sh --changed 'python setup.py sdist'
+	./foreach.sh --changed 'python -m build --sdist'
 
-install: copyfiles
-	pip install ${PIP_INSTALL_ARGS} -U wheel
-	./foreach.sh 'python setup.py bdist_wheel'
+install: copyfiles wheels
 	./foreach.sh 'pip install ${PIP_INSTALL_ARGS} dist/*.whl'
 
 develop: copyfiles extras
@@ -49,7 +47,7 @@ develop: copyfiles extras
 
 test:
 	rm -f FAILED-*
-	./foreach.sh 'DEBUG=1 python setup.py test -sv -ra || touch ../FAILED-$$PKG'
+	./foreach.sh 'DEBUG=1 python -m pytest -sv -ra || touch ../FAILED-$$PKG'
 	bash -c "! compgen -G 'FAILED-*'"
 
 test-ci:

@@ -28,28 +28,33 @@ function install_python_ppa {
 function install_python_packaging {
   local py=$1
   $py -m pip install --upgrade pip
-  $py -m pip install --upgrade setuptools
+  $py -m pip install --upgrade setuptools wheel
+  $py -m pip install --upgrade packaging
   $py -m pip install --upgrade virtualenv
 }
 
 
 function install_python {
   local py=$1
-  sudo apt-get install -y $py $py-dev
+  sudo apt-get install -y $py
   local version=$(echo $py | grep -oP '(?<=python)\d+\.\d+')
+  case $version in
+    "3.6" | "3.7" | "3.8" | "3.9" )
+      sudo apt-get install -y $py-distutils
+    ;;
+    *)
+      echo ""
+    ;;
+  esac
 
-  if [ "$version" = "3.6" ] || [ "$version" = "3.7" ]; then
-    sudo apt-get install ${py}-distutils || {
-    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/pip/$version/get-pip.py | sudo $py
-    sudo $py -m pip install setuptools
-    }
-  elif [ "$version" = "3.10" ] || [ "$version" = "3.11" ] || [ "$version" = "3.12" ]; then
-    sudo apt-get install ${py}-distutils
-    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $py
-  else
-    sudo apt-get install ${py}
-    curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $py
-  fi
+  case $version in
+    "3.6" | "3.7" | "3.8" )
+      curl --silent --show-error --retry 5 https://bootstrap.pypa.io/pip/$version/get-pip.py | sudo $py
+    ;;
+    *)
+      curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo $py
+    ;;
+  esac
   install_python_packaging $py
 }
 
@@ -92,7 +97,7 @@ function install_windows_python() {
 
 function init_venv {
   local py=$1
-  virtualenv venv --python=$py
+  $py -m virtualenv venv
   if [ -f venv/Scripts/activate ]; then
       . venv/Scripts/activate
   else
@@ -106,11 +111,13 @@ function update_apt_sources {
   curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | gpg --dearmor -o /usr/share/keyrings/jenkins-archive-keyring.gpg
   echo "deb [signed-by=/usr/share/keyrings/jenkins-archive-keyring.gpg] https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-  # Add MongoDB GPG key and repository
-  curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
-     sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
-     --dearmor
-  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+  MONGODB_MAJOR="8.0"
+  MONGODB_MINOR="8.2"
+  curl -fsSL https://www.mongodb.org/static/pgp/server-${MONGODB_MAJOR}.asc | \
+    gpg -o /usr/share/keyrings/mongodb-server-${MONGODB_MAJOR}.gpg \
+    --dearmor
+  echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-${MONGODB_MAJOR}.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/${MONGODB_MINOR} multiverse" | tee /etc/apt/sources.list.d/mongodb-org-${MONGODB_MINOR}.list
+
 
   apt install ca-certificates
   apt-get update
@@ -145,7 +152,7 @@ function install_jenkins {
 }
 
 function install_mongodb {
-  apt-get install -y mongodb mongodb-server
+  apt-get install -y mongodb-org
 }
 
 function install_apache {

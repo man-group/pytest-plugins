@@ -101,6 +101,10 @@ def test_adds_options():
     group = parser.getgroup.return_value
     group.addoption.assert_any_call("--profile", action="store_true", help=ANY)
     group.addoption.assert_any_call("--profile-svg", action="store_true", help=ANY)
+    group.addoption.assert_any_call("--pstats-dir", nargs=1, help=ANY)
+    group.addoption.assert_any_call("--profile-element-regex", type=str, default=None, help=ANY)
+    group.addoption.assert_any_call("--element-number", action="store", type=int, default=20, help=ANY)
+    group.addoption.assert_any_call("--strip-dirs", action="store_true", help=ANY)
 
 
 def test_configures():

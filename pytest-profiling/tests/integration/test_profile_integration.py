@@ -69,3 +69,17 @@ def test_profile_chdir(pytestconfig, virtualenv):
         pytestconfig,
         cd=virtualenv.workspace,
     )
+
+
+def test_profile_limited_output(pytestconfig, virtualenv):
+    element_args = ["--element-number=2", r'--profile-element-regex=.*(test_regex|makedirs).*']
+    # element_args = ["--element-number=100"]
+    print(["-m", "pytest", "--profile", *element_args, "tests/unit/test_regex.py"])
+    output = virtualenv.run_with_coverage(
+        ["-m", "pytest", "--profile", *element_args, "tests/unit/test_regex.py"],
+        pytestconfig,
+        cd=virtualenv.workspace,
+    )
+    assert "test_regex.py:4(test_regex)" in output
+    assert "makedirs" in output
+    assert "chdir" not in output

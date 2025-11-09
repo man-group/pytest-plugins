@@ -16,7 +16,7 @@ Install using your favourite package installer:
     # or
     easy_install pytest-profiling
 ```
-    
+
 Enable the fixture explicitly in your tests or conftest.py (not required when using setuptools entry points):
 
 ```python
@@ -31,9 +31,17 @@ Once installed, the plugin provides extra options to pytest:
     $ py.test --help
     ...
       Profiling:
-        --profile           generate profiling information
-        --profile-svg       generate profiling graph (using gprof2dot and dot
-                            -Tsvg)
+        --profile             generate profiling information
+        --profile-svg         generate profiling graph (using gprof2dot and dot -Tsvg)
+        --pstats-dir=PSTATS_DIR
+                              configure the dump directory of profile data files
+        --element-number=ELEMENT_NUMBER
+                              defines how many elements will display in a result
+        --profile-element-regex=ELEMENT_REGEX
+                              filters elements displayed using regex
+        --strip-dirs          configure to show/hide the leading path information from
+                              file names
+
 ```
 
 The ``--profile`` and ``profile-svg`` options can be combined with any other option:

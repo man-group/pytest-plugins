@@ -210,11 +210,7 @@ class VirtualEnv(Workspace):
             installer += ' -q'
 
         if version == PackageVersion.LATEST:
-            self.run(
-                "{python} {installer} {installer_command} {spec}".format(
-                    python=self.python, installer=installer, installer_command=installer_command, spec=pkg_name
-                )
-            )
+            spec = pkg_name
         elif version == PackageVersion.CURRENT:
             dist = next(
                 iter([dist for dist in distributions() if _normalize(dist.name) == _normalize(pkg_name)]), None
@@ -225,31 +221,22 @@ class VirtualEnv(Workspace):
                 )
                 egg_link = _get_egg_link(dist.name)
                 if pkg_location:
-                    self.run(
-                        f"{self.python} {installer} {installer_command} -e {pkg_location}"
-                    )
+                    spec = f" -e {pkg_location}"
                 elif egg_link:
                     self._install_package_from_editable_egg_link(egg_link, dist)
+                    return
                 else:
-                    spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=dist.version)
-                    self.run(
-                        "{python} {installer} {installer_command} {spec}".format(
-                            python=self.python, installer=installer, installer_command=installer_command, spec=spec
-                        )
-                    )
+                    setup_files = ["pyproject.toml", "setup.py"]
+                    if any(os.path.exists(dist.locate_file(f)) for f in setup_files):
+                        spec = dist.locate_file("")
+                    else:
+                        spec = f"{pkg_name}=={dist.version}"
             else:
-                self.run(
-                    "{python} {installer} {installer_command} {spec}".format(
-                        python=self.python, installer=installer, installer_command=installer_command, spec=pkg_name
-                    )
-                )
+                spec = pkg_name
         else:
-            spec = "{pkg_name}=={version}".format(pkg_name=pkg_name, version=version)
-            self.run(
-                "{python} {installer} {installer_command} {spec}".format(
-                    python=self.python, installer=installer, installer_command=installer_command, spec=spec
-                )
-            )
+            spec = f"{pkg_name}=={version}"
+        cmd = f"{self.python} {installer} {installer_command} {spec}"
+        self.run(cmd)
 
     def installed_packages(self, package_type=None):
         """
