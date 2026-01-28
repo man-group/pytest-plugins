@@ -14,10 +14,6 @@ from .http import HTTPTestServer
 log = logging.getLogger(__name__)
 
 
-def is_rhel():
-    """"Check if OS is RHEL/Centos"""
-    return 'el' in platform.uname()[2]
-
 @pytest.yield_fixture(scope='function')
 @yield_requires_config(CONFIG, ['httpd_executable', 'httpd_modules'])
 def httpd_server():
@@ -52,9 +48,6 @@ class HTTPDServer(HTTPTestServer):
       </IfModule>
       LoadModule mime_module $modules/mod_mime.so
       LoadModule authz_core_module $modules/mod_authz_core.so
-    """
-
-    cfg_rhel_template = """
       LoadModule unixd_module modules/mod_unixd.so
     """
 
@@ -105,17 +98,10 @@ class HTTPDServer(HTTPTestServer):
         """
         self.proxy_rules = proxy_rules if proxy_rules is not None else {}
 
-        if not is_rhel():
-            self.cfg_template = string.Template(self.cfg_modules_template +
-                                                self.cfg_mpm_template +
-                                                self.cfg_template +
-                                                extra_cfg)
-        else:
-            self.cfg_template = string.Template(self.cfg_modules_template +
-                                                self.cfg_rhel_template +
-                                                self.cfg_mpm_template +
-                                                self.cfg_template +
-                                                extra_cfg)
+        self.cfg_template = string.Template(self.cfg_modules_template +
+                                            self.cfg_mpm_template +
+                                            self.cfg_template +
+                                            extra_cfg)
 
         # Always print debug output for this process
         os.environ['DEBUG'] = '1'
