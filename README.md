@@ -15,7 +15,7 @@ Plugin | Description | Supported OS |
 | [pytest-webdriver](pytest-webdriver) | Selenium webdriver fixture |![Linux](img/linux.png)
 | [pytest-virtualenv](pytest-virtualenv) | Virtualenv fixture |![Linux](img/linux.png) ![Windows](img/windows.png)
 | [pytest-qt-app](pytest-qt-app) | PyQT application fixture |![Linux](img/linux.png)
-| [pytest-listener](pytest-listener)  | TCP Listener/Reciever for testing remote systems |![Linux](img/linux.png) ![Windows](img/windows.png)
+| [pytest-listener](pytest-listener)  | TCP Listener/Receiver for testing remote systems |![Linux](img/linux.png) ![Windows](img/windows.png)
 | [pytest-git](pytest-git) | Git repository fixture |![Linux](img/linux.png) ![Windows](img/windows.png)
 | [pytest-svn](pytest-svn) | SVN repository fixture |![Linux](img/linux.png)
 | [pytest-fixture-config](pytest-fixture-config) | Configuration tools for Py.test fixtures |![Linux](img/linux.png) ![Windows](img/windows.png)
